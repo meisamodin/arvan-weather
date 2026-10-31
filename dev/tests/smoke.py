@@ -68,6 +68,13 @@ def metmock():
 def handle(route):
     u = urllib.parse.urlparse(route.request.url); q = urllib.parse.parse_qs(u.query)
     J = lambda o: route.fulfill(status=200, content_type='application/json', body=json.dumps(o))
+    if u.hostname == 'ensemble-api.open-meteo.com':
+        st = NOW.replace(hour=0); T = [(st + timedelta(hours=k)).strftime('%Y-%m-%dT%H:%M') for k in range(240)]; h = {'time': T}
+        for m in range(31):
+            sfx = '' if m == 0 else '_member%02d' % m
+            h['temperature_2m' + sfx] = [round(18 - k / 40 + 6 * math.sin((k % 24 - 9) / 24 * 6.28) + (m - 15) * k / 900, 1) for k in range(240)]
+            h['precipitation' + sfx] = [round(max(0, math.sin(k / 30 + m / 5)) * (1.5 if 60 < k < 110 else .2), 2) for k in range(240)]
+        return J({'hourly': h})
     if u.hostname == 'api.met.no': return route.fulfill(status=200, content_type='application/json', body=json.dumps(metmock()))
     if FAIL_OM and 'open-meteo' in u.hostname: return route.fulfill(status=429, content_type='application/json', body=json.dumps({'error': True, 'reason': 'Hourly API request limit exceeded. Please try again in the next hour.'}))
     if u.hostname == 'api.open-meteo.com':
@@ -228,7 +235,7 @@ with sync_playwright() as p:
     pg.click('nav button[data-t=md]'); pg.wait_for_timeout(300)
     pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/wb1.png', full_page=True)
     pg.click('#wbL .chip[data-l="72"]'); pg.wait_for_timeout(800); pg.screenshot(path=f'{OUT}/wb1b.png', full_page=True); pg.click('#t-md [data-wp=jet]'); pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/wb-jet.png', full_page=True); pg.click('#t-md [data-wp=z500]'); pg.wait_for_timeout(2500); pg.click('#wbCmp'); pg.wait_for_timeout(3000); pg.screenshot(path=f'{OUT}/wb2.png', full_page=True)
-    pg.click('#mdV button[data-v=city]'); pg.wait_for_timeout(500)
+    pg.click('#mdV button[data-v=city]'); pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/ens.png', full_page=True)
     pg.click('#t-md .mchip[data-m=kma_seamless]'); pg.wait_for_timeout(200); pg.click('#t-md .mchip[data-m=knmi_seamless]'); pg.wait_for_timeout(1500)
     pg.screenshot(path=f'{OUT}/6-models.png', full_page=True)
     pg.click('#cityBtn'); pg.wait_for_timeout(300); pg.fill('#q', 'شیراز'); pg.wait_for_timeout(900); pg.screenshot(path=f'{OUT}/7-cities.png', full_page=True)

@@ -313,6 +313,8 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 .pmp.on{width:26px;height:26px;margin:-26px 0 0 -13px;background:#ef4444;z-index:2}.pmp span{position:absolute;transform:rotate(45deg);top:-30px;left:50%;white-space:nowrap;background:#0f172a;color:#fff;font-size:12px;padding:3px 8px;border-radius:8px;translate:-50% 0;direction:rtl}
 .pme{position:absolute;width:16px;height:16px;margin:-8px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 0 8px rgba(59,130,246,.25)}
 .pmf{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:10px 12px calc(12px + env(safe-area-inset-bottom));background:rgba(15,26,51,.95);color:#fff;border-radius:20px 20px 0 0}.pmf .chip{text-decoration:none;color:inherit}
+.ensr{display:grid;grid-template-columns:70px 1fr 36px 74px;gap:6px;align-items:center;padding:4px 0;border-top:1px solid var(--line);font-size:12.5px}.ensh{border-top:0}.ensr small{font-size:10.5px;color:var(--sub);text-align:left}
+.ensb{position:relative;height:10px;border-radius:5px;background:rgba(255,255,255,.08);overflow:hidden}.ensb i{position:absolute;right:0;top:0;bottom:0;border-radius:5px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 
 </style>
@@ -383,6 +385,9 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
   <div class="sec">ظاهر</div>
   <div style="margin:8px 0"><div style="margin-bottom:6px">پوسته</div><div class="seg" data-k="theme" style="flex-wrap:wrap"><button data-v="dyn">🌈 پویا</button><button data-v="dark">🌙 تیره</button><button data-v="oled">⚫ مشکی</button><button data-v="light">☀️ روشن</button><button data-v="sys">📱 سیستم</button></div><small style="color:var(--dim)">«پویا» رنگ برنامه را با وضعیت هوا و شب و روز عوض می‌کند.</small></div>
   <div class="setl"><span>اندازه متن</span><div class="seg" data-k="fs"><button data-v="90">کوچک</button><button data-v="100">عادی</button><button data-v="112">بزرگ</button><button data-v="125">خیلی بزرگ</button></div></div>
+  <div class="sec">صفحه اصلی</div>
+  <div class="setl"><span>تب شروع</span><select class="inp" id="startTab" style="width:auto;padding:7px 10px"><option value="now">اکنون</option><option value="fc">پیش‌بینی</option><option value="rd">رادار</option><option value="map">نقشه</option><option value="md">مدل‌ها</option></select></div>
+  <div id="cardSet" style="margin-top:6px"><div style="font-size:13px;margin-bottom:6px">کارت‌های صفحه «اکنون» (برای پنهان کردن بزنید)</div><div class="chips" id="cardTg"></div></div>
   <div class="sec">هشدارها</div>
   <div class="setl"><span>خلاصه صبحگاهی هوا<br><small style="color:var(--dim)">هر صبح یک اعلان کوتاه (برنامه نصب‌شده روی اندروید)</small></span><button class="sw" id="mornSw" aria-label="خلاصه صبحگاهی"></button></div>
   <div class="setl"><span>اعلان هشدارهای جوی<br><small style="color:var(--dim)">طوفان، گرد و غبار، یخبندان، گرمای شدید، آلودگی</small></span><button class="sw" id="notifSw" aria-label="اعلان"></button></div>
@@ -397,6 +402,9 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
    <details class="hp"><summary>📡 تب رادار</summary><div>«بارش سراسری ایران» تخمین مدل برای کل کشور از ۲ ساعت قبل تا ۶ ساعت بعد است. «رادارهای کشور» تصویر واقعی ۹ رادار سازمان هواشناسی (کرمانشاه، تهران، تبریز و…) در ۲ ساعت گذشته است. «ماهواره ناسا» بارش مشاهده‌شده با حدود ۷ ساعت تأخیر است.</div></details>
    <details class="hp"><summary>🗺️ نقشه باد و ارتفاعات</summary><div>خطوط متحرک، جهت و سرعت واقعی باد را نشان می‌دهند. ردیف «ارتفاع» سطح را از زمین تا جت‌استریم ۱۰ کیلومتری عوض می‌کند. با لغزنده، ۴۸ ساعت آینده را ببینید و روی هر نقطه بزنید تا مقدار دقیق را ببینید. لایه زلزله، زمین‌لرزه‌های هفته اخیر را نشان می‌دهد.</div></details>
    <details class="hp"><summary>📈 مدل‌ها و اطمینان</summary><div>هر مدل جهانی (ECMWF، GFS، ICON و…) پیش‌بینی خودش را دارد. وقتی مدل‌ها به هم نزدیک‌اند «اطمینان بالا» است؛ اختلاف زیاد یعنی پیش‌بینی قطعی نیست.</div></details>
+   <details class="hp"><summary>🚗 تب سفر</summary><div>هوای مسیر با زمان رسیدن به هر نقطه، وضعیت جوی ۱۰ جاده و گردنه، دیدنی‌ها، هتل‌ها، پمپ بنزین، رستوران و بیمارستان‌های هر شهر روی نقشه داخل اپ، کوهستان و پیست‌های اسکی، سواحل و دوربین‌های راهداری.</div></details>
+   <details class="hp"><summary>🎲 پیش‌بینی گروهی</summary><div>در تب مدل‌ها ← «مقایسه برای شهر»، مدل ده‌ها بار با شرایط کمی متفاوت اجرا می‌شود. باز شدن خطوط یعنی عدم قطعیت؛ درصد بارش یعنی چند درصد اجراها بارش داده‌اند.</div></details>
+   <details class="hp"><summary>📶 خطای سقف درخواست / VPN</summary><div>سرویس رایگان داده برای هر IP سقف دارد؛ با VPN ممکن است سقف زودتر پر شود. در این حالت اپ خودکار از هواشناسی نروژ استفاده می‌کند. با خاموش کردن VPN یا یک ساعت صبر مشکل حل می‌شود.</div></details>
    <details class="hp"><summary>🔔 هشدارها</summary><div>هشدار طوفان، باد شدید، بارش سنگین، برف، یخبندان، گرما، UV، مه، گرد و غبار و آلودگی از روی پیش‌بینی ۷۲ ساعت آینده ساخته می‌شوند. با روشن کردن اعلان، هنگام باز کردن برنامه هشدار جدید را اعلان می‌کند.</div></details>
   </div>
   <div class="sec">بازخورد و گزارش مشکل</div>
@@ -421,7 +429,7 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 
 <script>
 'use strict';
-const VERSION='1.17.0';
+const VERSION='1.18.0';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -484,7 +492,7 @@ function setBG(code,day){if(typeof resTheme==='function'&&resTheme()!=='dyn')ret
 async function getJSON(url,ms=15000){url=await omGate(url);const ac=new AbortController();const t=setTimeout(()=>ac.abort(),ms);try{const r=await fetch(url,{signal:ac.signal});if(!r.ok){let m='';try{m=(await r.json()).reason}catch(e){}if(r.status===429&&/open-meteo/.test(url)){omOn429(m);const e=omLimitErr();throw e}throw new Error(m||('HTTP '+r.status))}return await r.json()}catch(e){if(e.name==='AbortError')throw new Error('زمان پاسخ‌گویی سرور تمام شد');throw e}finally{clearTimeout(t)}}
 /* ---------- Open-Meteo quota guard + MET Norway fallback ---------- */
 const OM={used:[],cool:0,why:'',warned:0};
-const OM_HOSTS={'api.open-meteo.com':'customer-api.open-meteo.com','archive-api.open-meteo.com':'customer-archive-api.open-meteo.com','air-quality-api.open-meteo.com':'customer-air-quality-api.open-meteo.com','marine-api.open-meteo.com':'customer-marine-api.open-meteo.com'};
+const OM_HOSTS={'api.open-meteo.com':'customer-api.open-meteo.com','archive-api.open-meteo.com':'customer-archive-api.open-meteo.com','air-quality-api.open-meteo.com':'customer-air-quality-api.open-meteo.com','marine-api.open-meteo.com':'customer-marine-api.open-meteo.com','ensemble-api.open-meteo.com':'customer-ensemble-api.open-meteo.com'};
 function omWeight(U){const P=U.searchParams,n=(P.get('latitude')||'0').split(',').length,vars=['hourly','daily','current','minutely_15'].reduce((s,k)=>s+((P.get(k)||'').split(',').filter(Boolean).length),0);
   let days=(+(P.get('forecast_days')||7))+(+(P.get('past_days')||0));const sd=P.get('start_date'),ed=P.get('end_date'),sh=P.get('start_hour'),eh=P.get('end_hour');if(sd&&ed)days=(new Date(ed)-new Date(sd))/864e5+1;else if(sh&&eh)days=(new Date(eh)-new Date(sh))/864e5;
   const mods=(P.get('models')||'x').split(',').length;return n*Math.max(1,vars/10)*Math.max(1,days/14)*mods}
@@ -631,30 +639,31 @@ function moonSvg(age){const r=22,c=26;const lit=Math.cos(2*Math.PI*age);const rx
   const sweepOuter=wax?1:0;const sweepInner=(lit>0)===wax?1:0;
   return `<svg viewBox="0 0 52 52" width="52" height="52"><circle cx="${c}" cy="${c}" r="${r}" fill="rgba(255,255,255,.12)"/><path d="M${c} ${c-r} A${r} ${r} 0 0 ${sweepOuter} ${c} ${c+r} A${rx.toFixed(2)} ${r} 0 0 ${sweepInner} ${c} ${c-r}z" fill="#f4e7a1"/></svg>`}
 function renderNow(){
+  const hid=k=>(S.hide||[]).includes(k);
   const c=D.current,d=D.daily,h=D.hourly,s=i0();
   let html='';
   {const AL=alerts(),one=a=>`<div class="alert ${a.lv}"><span class="ai">${a.ic}</span><div><b>${esc(a.t)}</b><span>${esc(a.m)}</span></div></div>`;html+=AL.slice(0,2).map(one).join('');if(AL.length>2)html+=`<details class="almore"><summary>⚠️ ${fa(AL.length-2)} هشدار دیگر</summary>${AL.slice(2).map(one).join('')}</details>`}
   html+=`<section class="hero">${skyBand()}<canvas id="heroFx"></canvas><div class="ic">${icon(c.weather_code,c.is_day)}</div><div class="tmp">${tS(c.temperature_2m)}</div><div class="desc">${WC[c.weather_code]||''}</div>
    <div class="sub">احساس واقعی ${tS(c.apparent_temperature)} · بیشینه ${tS(d.temperature_2m_max[0])} · کمینه ${tS(d.temperature_2m_min[0])}</div><div class="qk"><span>💧 ${fa(c.relative_humidity_2m)}٪</span><span>💨 ${fa(Math.round(wV(c.wind_speed_10m)))} ${WU[S.w][1]}</span><span>☔ ${fa(d.precipitation_probability_max[0]||0)}٪</span><span>☀️ UV ${fa(Math.round(d.uv_index_max[0]||0))}</span></div><div class="sum">${summary()}</div>
    <div class="stale">به‌روزرسانی: ${ago(D._t)} · ${D.src==='met'?'🇳🇴 منبع پشتیبان: هواشناسی نروژ (MET Norway)':D.src==='blend'?'🤝 میانگین '+fa(D.blend||5)+' مدل':D.src&&D.src!=='best'&&MM[D.src]?'مدل '+MM[D.src][2]:'بهترین ترکیب مدل‌ها'}</div><div class="tools"><button class="chip" onclick="shareWeather()">📤 اشتراک</button><button class="chip" onclick="storyCard()">🖼️ کارت استوری</button><button class="chip" onclick="openGlance()">⛶ تمام‌صفحه</button><a class="chip" href="#" onclick="go('rd');return false" style="text-decoration:none;color:inherit">📡 رادار</a></div></section>`;
-  html+=nowcastCard();
+  if(!hid('nc'))html+=nowcastCard();
   // hourly 24
   let hs='';const sev=[];d.time.forEach((t,i)=>{if(d.sunrise[i])sev.push([d.sunrise[i],'🌅','طلوع']);if(d.sunset[i])sev.push([d.sunset[i],'🌇','غروب'])});
   for(let k=s;k<Math.min(s+25,h.time.length);k++){const pr=h.precipitation_probability[k],mm=h.precipitation[k],hh=+h.time[k].slice(11,13);
     if(hh===0&&k!==s)hs+=`<div class="hday">${dayName(h.time[k],d.time.indexOf(h.time[k].slice(0,10)))}</div>`;
     hs+=`<div class="hr ${k===s?'now':''}"><div class="t">${k===s?'اکنون':fa(hh)+':۰۰'}</div>${icon(h.weather_code[k],h.is_day[k])}<div class="v">${tS(h.temperature_2m[k])}</div><div class="p">${pr>=10?'💧'+fa(pr)+'٪':''}</div><div class="hm">${mm>=.1?fa(mm,1)+'mm':''}</div><div class="hw"><svg viewBox="0 0 10 10" style="transform:rotate(${(h.wind_direction_10m[k]||0)+180}deg)"><path d="M5 1l3 7-3-2-3 2z" fill="currentColor"/></svg>${fa(Math.round(wV(h.wind_speed_10m[k])))}</div></div>`;
     sev.forEach(e=>{if(e[0].slice(0,13)===h.time[k].slice(0,13)&&k>s-1)hs+=`<div class="hr hsun"><div class="t">${hhmm(e[0])}</div><div class="sev">${e[1]}</div><div class="v" style="font-size:12px">${e[2]}</div></div>`})}
-  html+=`<div class="card"><h3>⏱️ پیش‌بینی ساعتی<span class="r">${fa(24)} ساعت آینده</span></h3><div class="scroll-x"><div class="hours">${hs}</div></div></div>`;
+  if(!hid('hr'))html+=`<div class="card"><h3>⏱️ پیش‌بینی ساعتی<span class="r">${fa(24)} ساعت آینده</span></h3><div class="scroll-x"><div class="hours">${hs}</div></div></div>`;
   // 10 day
   const gmin=Math.min(...d.temperature_2m_min),gmax=Math.max(...d.temperature_2m_max),rg=(gmax-gmin)||1;let ds='';
   d.time.forEach((t,i)=>{const lo=d.temperature_2m_min[i],hi=d.temperature_2m_max[i],r1=(lo-gmin)/rg*100,r2=(gmax-hi)/rg*100,pr=d.precipitation_probability_max[i];
     let dot='';if(i===0){dot=`<em style="right:${((c.temperature_2m-gmin)/rg*100).toFixed(1)}%"></em>`}
     ds+=`<div class="day dclk${i>=10?' lc':''}" onclick="S.fcOpen=${i};go('fc')"><div class="n">${dayName(t,i)}<small>${fmtJ(t,{day:'numeric',month:'short'})}</small></div>${icon(d.weather_code[i],1)}<div class="p">${pr>=10?'💧'+fa(pr)+'٪':''}</div><div class="lo">${tS(lo)}</div><div class="bar"><i style="right:${r1.toFixed(1)}%;left:${r2.toFixed(1)}%;background:linear-gradient(to left,${rgb(tempColor(lo))},${rgb(tempColor(hi))})"></i>${dot}</div><div class="hi">${tS(hi)}</div></div>`});
   const _ex=1;
-  html+=`<div class="card"><h3>📅 پیش‌بینی ${fa(d.time.length)} روزه${d.time.length>10?'<span class="r">روزهای کم‌رنگ: اطمینان کمتر</span>':''}</h3>${ds}</div>`;
+  if(!hid('dy'))html+=`<div class="card"><h3>📅 پیش‌بینی ${fa(d.time.length)} روزه${d.time.length>10?'<span class="r">روزهای کم‌رنگ: اطمینان کمتر</span>':''}</h3>${ds}</div>`;
   // details
   const uv=c.uv_index??h.uv_index[s],vis=c.visibility??h.visibility[s];
-  html+=`<div class="grid2">
+  if(!hid('dt'))html+=`<div class="grid2">
    <div class="card"><h3>💨 باد</h3><div style="display:flex;align-items:center"><div class="big">${fa(Math.round(wV(c.wind_speed_10m)))}<small> ${WU[S.w][1]}</small></div>${compass(c.wind_direction_10m)}</div><div class="note">از ${dirName(c.wind_direction_10m)} · تندباد ${wS(c.wind_gusts_10m)}</div></div>
    <div class="card"><h3>💧 رطوبت</h3><div class="big">${fa(c.relative_humidity_2m)}٪</div><div class="note">نقطه شبنم ${tS(c.dew_point_2m)}</div></div>
    <div class="card"><h3>☀️ شاخص UV</h3><div class="big">${fa(uv,0)} <small>${uvTxt(uv)}</small></div><div class="meter" style="background:linear-gradient(to left,#4ade80,#facc15,#fb923c,#ef4444,#a855f7)"><em style="right:${Math.min(100,uv/11*100)}%"></em></div><div class="note">بیشینه امروز ${fa(d.uv_index_max[0],0)}</div></div>
@@ -665,12 +674,13 @@ function renderNow(){
    <div class="card"><h3>☁️ ابرناکی</h3><div class="big">${fa(c.cloud_cover)}٪</div><div class="note">${c.cloud_cover<20?'آسمان باز':c.cloud_cover<60?'ابرهای پراکنده':'آسمان پوشیده'}</div></div>
   </div>`;
   // aqi mini
-  if(AQ&&AQ.current){const q=aqInfo();html+=`<div class="card" onclick="go('aq')" style="cursor:pointer"><h3>🍃 کیفیت هوا<span class="r">جزئیات ›</span></h3><div style="display:flex;align-items:center;gap:12px"><div class="big" style="color:${q.col}">${fa(q.v)}</div><div><b>${q.lbl}</b><div class="note">${q.std}${AQ.current.dust!=null?' · گرد و غبار '+fa(AQ.current.dust)+' µg/m³':''}</div></div></div><div class="meter"><em style="right:${q.pos}%"></em></div></div>`}
-  html+=exCard();
-  html+=activities();
-  html+=sunCard();
-  html+=ircCard();
-  $('#t-now').innerHTML=html;heroFX();bindIRC();animEx();
+  if(AQ&&AQ.current&&!hid('aq')){const q=aqInfo();html+=`<div class="card" onclick="go('aq')" style="cursor:pointer"><h3>🍃 کیفیت هوا<span class="r">جزئیات ›</span></h3><div style="display:flex;align-items:center;gap:12px"><div class="big" style="color:${q.col}">${fa(q.v)}</div><div><b>${q.lbl}</b><div class="note">${q.std}${AQ.current.dust!=null?' · گرد و غبار '+fa(AQ.current.dust)+' µg/m³':''}</div></div></div><div class="meter"><em style="right:${q.pos}%"></em></div></div>`}
+  if(!hid('ex'))html+=exCard();
+  if(!hid('ac'))html+=activities();
+  if(!hid('sn'))html+=sunCard();
+  if(!hid('ic'))html+=ircCard();
+  html+=`<div style="text-align:center;margin:6px 0 0"><button class="chip" onclick="$('#setBtn').click();setTimeout(()=>{const e=$('#cardSet');if(e)e.scrollIntoView({block:'center'})},300)">⚙️ شخصی‌سازی کارت‌ها</button></div>`;
+  $('#t-now').innerHTML=html;heroFX();if(!hid('ic'))bindIRC();if(!hid('ex'))animEx();
 }
 function feelNote(c){const df=c.apparent_temperature-c.temperature_2m;if(Math.abs(df)<2)return 'مشابه دمای واقعی';return df<0?(c.wind_speed_10m>15?'باد هوا را سردتر نشان می‌دهد':'سردتر از دمای واقعی'):(c.relative_humidity_2m>60?'رطوبت هوا را گرم‌تر نشان می‌دهد':'گرم‌تر از دمای واقعی')}
 function pTrend(){const h=D.hourly,s=i0(),p0=h.pressure_msl[Math.max(0,s-3)],p1=h.pressure_msl[Math.min(h.time.length-1,s+3)];const df=p1-p0;return Math.abs(df)<1?'پایدار':df>0?'رو به افزایش ↑ (هوای پایدارتر)':'رو به کاهش ↓ (احتمال ناپایداری)'}
@@ -784,6 +794,31 @@ function aqcHtml(){if(!AQC)return '<div class="sk"></div><div class="sk"></div>'
   return `<div class="note" style="margin-bottom:6px">${fa(clean)} شهر از ${fa(L.length)} شهر هوای پاک دارند.</div><div class="irl">${L.map((x,i)=>{const c=aqCat(x.u,'us');return `<button class="irr aqr" data-c="${esc(x.n)}"><span class="irn">${fa(i+1)}. ${x.n}</span><span class="aqbar"><i style="width:${(x.u/mx*100).toFixed(0)}%;background:${c[2]}"></i></span><b style="color:${c[2]}">${fa(Math.round(x.u))}</b><small>${x.du>=50?'🟤 '+fa(Math.round(x.du)):'PM2.5 '+fa(Math.round(x.pm||0))}</small></button>`}).join('')}</div>`}
 function bindAQC(){const el=$('#aqc');if(!el)return;const f=()=>{const e=$('#aqc');if(!e)return;e.innerHTML=aqcHtml();$$('#aqc .aqr').forEach(b=>b.onclick=()=>{const c=IRC.find(k=>k[0]===b.dataset.c);if(c)selectCity({id:mkId(c[1],c[2]),name:c[0],admin:'',country:'ایران',lat:c[1],lon:c[2]})})};if(AQC)f();else loadAQC().then(f).catch(()=>{const e=$('#aqc');if(e)e.innerHTML='<div class="note">دریافت کیفیت هوای شهرها ممکن نشد.</div>'})}
 
+/* ensemble (probabilistic) */
+const ENS_M=[['ecmwf_ifs025','ECMWF ENS (۵۱ عضو)'],['gfs025','GFS GEFS (۳۱ عضو)'],['icon_seamless','ICON EPS (۴۰ عضو)'],['gem_global','GEM (۲۱ عضو)']];
+let ENS={};
+async function loadEns(c,m){const k=c.id+'|'+m;if(ENS[k]&&Date.now()-ENS[k].t<60*60e3)return ENS[k];
+  const j=await getJSON(`https://ensemble-api.open-meteo.com/v1/ensemble?latitude=${c.lat}&longitude=${c.lon}&hourly=temperature_2m,precipitation&models=${m}&timezone=auto&forecast_days=10`,40000);
+  const h=j.hourly,T=[],P=[];for(const key in h){if(key==='temperature_2m'||key.startsWith('temperature_2m_member'))T.push(h[key]);else if(key==='precipitation'||key.startsWith('precipitation_member'))P.push(h[key])}
+  if(!T.length)throw new Error('na');return ENS[k]={t:Date.now(),time:h.time,T,P}}
+const pct=(a,p)=>{const b=a.filter(x=>x!=null).sort((x,y)=>x-y);if(!b.length)return null;const i=(b.length-1)*p,l=Math.floor(i);return b[l]+(b[Math.min(b.length-1,l+1)]-b[l])*(i-l)};
+function ensHtml(E){
+  const n=E.time.length,col=k=>E.T.map(m=>m[k]),q10=[],q50=[],q90=[];for(let k=0;k<n;k++){const v=col(k);q10.push(pct(v,.1));q50.push(pct(v,.5));q90.push(pct(v,.9))}
+  const W=340,H=170,top=10,bot=22,ph=H-top-bot,all=E.T.flat().filter(x=>x!=null),lo=Math.min(...all),hi=Math.max(...all),X=i=>W-6-i/(n-1)*(W-36),Y=v=>top+ph*(1-(cT(v)-cT(lo))/((cT(hi)-cT(lo))||1));
+  let o='';[0,.5,1].forEach(f=>{const y=top+ph*(1-f);o+=`<line x1="30" x2="${W-6}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.1)"/><text x="26" y="${y+3}" text-anchor="end" font-size="9">${fa(Math.round(cT(lo)+(cT(hi)-cT(lo))*f))}°</text>`});
+  E.time.forEach((t,i)=>{if(t.slice(11,13)==='12')o+=`<text x="${X(i)}" y="${H-6}" text-anchor="middle" font-size="9">${fmtJ(t,{day:'numeric'})}</text>`;if(t.slice(11,13)==='00'&&i)o+=`<line x1="${X(i)}" x2="${X(i)}" y1="${top}" y2="${top+ph}" stroke="rgba(255,255,255,.08)"/>`});
+  E.T.forEach(m=>{const pts=m.map((v,i)=>v==null?null:X(i).toFixed(1)+','+Y(v).toFixed(1)).filter(Boolean);o+=`<polyline points="${pts.join(' ')}" fill="none" stroke="rgba(147,197,253,.22)" stroke-width=".8"/>`});
+  const band=q90.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).concat(q10.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).reverse());o+=`<polygon points="${band.join(' ')}" fill="rgba(251,191,36,.18)"/>`;
+  o+=`<polyline points="${q50.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ')}" fill="none" stroke="#fbbf24" stroke-width="2.2" class="drawln"/>`;
+  const days={};E.time.forEach((t,i)=>{const d=t.slice(0,10);(days[d]=days[d]||[]).push(i)});const D2=Object.keys(days).slice(0,10);
+  const rows=D2.map((d,di)=>{const ix=days[d],sums=E.P.map(m=>ix.reduce((s,i)=>s+(m[i]||0),0)),p1=sums.filter(x=>x>=1).length/sums.length,p5=sums.filter(x=>x>=5).length/sums.length,p20=sums.filter(x=>x>=20).length/sums.length,tx=E.T.map(m=>Math.max(...ix.map(i=>m[i]??-99)));
+    return `<div class="ensr"><span class="irn">${dayName(d,di)}</span><span class="ensb"><i style="width:${(p1*100).toFixed(0)}%;background:#7dd3fc"></i><i style="width:${(p5*100).toFixed(0)}%;background:#2563eb"></i><i style="width:${(p20*100).toFixed(0)}%;background:#a21caf"></i></span><b>${fa(Math.round(p1*100))}٪</b><small>${tS(pct(tx,.1))}–${tS(pct(tx,.9))}</small></div>`}).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" class="stsvg">${o}</svg><div class="legend"><span><i style="background:#93c5fd"></i>هر عضو (${fa(E.T.length)} اجرا)</span><span><i style="background:#fbbf24"></i>میانه</span><span><i style="background:rgba(251,191,36,.4)"></i>۸۰٪ محتمل</span></div>
+   <div class="sec">☔ احتمال بارش روزانه</div><div class="legend" style="margin-bottom:4px"><span><i style="background:#7dd3fc"></i>بیش از ۱ میلی‌متر</span><span><i style="background:#2563eb"></i>بیش از ۵</span><span><i style="background:#a21caf"></i>بیش از ۲۰</span></div><div class="ensr ensh"><span></span><span></span><b class="note">احتمال</b><small>بازه بیشینه</small></div>${rows}
+   <div class="note" style="margin-top:6px">مدل با شرایط اولیه کمی متفاوت ده‌ها بار اجرا می‌شود. وقتی خطوط آبی به هم نزدیک‌اند پیش‌بینی مطمئن است و وقتی از هم باز می‌شوند، عدم قطعیت زیاد است. درصد بارش یعنی چند درصد اجراها بارش داده‌اند.</div>`}
+async function fillEns(){const el=$('#ens');if(!el)return;const c=city(),m=S.ensM||'ecmwf_ifs025';el.innerHTML='<div class="sk" style="height:150px"></div>';
+  try{const E=await loadEns(c,m);if(!$('#ens'))return;$('#ens').innerHTML=ensHtml(E)}catch(e){el.innerHTML=`<div class="note">${e.limit?esc(e.message):'داده پیش‌بینی گروهی برای این مدل دریافت نشد؛ مدل دیگری را امتحان کنید.'}</div>`}}
+
 /* ---------- MODELS tab ---------- */
 const MODELS=[
  ['g','ecmwf_ifs025','ECMWF IFS','اروپا · مرکز اروپایی (دقیق‌ترین مدل جهانی)','#60a5fa'],
@@ -851,8 +886,9 @@ async function renderModels(){
   // table
   html+=`<div class="card"><h3>🧾 جدول بیشینه / کمینه و بارش</h3><div class="scroll-x"><table class="mt"><tr><th>روز</th>${ok.map(([m])=>`<th><span style="color:${MM[m][4]}">●</span> ${MM[m][2]}</th>`).join('')}</tr>${days.map((t,i)=>`<tr><td><b>${dayName(t,i)}</b></td>${ok.map(([m,d])=>{const x=d.daily.temperature_2m_max[i],n=d.daily.temperature_2m_min[i],p=d.daily.precipitation_sum[i];return `<td><span class="hi">${tS(x)}</span> <span class="lo">${tS(n)}</span>${p>=.1?`<div style="color:var(--acc);font-size:11px">${fa(p,1)}mm</div>`:''}</td>`}).join('')}</tr>`).join('')}</table></div></div>`;
   if(bad.length)html+=`<div class="card"><h3>ℹ️ مدل‌های بدون داده</h3><div class="note">${bad.map(([m,r])=>`<div>• ${MM[m][2]}: ${r.st==='na'?'این مکان خارج از محدوده این مدل است':'دریافت نشد ('+esc(r.e||'')+')'}</div>`).join('')}</div></div>`;
+  html+=`<div class="card"><h3>🎲 پیش‌بینی گروهی (Ensemble)<span class="r">۱۰ روز</span></h3><div class="chips" id="ensM">${ENS_M.map(x=>`<button class="chip ${(S.ensM||'ecmwf_ifs025')===x[0]?'on':''}" data-v="${x[0]}">${x[1]}</button>`).join('')}</div><div id="ens" style="margin-top:8px"></div></div>`;
   html+=`<div class="card"><h3>📚 درباره مدل‌ها</h3><div class="note" style="line-height:1.9">${MODELS.filter(m=>sel.includes(m[1])).map(m=>`<div><b style="color:${m[4]}">${m[2]}</b> — ${m[3]}</div>`).join('')}<div style="margin-top:6px">وقتی مدل‌ها به هم نزدیک‌اند پیش‌بینی قابل اعتمادتر است؛ اختلاف زیاد یعنی عدم قطعیت بالا.</div></div></div>`;
-  el.innerHTML=html;bindModelChips();
+  el.innerHTML=html;bindModelChips();fillEns();$$('#ensM .chip').forEach(b=>b.onclick=()=>{S.ensM=b.dataset.v;saveS();$$('#ensM .chip').forEach(x=>x.classList.toggle('on',x===b));fillEns()});
   $$('#mVar .chip').forEach(b=>b.onclick=()=>{S.mVar=b.dataset.v;saveS();renderModels()});
 }
 function bindModelChips(){
@@ -2003,10 +2039,11 @@ $('#gpsBtn').onclick=()=>{if(!navigator.geolocation){toast('مرورگر از م
     e=>toast(e.code===1?'دسترسی به موقعیت داده نشد':'موقعیت پیدا نشد'),{enableHighAccuracy:false,timeout:15000,maximumAge:600000})};
 
 /* ---------- settings ---------- */
-function renderSettings(){const ok=$('#omKey');if(ok)ok.value=S.omKey||'';const ss=$('#srcSel');if(ss)ss.value=S.src||'best';const ms=$('#mornSw');if(ms)ms.classList.toggle('on',!!S.morning);$$('#setS .seg').forEach(sg=>$$('button',sg).forEach(b=>b.classList.toggle('on',S[sg.dataset.k]===b.dataset.v)));$('#notifSw').classList.toggle('on',!!S.notif&&('Notification' in window)&&Notification.permission==='granted')}
+const CARDS=[['nc','🌧️ بارش ۲ ساعته'],['hr','⏱️ ساعتی'],['dy','📅 روزانه'],['dt','🔢 جزئیات'],['aq','🍃 کیفیت هوا'],['ex','🏃 ورزش'],['ac','🎯 شاخص‌ها'],['sn','🌅 خورشید و ماه'],['ic','🇮🇷 شهرهای کشور']];
+function renderSettings(){const st=$('#startTab');if(st)st.value=S.startTab||'now';const ct=$('#cardTg');if(ct){ct.innerHTML=CARDS.map(c=>`<button class="chip ${(S.hide||[]).includes(c[0])?'':'on'}" data-k="${c[0]}">${c[1]}</button>`).join('');$$('#cardTg .chip').forEach(b=>b.onclick=()=>{const k=b.dataset.k;S.hide=(S.hide||[]).includes(k)?S.hide.filter(x=>x!==k):[...(S.hide||[]),k];saveS();b.classList.toggle('on');if(D)renderNow()})}const ok=$('#omKey');if(ok)ok.value=S.omKey||'';const ss=$('#srcSel');if(ss)ss.value=S.src||'best';const ms=$('#mornSw');if(ms)ms.classList.toggle('on',!!S.morning);$$('#setS .seg').forEach(sg=>$$('button',sg).forEach(b=>b.classList.toggle('on',S[sg.dataset.k]===b.dataset.v)));$('#notifSw').classList.toggle('on',!!S.notif&&('Notification' in window)&&Notification.permission==='granted')}
 $('#setBtn').onclick=()=>{renderSettings();openSheet('setS')};
 $$('#setS .seg').forEach(sg=>$$('button',sg).forEach(b=>b.onclick=()=>{S[sg.dataset.k]=b.dataset.v;saveS();renderSettings();applyTheme();renderAll()}));
-$('#mornSw').onclick=async()=>{const on=!S.morning;await setMorning(on);renderSettings()};$('#omKey').onchange=e=>{S.omKey=e.target.value.trim();saveS();OM.cool=0;toast(S.omKey?'کلید ذخیره شد':'کلید حذف شد');load(true)};$('#srcSel').onchange=e=>{S.src=e.target.value;saveS();cities.forEach(c=>LS.del('cache.'+c.id));toast('منبع پیش‌بینی عوض شد');load(true)};$('#fbMail').onclick=()=>{location.href='mailto:meisam.rostami2010@gmail.com?subject='+encodeURIComponent('بازخورد اروان ودر '+VERSION)+'&body='+encodeURIComponent('\n\n\n—— اطلاعات فنی ——\n'+techInfo())};$('#fbCopy').onclick=async()=>{try{await navigator.clipboard.writeText(techInfo());toast('کپی شد')}catch(e){toast('کپی ممکن نشد')}};$('#expBtn').onclick=exportData;$('#impBtn').onclick=()=>$('#impF').click();$('#impF').onchange=e=>{const f=e.target.files[0];if(f)importData(f);e.target.value=''};$('#fuBtn').onclick=forceUpdate;$('#shareAppBtn').onclick=shareApp;
+$('#mornSw').onclick=async()=>{const on=!S.morning;await setMorning(on);renderSettings()};$('#omKey').onchange=e=>{S.omKey=e.target.value.trim();saveS();OM.cool=0;toast(S.omKey?'کلید ذخیره شد':'کلید حذف شد');load(true)};$('#srcSel').onchange=e=>{S.src=e.target.value;saveS();cities.forEach(c=>LS.del('cache.'+c.id));toast('منبع پیش‌بینی عوض شد');load(true)};$('#fbMail').onclick=()=>{location.href='mailto:meisam.rostami2010@gmail.com?subject='+encodeURIComponent('بازخورد اروان ودر '+VERSION)+'&body='+encodeURIComponent('\n\n\n—— اطلاعات فنی ——\n'+techInfo())};$('#fbCopy').onclick=async()=>{try{await navigator.clipboard.writeText(techInfo());toast('کپی شد')}catch(e){toast('کپی ممکن نشد')}};$('#startTab').onchange=e=>{S.startTab=e.target.value;saveS();toast('ذخیره شد')};$('#expBtn').onclick=exportData;$('#impBtn').onclick=()=>$('#impF').click();$('#impF').onchange=e=>{const f=e.target.files[0];if(f)importData(f);e.target.value=''};$('#fuBtn').onclick=forceUpdate;$('#shareAppBtn').onclick=shareApp;
 $('#notifSw').onclick=async()=>{if(!('Notification' in window)){toast('این دستگاه از اعلان پشتیبانی نمی‌کند');return}
   if(S.notif){S.notif=false;saveS();renderSettings();return}
   const p=await Notification.requestPermission();if(p==='granted'){S.notif=true;saveS();toast('اعلان هشدارها فعال شد');checkNotify()}else toast('اجازه اعلان داده نشد');renderSettings()};
@@ -2024,7 +2061,7 @@ $('#verTxt').textContent='نسخه '+VERSION;$('#ver2').textContent=VERSION;
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(HFX){HFX.stop();HFX=null}}else{if(curTab==='now'){if(D)renderNow();else heroFX()}if(D&&Date.now()-D._t>15*60e3)load(true)}});
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 if(S.home&&cities.find(c=>c.id===S.home)){curId=S.home;LS.set('cur',curId)}
-applyTheme();load(false);try{const qt=new URLSearchParams(location.search).get('tab');if(['fc','rd','tr','aq','map','md'].includes(qt))setTimeout(()=>go(qt),300)}catch(e){}if(FIRST_RUN)setTimeout(onboard,400);updOnline();
+applyTheme();load(false);try{const qt=new URLSearchParams(location.search).get('tab')||(S.startTab!=='now'?S.startTab:'');if(['fc','rd','tr','aq','map','md'].includes(qt))setTimeout(()=>go(qt),300)}catch(e){}if(FIRST_RUN)setTimeout(onboard,400);updOnline();
 </script>
 </body>
 </html>
