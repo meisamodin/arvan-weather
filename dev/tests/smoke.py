@@ -130,10 +130,14 @@ def handle(route):
     if u.hostname == 'air-quality-api.open-meteo.com': return J(aqi())
     if u.hostname == 'geocoding-api.open-meteo.com': return J({'results': [{'name': 'شیراز', 'admin1': 'استان فارس', 'country': 'ایران', 'latitude': 29.61, 'longitude': 52.53}]})
     if u.hostname == 'api.rainviewer.com': return J({'host': 'https://tilecache.rainviewer.com', 'radar': {'past': [{'time': 1793446800 + i * 600, 'path': f'/v2/radar/{i}'} for i in range(12)]}})
+    if u.hostname == 'archive-api.open-meteo.com' and len(q['latitude'][0].split(',')) > 1:
+        st = datetime.strptime(q['start_date'][0], '%Y-%m-%d'); en = datetime.strptime(q['end_date'][0], '%Y-%m-%d'); n = (en - st).days + 1
+        T = [(st + timedelta(days=k)).strftime('%Y-%m-%d') for k in range(n)]
+        return J([{'daily': {'time': T, 'precipitation_sum': [round(max(0, math.cos((st + timedelta(days=k)).timetuple().tm_yday / 365 * 6.28)) * ((k * 7 + i * 3) % 9) * (.6 if k < 365 else 1.0) * (1 + i % 4), 1) for k in range(n)]}} for i in range(len(q['latitude'][0].split(',')))])
     if u.hostname == 'archive-api.open-meteo.com':
-        d0 = datetime(1995, 1, 1); n = 365 * 31
+        d0 = datetime.strptime(q['start_date'][0], '%Y-%m-%d'); n = (datetime.strptime(q['end_date'][0], '%Y-%m-%d') - d0).days + 1
         t = [(d0 + timedelta(days=k)) for k in range(n)]
-        return J({'daily': {'time': [x.strftime('%Y-%m-%d') for x in t], 'temperature_2m_max': [round(22 + 13 * math.sin((x.timetuple().tm_yday - 105) / 365 * 2 * math.pi) + (k % 7) - 3, 1) for k, x in enumerate(t)], 'temperature_2m_min': [round(10 + 11 * math.sin((x.timetuple().tm_yday - 105) / 365 * 2 * math.pi) + (k % 5) - 2, 1) for k, x in enumerate(t)], 'precipitation_sum': [round(max(0, math.cos(x.timetuple().tm_yday / 365 * 2 * math.pi)) * (k % 4), 1) for k, x in enumerate(t)]}})
+        return J({'daily': {'time': [x.strftime('%Y-%m-%d') for x in t], 'temperature_2m_max': [round(22 + 13 * math.sin((x.timetuple().tm_yday - 105) / 365 * 2 * math.pi) + (k % 7) - 3 + (x.year - 1995) * .05, 1) for k, x in enumerate(t)], 'temperature_2m_min': [round(10 + 11 * math.sin((x.timetuple().tm_yday - 105) / 365 * 2 * math.pi) + (k % 5) - 2, 1) for k, x in enumerate(t)], 'precipitation_sum': [round(max(0, math.cos(x.timetuple().tm_yday / 365 * 2 * math.pi)) * (k % 4) * (0.5 + (x.year * 7 % 10) / 8), 1) for k, x in enumerate(t)]}})
     if u.hostname == 'marine-api.open-meteo.com':
         lats = q['latitude'][0].split(','); st = datetime.now(timezone.utc).replace(tzinfo=None, minute=0, second=0, microsecond=0)
         T = [(st + timedelta(hours=k)).strftime('%Y-%m-%dT%H:%M') for k in range(48)]
@@ -176,6 +180,8 @@ with sync_playwright() as p:
     pg.click('#mapLayers .chip[data-v=wind]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5b-map-wind.png')
     pg.click('#mapLayers .chip[data-v=eq]'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/5c-map-eq.png', full_page=True)
     pg.click('#mapLayers .chip[data-v=pres]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5d-map-pres.png')
+    pg.click('nav button[data-t=now]'); pg.wait_for_timeout(500); pg.click('#ircV button[data-v=rain]'); pg.wait_for_timeout(1500); pg.locator('#ircCard').screenshot(path=f'{OUT}/irc-rain.png')
+    pg.evaluate('openStats(IRC[0])'); pg.wait_for_timeout(2500); pg.locator('.sheet.on .panel').evaluate('e=>e.style.maxHeight="none"'); pg.locator('.sheet.on .panel').screenshot(path=f'{OUT}/stats.png'); pg.click('.sheet.on [data-close]'); pg.wait_for_timeout(300)
     pg.click('nav button[data-t=tr]'); pg.wait_for_timeout(2500); pg.click('#tpGo'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/tr1.png', full_page=True)
     pg.click('nav button[data-t=fc]'); pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/fc2.png', full_page=True)
     pg.click('nav button[data-t=now]'); pg.wait_for_timeout(500); pg.evaluate('openGlance()'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/glance.png'); pg.click('#glance'); pg.wait_for_timeout(300)

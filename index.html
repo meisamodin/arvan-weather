@@ -268,6 +268,14 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 .crow .ct{font-size:12.5px;white-space:nowrap}.crow .mv{display:flex;flex-direction:column;gap:2px}.crow .mv button{font-size:10px;color:var(--sub);width:22px;height:16px;border-radius:5px;background:var(--card2)}
 .ob{text-align:center}.obi img{width:84px;height:84px;border-radius:22px;box-shadow:0 10px 30px rgba(0,0,0,.35);margin:6px auto 4px;display:block;animation:aw-bob 4s ease-in-out infinite}
 .offbar{margin:0 16px 6px;padding:7px 12px;border-radius:12px;background:rgba(250,204,21,.2);border:1px solid rgba(250,204,21,.5);font-size:12.5px;text-align:center}
+.irh{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}.irh div{border-radius:14px;padding:8px;text-align:center;border:1px solid var(--line)}.irh small{display:block;font-size:11px;color:var(--sub)}.irh b{display:block;font-size:14px}.irh span{font-size:16px;font-weight:700}
+.irl{max-height:520px;overflow:auto;scrollbar-width:thin}.irr{display:grid;grid-template-columns:76px 28px 34px 32px 1fr 32px;gap:6px;align-items:center;width:100%;padding:6px 2px;border-top:1px solid var(--line);text-align:right}.irr:first-child{border-top:0}
+.irr svg{width:26px;height:26px}.irn{font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.irc{font-size:12px;color:var(--acc);text-align:center}.irmn{color:var(--sub);text-align:center;font-size:13px}.irmx{font-weight:700;text-align:center;font-size:13px}
+.stsvg{width:100%;height:auto;display:block;margin:4px 0}.stsvg text{fill:var(--sub);font-family:inherit}
+.drawln{stroke-dasharray:2000;stroke-dashoffset:2000;animation:aw-ln 1.6s ease-out forwards}@keyframes aw-ln{to{stroke-dashoffset:0}}
+.grbar{transform-box:fill-box;transform-origin:bottom;animation:aw-grow .7s cubic-bezier(.2,.8,.2,1) both}
+.irw{grid-template-columns:72px 26px 30px 1fr 38px 40px!important}.wyb{position:relative;height:8px;border-radius:4px;background:rgba(255,255,255,.1)}.wyb i{position:absolute;right:0;top:0;bottom:0;border-radius:4px;background:linear-gradient(to left,#38bdf8,#2563eb)}.wyb em{position:absolute;top:-3px;width:2px;height:14px;background:#fff;border-radius:1px}
+.wyp{font-size:11.5px;font-weight:700;text-align:left}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 
 </style>
@@ -375,7 +383,7 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 
 <script>
 'use strict';
-const VERSION='1.7.0';
+const VERSION='1.8.0';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -561,7 +569,8 @@ function renderNow(){
   html+=sunCard();
   // aqi mini
   if(AQ&&AQ.current){const q=aqInfo();html+=`<div class="card" onclick="go('aq')" style="cursor:pointer"><h3>🍃 کیفیت هوا<span class="r">جزئیات ›</span></h3><div style="display:flex;align-items:center;gap:12px"><div class="big" style="color:${q.col}">${fa(q.v)}</div><div><b>${q.lbl}</b><div class="note">${q.std}${AQ.current.dust!=null?' · گرد و غبار '+fa(AQ.current.dust)+' µg/m³':''}</div></div></div><div class="meter"><em style="right:${q.pos}%"></em></div></div>`}
-  $('#t-now').innerHTML=html;heroFX();
+  html+=ircCard();
+  $('#t-now').innerHTML=html;heroFX();bindIRC();
 }
 function feelNote(c){const df=c.apparent_temperature-c.temperature_2m;if(Math.abs(df)<2)return 'مشابه دمای واقعی';return df<0?(c.wind_speed_10m>15?'باد هوا را سردتر نشان می‌دهد':'سردتر از دمای واقعی'):(c.relative_humidity_2m>60?'رطوبت هوا را گرم‌تر نشان می‌دهد':'گرم‌تر از دمای واقعی')}
 function pTrend(){const h=D.hourly,s=i0(),p0=h.pressure_msl[Math.max(0,s-3)],p1=h.pressure_msl[Math.min(h.time.length-1,s+3)];const df=p1-p0;return Math.abs(df)<1?'پایدار':df>0?'رو به افزایش ↑ (هوای پایدارتر)':'رو به کاهش ↓ (احتمال ناپایداری)'}
@@ -609,9 +618,10 @@ function renderFc(){
     <div class="kv">طلوع<b>${hhmm(d.sunrise[i])}</b></div><div class="kv">غروب<b>${hhmm(d.sunset[i])}</b></div><div class="kv">ساعات بارش<b>${fa(d.precipitation_hours[i])}</b></div></div></div>`});
   html+=`<div class="card"><h3>🗓️ جزئیات روزانه<span class="r">برای جزئیات روی هر روز بزنید</span></h3>${dd}</div>`;
   html+=`<div class="card"><h3>📊 اقلیم و رکوردها<span class="r">۳۰ سال اخیر</span></h3><div id="clim"><div class="sk"></div><div class="sk"></div></div></div>`;
+  html+=`<div class="card"><h3>💧 بارش سال آبی و رکوردها<span class="r">از ۱۳۷۰</span></h3><div id="rainSt"><div class="sk" style="height:60px"></div><div class="sk" style="height:150px"></div></div></div>`;
   html+=`<div class="card"><h3>🎈 باد در ارتفاعات<span class="r" style="cursor:pointer;color:var(--acc)" onclick="go('map')">نقشه متحرک ›</span></h3><div id="prof"><div class="sk"></div><div class="sk"></div><div class="sk"></div></div></div>`;
   html+=`<div class="card"><h3>🌾 کشاورزی و باغ<span class="r">۷ روز آینده</span></h3><div id="agri"><div class="sk"></div><div class="sk"></div></div></div>`;
-  $('#t-fc').innerHTML=html;fillProf();fillClim();fillAgri();
+  $('#t-fc').innerHTML=html;fillProf();fillClim();fillRainStats();fillAgri();
   $$('#fcV .chip').forEach(b=>b.onclick=()=>{S.fcVar=b.dataset.v;saveS();renderFc()});
   $$('#fcR button').forEach(b=>b.onclick=()=>{S.fcRange=+b.dataset.v;saveS();renderFc()});
   $$('#t-fc .dd .hd').forEach(b=>b.onclick=()=>b.parentElement.classList.toggle('open'));
@@ -1134,6 +1144,127 @@ function renderWB(el){
   $('#wbSl').oninput=e=>{WB.ti=+e.target.value;wbTimeLbl();wbDrawAll()};
   $('#wbPlay').onclick=()=>{if(WB.timer){clearInterval(WB.timer);WB.timer=null}else WB.timer=setInterval(()=>{if(curTab!=='md'||(S.mdView||'map')!=='map'){clearInterval(WB.timer);WB.timer=null;return}const s=$('#wbSl');const n=+s.max+1;WB.ti=(WB.ti+1)%n;s.value=WB.ti;wbTimeLbl();wbDrawAll()},800);$('#wbPlay').textContent=WB.timer?'⏸':'▶'};
   wbLoad();
+}
+
+/* ---------- country cities min/max ---------- */
+const IRC=[['تهران',35.69,51.39],['مشهد',36.3,59.6],['اصفهان',32.65,51.67],['شیراز',29.6,52.54],['تبریز',38.08,46.29],['کرج',35.84,50.99],['اهواز',31.32,48.67],['قم',34.64,50.88],['کرمانشاه',34.31,47.07],['ارومیه',37.55,45.08],['رشت',37.28,49.58],['زاهدان',29.5,60.86],['همدان',34.8,48.51],['کرمان',30.28,57.08],['یزد',31.9,54.36],['اردبیل',38.25,48.29],['بندرعباس',27.18,56.27],['اراک',34.09,49.69],['زنجان',36.68,48.48],['سنندج',35.31,46.99],['قزوین',36.27,50],['خرم‌آباد',33.49,48.36],['گرگان',36.84,54.43],['ساری',36.56,53.06],['بجنورد',37.47,57.33],['بیرجند',32.87,59.22],['بوشهر',28.97,50.84],['ایلام',33.64,46.42],['شهرکرد',32.33,50.86],['یاسوج',30.67,51.59],['سمنان',35.58,53.39],['کاشان',33.98,51.44],['دزفول',32.38,48.4],['آبادان',30.34,48.3],['ماهشهر',30.56,49.2],['چابهار',25.29,60.64],['کیش',26.53,53.98],['قشم',26.95,56.27],['بم',29.11,58.36],['زابل',31.03,61.5],['طبس',33.6,56.92],['سبزوار',36.21,57.68],['نیشابور',36.21,58.8],['شاهرود',36.42,54.98],['رامسر',36.92,50.64],['آمل',36.47,52.35],['بابل',36.54,52.68],['مراغه',37.39,46.24],['خوی',38.55,44.95],['سقز',36.25,46.27],['مریوان',35.52,46.18],['بروجرد',33.9,48.75],['ملایر',34.3,48.82],['جیرفت',28.68,57.74],['لار',27.68,54.34],['میناب',27.15,57.08],['فیروزکوه',35.76,52.77],['شوشتر',32.05,48.85],['دماوند',35.72,52.06],['آستارا',38.43,48.87]];
+let IRCD=null,IRCV={d:0,sort:'max',q:'',v:'temp'};
+async function loadIRC(){
+  if(IRCD&&Date.now()-IRCD.t<30*60e3)return IRCD;
+  try{const j=await getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${IRC.map(c=>c[1]).join(',')}&longitude=${IRC.map(c=>c[2]).join(',')}&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_sum&timezone=Asia%2FTehran&forecast_days=3`,30000);
+    IRCD={t:Date.now(),a:Array.isArray(j)?j:[j]};offSave('irc',IRCD)}catch(e){const o=offGet('irc');if(o)IRCD=o;else throw e}return IRCD}
+function ircHtml(){
+  if(!IRCD)return '<div class="sk"></div><div class="sk"></div><div class="sk"></div>';const d=IRCV.d;
+  let L=IRC.map((c,i)=>{const r=IRCD.a[i];if(!r||!r.daily)return null;return{n:c[0],c,mx:r.daily.temperature_2m_max[d],mn:r.daily.temperature_2m_min[d],wc:r.daily.weather_code[d],pr:r.daily.precipitation_sum[d],cur:r.current?r.current.temperature_2m:null,day:r.current?r.current.is_day:1}}).filter(x=>x&&x.mx!=null);
+  if(!L.length)return '<div class="note">داده‌ای دریافت نشد.</div>';
+  const hot=L.reduce((a,b)=>b.mx>a.mx?b:a),cold=L.reduce((a,b)=>b.mn<a.mn?b:a),wet=L.filter(x=>x.pr>=1).sort((a,b)=>b.pr-a.pr);
+  const q=IRCV.q.trim();if(q)L=L.filter(x=>x.n.includes(q));
+  L.sort((a,b)=>IRCV.sort==='max'?b.mx-a.mx:IRCV.sort==='min'?a.mn-b.mn:a.n.localeCompare(b.n,'fa'));
+  const gmn=Math.min(...L.map(x=>x.mn)),gmx=Math.max(...L.map(x=>x.mx)),rg=(gmx-gmn)||1;
+  return `<div class="irh"><div style="background:linear-gradient(135deg,rgba(249,115,22,.35),rgba(239,68,68,.2))"><small>🔥 گرم‌ترین</small><b>${hot.n}</b><span>${tS(hot.mx)}</span></div><div style="background:linear-gradient(135deg,rgba(59,130,246,.35),rgba(99,102,241,.2))"><small>🥶 سردترین</small><b>${cold.n}</b><span>${tS(cold.mn)}</span></div><div style="background:linear-gradient(135deg,rgba(14,165,233,.3),rgba(34,197,94,.15))"><small>🌧️ پربارش‌ترین</small><b>${wet[0]?wet[0].n:'—'}</b><span>${wet[0]?fa(wet[0].pr,0)+' mm':'بدون بارش'}</span></div></div>
+   <div class="irl">${L.map(x=>`<button class="irr" data-c="${esc(x.n)}"><span class="irn">${x.n}</span>${icon(x.wc,1)}${d===0&&x.cur!=null?`<span class="irc">${tS(x.cur)}</span>`:'<span class="irc"></span>'}<span class="irmn">${tS(x.mn)}</span><span class="bar"><i style="right:${((x.mn-gmn)/rg*100).toFixed(1)}%;left:${((gmx-x.mx)/rg*100).toFixed(1)}%;background:linear-gradient(to left,${rgb(tempColor(x.mn))},${rgb(tempColor(x.mx))})"></i></span><span class="irmx">${tS(x.mx)}</span></button>`).join('')}</div>
+   <div class="note" style="margin-top:6px">${fa(L.length)} شهر · ${d===0?'ستون وسط: دمای الان':''} · روی هر شهر بزنید تا آمار و رکوردهایش را ببینید · منبع: مدل‌های پیش‌بینی (نه ایستگاه رسمی)</div>`;
+}
+function ircCard(){const R=IRCV.v==='rain';return `<div class="card" id="ircCard"><h3>🇮🇷 دما و بارش شهرهای کشور</h3>
+  <div class="seg" id="ircV" style="margin-bottom:6px"><button data-v="temp" class="${!R?'on':''}">🌡️ کمینه و بیشینه</button><button data-v="rain" class="${R?'on':''}">💧 بارش و سال آبی</button></div>
+  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><div class="seg" id="ircD"><button data-v="0" class="${IRCV.d===0?'on':''}">امروز</button><button data-v="1" class="${IRCV.d===1?'on':''}">فردا</button><button data-v="2" class="${IRCV.d===2?'on':''}">پس‌فردا</button></div>
+  <div class="seg" id="ircS"><button data-v="max" class="${IRCV.sort==='max'?'on':''}">${R?'پربارش‌ترین':'گرم‌ترین'}</button><button data-v="min" class="${IRCV.sort==='min'?'on':''}">${R?'کم‌بارش‌ترین':'سردترین'}</button><button data-v="name" class="${IRCV.sort==='name'?'on':''}">الفبا</button></div></div>
+  <input class="inp" id="ircQ" placeholder="جستجوی شهر…" value="${esc(IRCV.q)}" style="margin-top:8px;padding:8px 12px">
+  <div id="ircBody" style="margin-top:8px">${R?ircRainHtml():ircHtml()}</div></div>`}
+function bindIRC(){
+  const card=$('#ircCard');if(!card)return;
+  $$('#ircD button').forEach(b=>b.onclick=()=>{IRCV.d=+b.dataset.v;$$('#ircD button').forEach(x=>x.classList.toggle('on',x===b));fillIRC()});
+  $$('#ircS button').forEach(b=>b.onclick=()=>{IRCV.sort=b.dataset.v;$$('#ircS button').forEach(x=>x.classList.toggle('on',x===b));fillIRC()});
+  $('#ircQ').oninput=e=>{IRCV.q=e.target.value;fillIRC()};
+  $$('#ircV button').forEach(b=>b.onclick=()=>{IRCV.v=b.dataset.v;const c=$('#ircCard');c.outerHTML=ircCard();bindIRC()});
+  if(!IRCD)loadIRC().then(fillIRC).catch(()=>{const b=$('#ircBody');if(b)b.innerHTML='<div class="note">دریافت دمای شهرها ممکن نشد.</div>'});else fillIRC();
+}
+function fillIRC(){const b=$('#ircBody');if(!b)return;const R=IRCV.v==='rain';b.innerHTML=R?ircRainHtml():ircHtml();$$('#ircBody .irr').forEach(x=>x.onclick=()=>{const c=IRC.find(k=>k[0]===x.dataset.c);if(c)openStats(c)});if(R&&!IRWY)loadIRWY().then(()=>{if(IRCV.v==='rain')fillIRC()}).catch(()=>{})}
+
+/* ---------- precipitation & climate statistics ---------- */
+const isoD=d=>d.toISOString().slice(0,10);
+const wyOf=t=>{const y=+t.slice(0,4);return t.slice(5)>='09-23'?y:y-1};
+const wyStart=y=>y+'-09-23';
+function curWY(){return wyOf(isoD(new Date()))}
+const JY=y=>y-621; // water year y (Gregorian start) -> Jalali year label start
+const wyLbl=y=>fa(JY(y))+'–'+fa(JY(y)+1).slice(-2);
+/* light: water-year totals for all country cities */
+let IRWY=null;
+async function loadIRWY(){
+  if(IRWY)return IRWY;const ck=offGet('irwy');if(ck&&Date.now()-ck.t<864e5)return IRWY=ck;
+  const w=curWY(),end=isoD(new Date(Date.now()-6*864e5));
+  const j=await getJSON(`https://archive-api.open-meteo.com/v1/archive?latitude=${IRC.map(c=>c[1]).join(',')}&longitude=${IRC.map(c=>c[2]).join(',')}&start_date=${wyStart(w-1)}&end_date=${end}&daily=precipitation_sum&timezone=Asia%2FTehran`,60000);
+  const arr=Array.isArray(j)?j:[j],cut=new Date(end),lastCut=isoD(new Date(cut.getFullYear()-1,cut.getMonth(),cut.getDate(),12));
+  const res=arr.map(a=>{const d=a.daily;let cur=0,last=0;d.time.forEach((t,i)=>{const p=d.precipitation_sum[i]||0;if(t>=wyStart(w))cur+=p;else if(t<=lastCut)last+=p});return[+cur.toFixed(1),+last.toFixed(1)]});
+  IRWY={t:Date.now(),end,res};offSave('irwy',IRWY);return IRWY;
+}
+/* heavy: full 30+ year stats for one place */
+const STATS={};
+async function cityStats(c){
+  const key='st.'+mkId(c.lat||c[1],c.lon||c[2]);if(STATS[key])return STATS[key];const ck=offGet(key);if(ck&&Date.now()-ck.t<3*864e5)return STATS[key]=ck;
+  const lat=c.lat??c[1],lon=c.lon??c[2],end=isoD(new Date(Date.now()-6*864e5));
+  const j=await getJSON(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=1991-09-23&end_date=${end}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`,90000);
+  const d=j.daily,W={},cw=curWY();let mxP=[0,''],hi=[-99,''],lo=[99,''];const yT={};
+  d.time.forEach((t,i)=>{const p=d.precipitation_sum[i],x=d.temperature_2m_max[i],n=d.temperature_2m_min[i],w=wyOf(t);
+    if(p!=null){const o=W[w]||(W[w]={s:0,n:0,cum:[]});o.s+=p;o.n++;o.cum.push(+o.s.toFixed(1));if(p>mxP[0])mxP=[p,t]}
+    if(x!=null&&x>hi[0])hi=[x,t];if(n!=null&&n<lo[0])lo=[n,t];
+    const y=+t.slice(0,4);if(x!=null&&n!=null){const o=yT[y]||(yT[y]={s:0,n:0});o.s+=(x+n)/2;o.n++}});
+  const full=Object.keys(W).map(Number).filter(w=>W[w].n>=360&&w<cw).sort((a,b)=>a-b);
+  const mean=[];for(let k=0;k<366;k++){const v=full.map(w=>W[w].cum[k]).filter(x=>x!=null);mean.push(v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):null)}
+  const tot=full.map(w=>[w,+W[w].s.toFixed(0)]),avg=tot.reduce((a,b)=>a+b[1],0)/(tot.length||1);
+  const wet=tot.reduce((a,b)=>b[1]>a[1]?b:a,[0,-1]),dry=tot.reduce((a,b)=>b[1]<a[1]?b:a,[0,1e9]);
+  const ty=Object.keys(yT).map(Number).filter(y=>yT[y].n>=360).map(y=>[y,+(yT[y].s/yT[y].n).toFixed(2)]);
+  const r={t:Date.now(),end,cw,cur:(W[cw]||{cum:[]}).cum,last:(W[cw-1]||{cum:[]}).cum,mean,tot,avg:+avg.toFixed(0),wet,dry,mxP,hi,lo,ty,y0:full[0]};
+  offSave(key,r);return STATS[key]=r;
+}
+/* tiny svg charts (fit to width, RTL time axis) */
+function lineSvg(series,{h=170,n,yl='',xl=[]}){const W=340,top=14,bot=22,ph=h-top-bot;const all=series.flatMap(s=>s.v.filter(x=>x!=null));const mx=Math.max(1,...all);
+  const X=i=>W-8-(i/(n-1))*(W-40),Y=v=>top+ph*(1-v/mx);let o='';[0,.5,1].forEach(f=>{const y=top+ph*(1-f);o+=`<line x1="32" x2="${W-8}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.12)"/><text x="28" y="${y+3}" text-anchor="end" font-size="9">${fa(Math.round(mx*f))}</text>`});
+  xl.forEach(([i,t])=>{o+=`<text x="${X(i)}" y="${h-6}" text-anchor="middle" font-size="9">${t}</text>`});
+  series.forEach(s=>{const pts=s.v.map((v,i)=>v==null?null:`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).filter(Boolean);if(pts.length>1)o+=`<polyline points="${pts.join(' ')}" fill="none" stroke="${s.c}" stroke-width="${s.w||2}" ${s.d?'stroke-dasharray="5 4"':''} stroke-linejoin="round" class="drawln"/>`;
+    if(s.dot&&pts.length){const l=pts[pts.length-1].split(',');o+=`<circle cx="${l[0]}" cy="${l[1]}" r="4" fill="${s.c}"/>`}});
+  return `<svg viewBox="0 0 ${W} ${h}" class="stsvg">${o}<text x="32" y="10" font-size="9">${yl}</text></svg>`}
+function barSvg(vals,{h=150,avg,hl=[],lab}){const W=340,top=12,bot=20,ph=h-top-bot,n=vals.length,mx=Math.max(1,...vals.map(v=>v[1]),avg||0),bw=(W-40)/n;let o='';
+  vals.forEach((v,i)=>{const x=W-8-(i+1)*bw,bh=v[1]/mx*ph,c=hl[0]===v[0]?'#38bdf8':hl[1]===v[0]?'#f59e0b':v[1]>=avg?'rgba(96,165,250,.85)':'rgba(251,191,36,.75)';o+=`<rect x="${(x+1).toFixed(1)}" y="${(top+ph-bh).toFixed(1)}" width="${Math.max(1,bw-2).toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${c}" class="grbar" style="animation-delay:${i*15}ms"/>`;if(i%5===0)o+=`<text x="${(x+bw/2).toFixed(1)}" y="${h-6}" text-anchor="middle" font-size="8.5">${lab(v[0])}</text>`});
+  if(avg){const y=top+ph*(1-avg/mx);o+=`<line x1="32" x2="${W-8}" y1="${y}" y2="${y}" stroke="#fff" stroke-dasharray="4 3" stroke-width="1.2"/><text x="30" y="${y+3}" text-anchor="end" font-size="9">${fa(avg)}</text>`}
+  return `<svg viewBox="0 0 ${W} ${h}" class="stsvg">${o}</svg>`}
+function statsHtml(st,name){
+  const k=st.cur.length,curV=st.cur[k-1]||0,lastV=st.last[k-1]||0,meanV=st.mean[k-1]||0,pc=v=>v?Math.round((curV-v)/v*100):0;
+  const cmp=(v,lbl)=>{const p=pc(v);return `<div class="kv">${lbl}<b>${fa(v,0)} mm</b><small style="color:${p>=0?'#4ade80':'#f87171'}">${p>=0?'+':'−'}${fa(Math.abs(p))}٪ امسال ${p>=0?'بیشتر':'کمتر'}</small></div>`};
+  const mo=[0,31,61,92,122,153,183,213,243,273,303,333],mn=['مهر','آبان','آذر','دی','بهمن','اسفند','فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور'];
+  const dt=s=>new Intl.DateTimeFormat('fa-IR-u-ca-persian',{day:'numeric',month:'long',year:'numeric'}).format(pd(s));
+  return `<div class="anom" style="background:${curV>=meanV?'rgba(56,189,248,.22)':'rgba(251,191,36,.22)'}"><b>${name?esc(name)+': ':''}بارش سال آبی ${wyLbl(st.cw)} تاکنون: ${fa(curV,0)} میلی‌متر</b><small>${meanV?(curV>=meanV?fa(pc(meanV))+'٪ بیشتر از':fa(Math.abs(pc(meanV)))+'٪ کمتر از')+' میانگین ۳۰ ساله تا همین روز':''} · داده تا ${dt(st.end)}</small></div>
+   <div class="sgrid">${cmp(lastV,'پارسال تا همین روز')}${cmp(meanV,'میانگین تا همین روز')}<div class="kv">میانگین کل سال آبی<b>${fa(st.avg)} mm</b><small>${fa(st.tot.length)} سال (${wyLbl(st.y0)} تا امروز)</small></div><div class="kv">پیشرفت نسبت به کل سال<b>${fa(Math.round(curV/(st.avg||1)*100))}٪</b><small>از بارش یک سال معمولی</small></div></div>
+   <div class="sec">📈 بارش تجمعی سال آبی</div>${lineSvg([{v:st.mean,c:'rgba(255,255,255,.7)',d:1,w:1.5},{v:st.last.slice(0,366),c:'#f59e0b',w:1.6},{v:st.cur,c:'#38bdf8',w:2.6,dot:1}],{n:366,yl:'mm',xl:mo.map((m,i)=>[m,mn[i].slice(0,3)]).filter((x,i)=>i%2===0)})}
+   <div class="legend"><span><i style="background:#38bdf8"></i>امسال</span><span><i style="background:#f59e0b"></i>پارسال</span><span><i style="background:#fff"></i>میانگین ۳۰ ساله</span></div>
+   <div class="sec">📊 بارش سالانه ${fa(st.tot.length)} سال گذشته</div>${barSvg(st.tot,{avg:st.avg,hl:[st.wet[0],st.dry[0]],lab:w=>fa(JY(w))})}
+   <div class="legend"><span><i style="background:#38bdf8"></i>پربارش‌ترین</span><span><i style="background:#f59e0b"></i>کم‌بارش‌ترین</span><span><i style="background:rgba(96,165,250,.85)"></i>بالای میانگین</span><span><i style="background:rgba(251,191,36,.75)"></i>زیر میانگین</span></div>
+   <div class="sec">🏆 رکوردها (از ${fa(1370)})</div><div class="sgrid">
+    <div class="kv">🌧️ پربارش‌ترین سال آبی<b>${fa(st.wet[1])} mm</b><small>${wyLbl(st.wet[0])}</small></div><div class="kv">🏜️ کم‌بارش‌ترین سال آبی<b>${fa(st.dry[1])} mm</b><small>${wyLbl(st.dry[0])}</small></div>
+    <div class="kv">⛈️ بیشترین بارش یک روز<b>${fa(st.mxP[0],0)} mm</b><small>${st.mxP[1]?dt(st.mxP[1]):''}</small></div><div class="kv">📅 سال‌های بالای میانگین<b>${fa(st.tot.filter(x=>x[1]>=st.avg).length)} از ${fa(st.tot.length)}</b><small>سال آبی</small></div>
+    <div class="kv">🔥 گرم‌ترین روز ثبت‌شده<b>${tS(st.hi[0])}</b><small>${st.hi[1]?dt(st.hi[1]):''}</small></div><div class="kv">🥶 سردترین روز ثبت‌شده<b>${tS(st.lo[0])}</b><small>${st.lo[1]?dt(st.lo[1]):''}</small></div></div>
+   ${st.ty.length>5?`<div class="sec">🌡️ میانگین دمای سالانه (روند گرمایش)</div>${lineSvg([{v:st.ty.map(x=>x[1]-Math.min(...st.ty.map(y=>y[1]))+.2),c:'#fb7185',w:2.2,dot:1}],{h:120,n:st.ty.length,yl:'°C بالاتر از کمترین',xl:st.ty.map((x,i)=>[i,fa(x[0]-621)]).filter((x,i)=>i%6===0)})}<div class="note">${(()=>{const a=st.ty.slice(0,5),b=st.ty.slice(-5),m=v=>v.reduce((s,x)=>s+x[1],0)/v.length,df=m(b)-m(a);return `میانگین ۵ سال اخیر ${fa(Math.abs(dT(df)),1)} درجه ${df>=0?'گرم‌تر':'سردتر'} از ۵ سال اول دوره است.`})()}</div>`:''}
+   <div class="note" style="margin-top:8px">منبع: بازتحلیل ERA5 (Open-Meteo Archive)، تخمین شبکه‌ای ~۲۵ کیلومتری — ممکن است با ایستگاه رسمی شهر متفاوت باشد. سال آبی از ۱ مهر شروع می‌شود.</div>`;
+}
+async function openStats(c){
+  const el=document.createElement('div');el.className='sheet on';el.innerHTML=`<div class="panel"><div class="grab"></div><h2>📊 آمار ${esc(c[0])}<button data-close>بستن</button></h2><div id="stBody"><div class="sk" style="height:60px"></div><div class="sk"></div><div class="sk" style="height:150px"></div><div class="note" style="text-align:center">در حال دریافت آمار ۳۰ ساله…</div></div>
+   <button class="btn" id="stAdd" style="margin-top:12px">🌤️ نمایش پیش‌بینی ${esc(c[0])}</button></div>`;
+  document.body.appendChild(el);el.addEventListener('click',e=>{if(e.target===el||e.target.hasAttribute('data-close'))el.remove()});
+  $('#stAdd',el).onclick=()=>{el.remove();selectCity({id:mkId(c[1],c[2]),name:c[0],admin:'',country:'ایران',lat:c[1],lon:c[2]})};
+  try{const st=await cityStats(c);const b=$('#stBody',el);if(b)b.innerHTML=statsHtml(st)}catch(e){const b=$('#stBody',el);if(b)b.innerHTML='<div class="note">دریافت آمار ممکن نشد. اتصال اینترنت را بررسی کنید.</div>'}
+}
+async function fillRainStats(){
+  const el=$('#rainSt');if(!el||!D)return;const c=city();
+  try{const st=await cityStats(c);if(c.id!==curId||!$('#rainSt'))return;el.innerHTML=statsHtml(st)}catch(e){el.innerHTML='<div class="note">دریافت آمار بارش ممکن نشد.</div>'}
+}
+function ircRainHtml(){
+  if(!IRCD)return '<div class="sk"></div><div class="sk"></div>';const d=IRCV.d;
+  let L=IRC.map((c,i)=>{const r=IRCD.a[i];if(!r||!r.daily)return null;const w=IRWY&&IRWY.res[i];return{n:c[0],fp:r.daily.precipitation_sum[d]||0,wc:r.daily.weather_code[d],cur:w?w[0]:null,last:w?w[1]:null}}).filter(Boolean);
+  const q=IRCV.q.trim();if(q)L=L.filter(x=>x.n.includes(q));
+  L.sort((a,b)=>IRCV.sort==='name'?a.n.localeCompare(b.n,'fa'):IRCV.sort==='min'?(a.cur??1e9)-(b.cur??1e9):(b.cur??-1)-(a.cur??-1));
+  const mx=Math.max(1,...L.map(x=>Math.max(x.cur||0,x.last||0)));
+  return `<div class="irl">${L.map(x=>{const p=x.cur!=null&&x.last?Math.round((x.cur-x.last)/x.last*100):null;return `<button class="irr irw" data-c="${esc(x.n)}"><span class="irn">${x.n}</span>${icon(x.wc,1)}<span class="irc">${x.fp>=.1?fa(x.fp,1):'–'}</span><span class="wyb"><i style="width:${x.cur!=null?(x.cur/mx*100).toFixed(0):0}%"></i><em style="right:${x.last!=null?(x.last/mx*100).toFixed(0):0}%"></em></span><span class="irmx">${x.cur!=null?fa(x.cur,0):'…'}</span><span class="wyp" style="color:${p==null?'var(--dim)':p>=0?'#4ade80':'#f87171'}">${p==null?'':(p>=0?'+':'−')+fa(Math.abs(p))+'٪'}</span></button>`}).join('')}</div>
+   <div class="note" style="margin-top:6px">ستون سوم: بارش پیش‌بینی ${['امروز','فردا','پس‌فردا'][d]} (mm) · نوار آبی: بارش سال آبی ${wyLbl(curWY())} تاکنون · خط سفید: پارسال تا همین روز · درصد: تغییر نسبت به پارسال${IRWY?' · داده آرشیو تا '+new Intl.DateTimeFormat('fa-IR-u-ca-persian',{day:'numeric',month:'long'}).format(pd(IRWY.end)):''} · روی هر شهر بزنید تا آمار ۳۰ ساله و نمودار را ببینید</div>`;
 }
 
 /* ---------- onboarding / feedback / offline ---------- */
