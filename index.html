@@ -302,6 +302,17 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 .aqd{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.aqd div{text-align:center;border:1.5px solid;border-radius:14px;padding:7px 4px;background:var(--card2)}.aqd small{display:block;font-size:11.5px;color:var(--sub)}.aqd b{display:block;font-size:22px}.aqd span{font-size:10.5px;display:block;line-height:1.4}.aqd em{display:block;font-style:normal;font-size:10px;color:#d6a46b;margin-top:2px}
 .aqr{grid-template-columns:96px 1fr 34px 62px!important}.aqbar{height:8px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}.aqbar i{display:block;height:100%;border-radius:4px}.aqr small{font-size:10.5px;color:var(--sub);text-align:left}
 .map.fs{position:fixed!important;inset:0;margin:0!important;height:100vh!important;border-radius:0!important;z-index:65}body.mapfs nav{display:none}
+.poil{max-height:560px;overflow:auto}.poi{border-top:1px solid var(--line)}.poi:first-child{border-top:0}.poi summary{display:grid;grid-template-columns:1fr auto;gap:0 8px;padding:8px 2px;cursor:pointer;list-style:none}.poi summary::-webkit-details-marker{display:none}
+.poi .pn{font-weight:600;font-size:13.5px}.poi summary small{grid-column:1;color:var(--sub);font-size:11.5px}.poi summary b{grid-row:1/3;grid-column:2;align-self:center;font-size:12.5px;color:var(--acc);white-space:nowrap}.poib{padding:0 4px 10px}.poib a{color:var(--acc)}.poib .chip{text-decoration:none;color:inherit;font-size:12px;padding:4px 10px}
+.camimg{width:100%;display:block;border-radius:12px;margin-top:6px;cursor:zoom-in;background:#111;min-height:80px}
+.pmh{position:absolute;top:0;left:0;right:0;z-index:3;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;background:rgba(15,26,51,.92);color:#fff}.pmh .t{flex:1;min-width:0}.pmh small{display:block;font-size:11.5px;color:rgba(255,255,255,.7)}
+.pmm{position:absolute;inset:0;overflow:hidden;touch-action:none;direction:ltr;background:#e5e7eb}.pmt img{position:absolute;width:256px;height:256px;user-select:none;pointer-events:none}.pmk{position:absolute;inset:0}
+.pmm .ctl{position:absolute;right:10px;top:calc(76px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:6px;z-index:4}.pmm .ctl button{width:40px;height:40px;border-radius:12px;background:rgba(15,26,51,.88);color:#fff;font-size:20px}
+.pmm .attr{position:absolute;left:6px;bottom:calc(150px + env(safe-area-inset-bottom));font-size:10px;color:#334155}
+.pmp{position:absolute;width:16px;height:16px;margin:-16px 0 0 -8px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#2563eb;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);padding:0}
+.pmp.on{width:26px;height:26px;margin:-26px 0 0 -13px;background:#ef4444;z-index:2}.pmp span{position:absolute;transform:rotate(45deg);top:-30px;left:50%;white-space:nowrap;background:#0f172a;color:#fff;font-size:12px;padding:3px 8px;border-radius:8px;translate:-50% 0;direction:rtl}
+.pme{position:absolute;width:16px;height:16px;margin:-8px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 0 8px rgba(59,130,246,.25)}
+.pmf{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:10px 12px calc(12px + env(safe-area-inset-bottom));background:rgba(15,26,51,.95);color:#fff;border-radius:20px 20px 0 0}.pmf .chip{text-decoration:none;color:inherit}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 
 </style>
@@ -410,7 +421,7 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 
 <script>
 'use strict';
-const VERSION='1.16.0';
+const VERSION='1.17.0';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1040,15 +1051,97 @@ function renderTravel(){
    <div class="tpg"><label>مبدأ<select class="inp" id="tpA">${opts(T.a)}</select></label><button class="ibtn" id="tpX" aria-label="جابه‌جایی">⇅</button><label>مقصد<select class="inp" id="tpB">${opts(T.b)}</select></label></div>
    <div class="tpg2"><label>زمان حرکت<input class="inp" type="datetime-local" id="tpT" value="${dl}"></label><label>سرعت میانگین<select class="inp" id="tpS">${[70,85,100,110].map(v=>`<option value="${v}" ${v==T.sp?'selected':''}>${fa(v)} km/h</option>`).join('')}</select></label></div>
    <button class="btn" id="tpGo" style="margin-top:8px;background:var(--acc);color:#0f172a">نمایش هوای مسیر</button><div id="tpOut"></div></div>
-   <div class="card"><h3>🛣️ جاده‌ها و گردنه‌ها<span class="r">۲۴ ساعت آینده</span></h3><div id="trRoads">${roadsHtml()}</div><div class="note" style="margin-top:8px">پیش‌بینی هوای نقاط مسیر است، نه وضعیت رسمی ترافیک یا بسته بودن جاده. پیش از سفر با <a href="tel:141">۱۴۱</a> یا <a href="https://141.ir" target="_blank" rel="noopener">141.ir</a> وضعیت رسمی را بپرسید.</div></div>
+   <div class="card"><h3>🛣️ جاده‌ها و گردنه‌ها<span class="r"><a href="https://141.ir" target="_blank" rel="noopener" style="text-decoration:none">📷 دوربین‌ها ›</a></span></h3><div id="trRoads">${roadsHtml()}</div><div class="note" style="margin-top:8px">پیش‌بینی هوای نقاط مسیر است، نه وضعیت رسمی ترافیک یا بسته بودن جاده. پیش از سفر با <a href="tel:141">۱۴۱</a> یا <a href="https://141.ir" target="_blank" rel="noopener">141.ir</a> وضعیت رسمی را بپرسید.</div></div>
+   ${poiCard()}${camCard()}
    <div class="card"><h3>🏔️ کوهستان و پیست‌های اسکی<span class="r">در ارتفاع قله</span></h3><div id="trPeaks">${peaksHtml()}</div></div>
    <div class="card"><h3>🏖️ سواحل و دریا</h3><div id="trBeach">${beachHtml()}</div><div class="note" style="margin-top:6px">موج و دمای آب از مدل‌های دریایی است و ممکن است برای خزر در دسترس نباشد. همیشه به پرچم و هشدار نجات‌غریق توجه کنید.</div></div>
    <div class="card"><h3>📢 منابع رسمی</h3><div class="note" style="line-height:2.1">⚠️ هشدارهای رسمی هواشناسی: <a href="https://www.irimo.ir" target="_blank" rel="noopener">سازمان هواشناسی کشور</a><br>🛣️ وضعیت جاده‌ها و انسدادها: <a href="https://141.ir" target="_blank" rel="noopener">مرکز ۱۴۱</a><br>😷 شاخص رسمی هوای تهران: <a href="https://airnow.tehran.ir" target="_blank" rel="noopener">شرکت کنترل کیفیت هوا</a><br>🏫 تعطیلی مدارس و ادارات: اطلاعیه استانداری استان خودتان</div></div>`;
-  $('#tpGo').onclick=runTrip;$('#tpX').onclick=()=>{const a=$('#tpA').value;$('#tpA').value=$('#tpB').value;$('#tpB').value=a};
+  $('#tpGo').onclick=runTrip;bindPOI();bindCam();$('#tpX').onclick=()=>{const a=$('#tpA').value;$('#tpA').value=$('#tpB').value;$('#tpB').value=a};
   if(!TV2.roads)loadRoads().then(()=>{const e=$('#trRoads');if(e)e.innerHTML=roadsHtml()}).catch(()=>{const e=$('#trRoads');if(!e)return;const o=offGet('roads');if(o){TV2.roads=o;e.innerHTML='<div class="note">📴 آخرین داده ذخیره‌شده ('+ago(o.t)+')</div>'+roadsHtml()}else e.innerHTML='<div class="note">دریافت وضعیت جاده‌ها ممکن نشد.</div>'});
   if(!TV2.peaks)loadPeaks().then(()=>{const e=$('#trPeaks');if(e)e.innerHTML=peaksHtml()}).catch(()=>{const e=$('#trPeaks');if(!e)return;const o=offGet('peaks');if(o){TV2.peaks=o;e.innerHTML='<div class="note">📴 آخرین داده ذخیره‌شده ('+ago(o.t)+')</div>'+peaksHtml()}else e.innerHTML='<div class="note">دریافت هوای کوهستان ممکن نشد.</div>'});
   if(!TV2.beach)loadBeach().then(()=>{const e=$('#trBeach');if(e)e.innerHTML=beachHtml()}).catch(()=>{const e=$('#trBeach');if(!e)return;const o=offGet('beach');if(o){TV2.beach=o;e.innerHTML='<div class="note">📴 آخرین داده ذخیره‌شده ('+ago(o.t)+')</div>'+beachHtml()}else e.innerHTML='<div class="note">دریافت هوای سواحل ممکن نشد.</div>'});
 }
+
+/* ---------- places explorer (OpenStreetMap / Overpass) ---------- */
+const TOUR=[['اصفهان',32.6546,51.668],['شیراز',29.6107,52.5311],['یزد',31.8974,54.3675],['کاشان',33.9831,51.4364],['تبریز',38.0742,46.2965],['مشهد',36.2879,59.6157],['کیش',26.5297,53.98],['قشم',26.95,56.27],['کرمانشاه',34.3277,47.0778],['همدان',34.7983,48.5148],['ماسوله',37.1547,48.9881],['رامسر',36.9031,50.6583],['کرمان',30.2839,57.0834],['اردبیل',38.2498,48.2933],['قزوین',36.2688,50.0041],['چابهار',25.2919,60.643],['شوشتر',32.0456,48.8569],['بندرعباس',27.1832,56.2666],['تهران',35.6944,51.4215],['سنندج',35.3144,46.9923]];
+const POI_C={
+ sight:['🏛️ دیدنی‌ها','nwr["tourism"~"^(attraction|museum|viewpoint|zoo|theme_park|gallery|aquarium)$"]["name"];nwr["historic"~"^(monument|castle|archaeological_site|ruins|memorial|fort|citywalls|caravanserai|tomb)$"]["name"];nwr["natural"~"^(waterfall|cave_entrance|peak|spring|hot_spring)$"]["name"];nwr["leisure"="park"]["name"]["wikidata"]'],
+ stay:['🏨 اقامتگاه','nwr["tourism"~"^(hotel|guest_house|hostel|motel|apartment|chalet|camp_site|alpine_hut)$"]'],
+ fuel:['⛽ پمپ بنزین','nwr["amenity"="fuel"]'],
+ food:['🍽️ رستوران','nwr["amenity"~"^(restaurant|cafe|fast_food)$"]["name"]'],
+ med:['🏥 درمانی','nwr["amenity"~"^(hospital|clinic|pharmacy)$"]']};
+const POI_T={attraction:'جاذبه',museum:'موزه',viewpoint:'چشم‌انداز',zoo:'باغ‌وحش',theme_park:'شهربازی',gallery:'گالری',aquarium:'آکواریوم',monument:'بنای یادبود',castle:'قلعه',archaeological_site:'محوطه باستانی',ruins:'خرابه تاریخی',memorial:'یادمان',fort:'قلعه',citywalls:'باروی شهر',caravanserai:'کاروانسرا',tomb:'آرامگاه',waterfall:'آبشار',cave_entrance:'غار',peak:'قله',spring:'چشمه',hot_spring:'چشمه آب‌گرم',park:'پارک',hotel:'هتل',guest_house:'مهمان‌پذیر / بوم‌گردی',hostel:'هاستل',motel:'متل',apartment:'هتل‌آپارتمان',chalet:'ویلا/کلبه',camp_site:'کمپ',alpine_hut:'پناهگاه',fuel:'جایگاه سوخت',restaurant:'رستوران',cafe:'کافه',fast_food:'فست‌فود',hospital:'بیمارستان',clinic:'درمانگاه',pharmacy:'داروخانه'};
+const PX={c:S.poiC||'sight',city:null,r:S.poiR||10,cache:{}};
+async function overpass(q){const body='data='+encodeURIComponent(q),hosts=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter'];let last;
+  for(const h of hosts){try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),30000);const r=await fetch(h,{method:'POST',body,headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ac.signal});clearTimeout(t);if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}catch(e){last=e}}throw last}
+async function loadPOI(cat,ct,r){
+  const key=cat+'|'+ct[1].toFixed(3)+','+ct[2].toFixed(3)+'|'+r;if(PX.cache[key])return PX.cache[key];const ck=offGet('poi.'+key);if(ck&&Date.now()-ck.t<7*864e5)return PX.cache[key]=ck;
+  const parts=POI_C[cat][1].split(';').map(x=>`${x}(around:${r*1000},${ct[1]},${ct[2]});`).join('');
+  const j=await overpass(`[out:json][timeout:25];(${parts});out center tags 150;`);
+  const L=(j.elements||[]).map(e=>{const t=e.tags||{},la=e.lat??e.center?.lat,lo=e.lon??e.center?.lon;if(la==null)return null;const ty=t.tourism||t.historic||t.natural||t.amenity||t.leisure;
+    return{n:t['name:fa']||t.name||t.brand||t.operator||'',en:t['name:en']||'',ty,la,lo,d:hav(ct[1],ct[2],la,lo),st:t.stars,ph:t.phone||t['contact:phone']||'',web:t.website||t['contact:website']||'',oh:t.opening_hours||'',fuel:[t['fuel:octane_95']==='yes'||t['fuel:octane_92']==='yes'?'بنزین':'',t['fuel:cng']==='yes'?'CNG':'',t['fuel:diesel']==='yes'?'گازوئیل':'',t['fuel:lpg']==='yes'?'LPG':''].filter(Boolean),wiki:t.wikipedia||'',em:t.emergency==='yes'}}).filter(x=>x&&(x.n||cat==='fuel'||cat==='stay'||cat==='med'));
+  const seen=new Set();const U=L.filter(x=>{const k=(x.n||x.ty)+Math.round(x.la*500)+','+Math.round(x.lo*500);if(seen.has(k))return false;seen.add(k);return true}).sort((a,b)=>a.d-b.d);
+  const o={t:Date.now(),L:U};offSave('poi.'+key,o);return PX.cache[key]=o;
+}
+const mapLinks=(la,lo,n)=>`<a class="chip" href="geo:${la.toFixed(6)},${lo.toFixed(6)}?q=${la.toFixed(6)},${lo.toFixed(6)}(${encodeURIComponent(n||'مقصد')})">🧭 مسیریابی</a><a class="chip" href="https://neshan.org/maps/@${la.toFixed(6)},${lo.toFixed(6)},16.0z,0.0p" target="_blank" rel="noopener">نشان</a><a class="chip" href="https://balad.ir/location?latitude=${la.toFixed(6)}&longitude=${lo.toFixed(6)}&zoom=16" target="_blank" rel="noopener">بلد</a><a class="chip" href="https://www.google.com/maps/search/?api=1&query=${la.toFixed(6)},${lo.toFixed(6)}" target="_blank" rel="noopener">گوگل</a>`;
+function poiHtml(o){
+  if(!o)return '<div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="note" style="text-align:center">در حال جستجو در OpenStreetMap…</div>';
+  if(!o.L.length)return `<div class="note">موردی در شعاع ${fa(PX.r)} کیلومتری ثبت نشده است. شعاع را بزرگ‌تر کنید.</div>`;
+  return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="note" style="flex:1">${fa(o.L.length)} مورد · مرتب بر اساس فاصله</span><button class="chip on" data-pm="0">🗺️ همه روی نقشه</button></div><div class="poil">${o.L.slice(0,60).map((x,i)=>`<details class="poi"><summary><span class="pn">${esc(x.n||POI_T[x.ty]||'بدون نام')}${x.st?' '+'⭐'.repeat(Math.min(5,+x.st||0)):''}</span><small>${POI_T[x.ty]||x.ty||''}${x.fuel.length?' · '+x.fuel.join('، '):''}${x.em?' · اورژانس':''}</small><b>${x.d<1?fa(Math.round(x.d*1000))+' m':fa(x.d,1)+' km'}</b></summary>
+    <div class="poib">${x.en?`<div class="note">${esc(x.en)}</div>`:''}${x.oh?`<div class="note">🕒 ${esc(x.oh)}</div>`:''}${x.ph?`<div><a href="tel:${esc(x.ph.split(/[;,]/)[0])}">📞 ${esc(x.ph.split(/[;,]/)[0])}</a></div>`:''}${x.web?`<div><a href="${esc(/^https?:/.test(x.web)?x.web:'https://'+x.web)}" target="_blank" rel="noopener">🌐 وب‌سایت</a></div>`:''}${x.wiki?`<div><a href="https://${esc(x.wiki.split(':')[0])}.wikipedia.org/wiki/${encodeURIComponent(x.wiki.split(':').slice(1).join(':'))}" target="_blank" rel="noopener">📖 ویکی‌پدیا</a></div>`:''}
+    <div class="chips" style="margin-top:6px"><button class="chip on" data-pm="${i}">🗺️ نمایش روی نقشه</button>${mapLinks(x.la,x.lo,x.n)}</div><div class="note" style="direction:ltr;text-align:right">${x.la.toFixed(5)}, ${x.lo.toFixed(5)}</div></div></details>`).join('')}</div>`;
+}
+function poiCard(){const c=city(),ct=PX.city||[c.name,+c.lat,+c.lon];PX.city=ct;
+  return `<div class="card" id="poiCard"><h3>🧭 دیدنی‌ها، اقامت و خدمات<span class="r">OpenStreetMap</span></h3>
+   <div class="chips" id="poiCat">${Object.entries(POI_C).map(([k,v])=>`<button class="chip ${PX.c===k?'on':''}" data-v="${k}">${v[0]}</button>`).join('')}</div>
+   <div class="mgrp">شهر</div><div class="chips nowrap scroll-x" id="poiCity"><button class="chip ${ct[0]===c.name?'on':''}" data-i="-1">📍 ${esc(c.name)}</button>${TOUR.filter(t=>t[0]!==c.name).map((t,i)=>`<button class="chip ${ct[0]===t[0]?'on':''}" data-i="${TOUR.indexOf(t)}">${t[0]}</button>`).join('')}</div>
+   <div class="setl" style="margin-top:8px"><span style="font-size:13px">شعاع جستجو</span><div class="seg" id="poiR">${[3,10,25,50].map(r=>`<button data-v="${r}" class="${PX.r===r?'on':''}">${fa(r)} km</button>`).join('')}</div></div>
+   <div id="poiBody" style="margin-top:8px">${poiHtml(null)}</div>
+   <div class="note" style="margin-top:6px">اطلاعات از نقشه آزاد OpenStreetMap است و ممکن است ناقص باشد. قبل از سفر ساعت کاری و رزرو را تلفنی بپرسید.</div></div>`}
+function bindPOI(){
+  const run=async()=>{const b=$('#poiBody');if(!b)return;b.innerHTML=poiHtml(null);try{const o=await loadPOI(PX.c,PX.city,PX.r);const e=$('#poiBody');if(e){e.innerHTML=poiHtml(o);$$('#poiBody [data-pm]').forEach(b=>b.onclick=ev=>{ev.preventDefault();poiMap(o.L.slice(0,60),+b.dataset.pm)})}}catch(e){const x=$('#poiBody');if(x)x.innerHTML='<div class="note">دریافت اطلاعات از OpenStreetMap ممکن نشد. کمی بعد دوباره امتحان کنید.</div><button class="chip" id="poiRe">تلاش دوباره</button>';const r=$('#poiRe');if(r)r.onclick=run}};
+  $$('#poiCat .chip').forEach(b=>b.onclick=()=>{PX.c=S.poiC=b.dataset.v;saveS();$$('#poiCat .chip').forEach(x=>x.classList.toggle('on',x===b));run()});
+  $$('#poiCity .chip').forEach(b=>b.onclick=()=>{const i=+b.dataset.i,c=city();PX.city=i<0?[c.name,+c.lat,+c.lon]:TOUR[i];$$('#poiCity .chip').forEach(x=>x.classList.toggle('on',x===b));run()});
+  $$('#poiR button').forEach(b=>b.onclick=()=>{PX.r=S.poiR=+b.dataset.v;saveS();$$('#poiR button').forEach(x=>x.classList.toggle('on',x===b));run()});
+  run();
+}
+/* in-app mini map for places */
+let PMV=null;
+function poiMap(list,fi){
+  const g=$('#glance'),f=list[fi]||list[0];g.style.background='#e5e7eb';g.onclick=null;
+  g.innerHTML=`<div class="pmh"><button class="ibtn" id="pmX">✕</button><div class="t"><b>${esc(f.n||POI_T[f.ty]||'')}</b><small>${POI_T[f.ty]||''} · ${f.d<1?fa(Math.round(f.d*1000))+' متر':fa(f.d,1)+' کیلومتر'} از مرکز</small></div></div><div class="pmm" id="pmm"><div class="pmt"></div><div class="pmk"></div><div class="ctl"><button id="pmZi">+</button><button id="pmZo">−</button><button id="pmMe" style="font-size:15px">◎</button></div><div class="attr">© Esri · OpenStreetMap</div></div><div class="pmf" id="pmf"></div>`;
+  g.classList.add('on');PMV={z:15,lat:f.la,lon:f.lo,list,sel:fi,me:null,imgs:new Map()};
+  const el=$('#pmm');let last=null,ptr=new Map(),p0=0;
+  el.onpointerdown=e=>{el.setPointerCapture(e.pointerId);ptr.set(e.pointerId,[e.clientX,e.clientY]);last=[e.clientX,e.clientY];if(ptr.size===2){const [a,b]=[...ptr.values()];p0=Math.hypot(a[0]-b[0],a[1]-b[1])}};
+  el.onpointermove=e=>{if(!ptr.has(e.pointerId))return;ptr.set(e.pointerId,[e.clientX,e.clientY]);if(ptr.size===2){const [a,b]=[...ptr.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(p0&&d/p0>1.4){pmZoom(1);p0=d}else if(p0&&d/p0<.7){pmZoom(-1);p0=d}return}if(!last)return;const dx=e.clientX-last[0],dy=e.clientY-last[1];last=[e.clientX,e.clientY];PMV.lon=x2lon(lon2x(PMV.lon,PMV.z)-dx,PMV.z);PMV.lat=y2lat(lat2y(PMV.lat,PMV.z)-dy,PMV.z);pmRender()};
+  el.onpointerup=el.onpointercancel=e=>{ptr.delete(e.pointerId);if(ptr.size<2)p0=0;if(!ptr.size)last=null};
+  el.onwheel=e=>{e.preventDefault();pmZoom(e.deltaY<0?1:-1)};
+  $('#pmZi').onclick=()=>pmZoom(1);$('#pmZo').onclick=()=>pmZoom(-1);['pmZi','pmZo','pmMe'].forEach(i=>$('#'+i).onpointerdown=e=>e.stopPropagation());
+  $('#pmMe').onclick=()=>{if(!navigator.geolocation)return;toast('در حال یافتن موقعیت…');navigator.geolocation.getCurrentPosition(p=>{PMV.me=[p.coords.latitude,p.coords.longitude];PMV.lat=PMV.me[0];PMV.lon=PMV.me[1];pmRender()},()=>toast('موقعیت پیدا نشد'),{timeout:15000})};
+  $('#pmX').onclick=()=>{g.classList.remove('on');PMV=null};
+  pmSel(fi);
+}
+function pmZoom(d){if(!PMV)return;PMV.z=Math.max(5,Math.min(18,PMV.z+d));pmRender()}
+function pmSel(i){const x=PMV.list[i];PMV.sel=i;const f=$('#pmf');f.innerHTML=`<div class="pmc"><b>${esc(x.n||POI_T[x.ty]||'')}</b>${x.st?' '+'⭐'.repeat(Math.min(5,+x.st)):''}<div class="note">${POI_T[x.ty]||''}${x.fuel&&x.fuel.length?' · '+x.fuel.join('، '):''}${x.oh?' · 🕒 '+esc(x.oh):''}</div>${x.ph?`<a href="tel:${esc(x.ph.split(/[;,]/)[0])}" class="chip" style="text-decoration:none;color:inherit">📞 تماس</a>`:''}<div class="chips" style="margin-top:6px">${mapLinks(x.la,x.lo,x.n)}</div><div class="note">«مسیریابی» برنامه نقشه گوشی (نشان، بلد یا گوگل) را برای راهنمای صوتی باز می‌کند.</div></div>`;
+  const h=$('.pmh .t');if(h)h.innerHTML=`<b>${esc(x.n||POI_T[x.ty]||'')}</b><small>${POI_T[x.ty]||''} · ${x.d<1?fa(Math.round(x.d*1000))+' متر':fa(x.d,1)+' کیلومتر'} از مرکز · ${fa(PMV.list.length)} مکان روی نقشه</small>`;
+  PMV.lat=x.la;PMV.lon=x.lo;pmRender()}
+function pmRender(){if(!PMV)return;const el=$('#pmm');if(!el)return;const W=el.clientWidth,H=el.clientHeight,z=PMV.z,cx=lon2x(PMV.lon,z),cy=lat2y(PMV.lat,z),sx=cx-W/2,sy=cy-H/2,n=2**z,cont=el.querySelector('.pmt'),used=new Set();
+  for(let x=Math.floor(sx/256);x<=Math.floor((sx+W)/256);x++)for(let y=Math.max(0,Math.floor(sy/256));y<=Math.min(n-1,Math.floor((sy+H)/256));y++){const wx=((x%n)+n)%n,k=z+'/'+wx+'/'+y+'|'+x;used.add(k);let im=PMV.imgs.get(k);if(!im){im=new Image();im.src=`https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/${z}/${y}/${wx}`;im.onerror=()=>{if(!im.fb){im.fb=1;im.src=`https://tile.openstreetmap.org/${z}/${wx}/${y}.png`}};cont.appendChild(im);PMV.imgs.set(k,im)}im.style.transform=`translate(${x*256-sx}px,${y*256-sy}px)`}
+  for(const [k,im] of PMV.imgs)if(!used.has(k)){im.remove();PMV.imgs.delete(k)}
+  const mk=el.querySelector('.pmk');mk.innerHTML=PMV.list.map((p,i)=>{const x=lon2x(p.lo,z)-sx,y=lat2y(p.la,z)-sy;if(x<-30||y<-30||x>W+30||y>H+30)return '';const on=i===PMV.sel;return `<button class="pmp ${on?'on':''}" data-i="${i}" style="left:${x}px;top:${y}px">${on?`<span>${esc((p.n||POI_T[p.ty]||'').slice(0,28))}</span>`:''}</button>`}).join('')+(PMV.me?`<div class="pme" style="left:${lon2x(PMV.me[1],z)-sx}px;top:${lat2y(PMV.me[0],z)-sy}px"></div>`:'');
+  mk.querySelectorAll('.pmp').forEach(b=>{b.onpointerdown=e=>e.stopPropagation();b.onclick=e=>{e.stopPropagation();pmSel(+b.dataset.i)}})}
+addEventListener('resize',()=>PMV&&pmRender());
+/* road cameras */
+function camCard(){const L=S.cams||[];
+  return `<div class="card" id="camCard"><h3>📷 دوربین‌های راهداری</h3>
+   <div class="note">تصاویر دوربین‌های جاده‌ای کشور در سامانه رسمی ۱۴۱ است.</div><div class="chips" style="margin-top:6px"><a class="chip on" href="https://141.ir" target="_blank" rel="noopener">📷 دوربین‌های ۱۴۱</a><a class="chip" href="tel:141">📞 تماس با ۱۴۱</a></div>
+   ${L.length?`<div class="mgrp">دوربین‌های من</div>${L.map((c,i)=>`<div class="ofr" style="margin-top:6px"><div class="ofh" style="display:flex;align-items:center"><b style="flex:1">📷 ${esc(c.n)}</b><button class="x" data-cdel="${i}" style="color:var(--dim);font-size:18px">×</button></div><img src="${esc(c.u)}${c.u.includes('?')?'&':'?'}t=${Math.floor(Date.now()/12e4)}" alt="" referrerpolicy="no-referrer" class="camimg" data-u="${esc(c.u)}"></div>`).join('')}`:''}
+   <details class="hp" style="margin-top:8px"><summary>➕ افزودن دوربین با لینک تصویر</summary><div>در سایت ۱۴۱ یا هر سایت دیگر روی تصویر دوربین انگشت را نگه دارید ← «Copy image address» و اینجا بچسبانید. تصویر هر ۲ دقیقه خودکار تازه می‌شود.
+    <input class="inp" id="camN" placeholder="نام (مثلاً کندوان)" style="margin-top:6px"><input class="inp" id="camU" placeholder="https://…" style="margin-top:6px;direction:ltr"><button class="btn" id="camAdd" style="margin-top:6px">افزودن</button></div></details></div>`}
+function bindCam(){const a=$('#camAdd');if(a)a.onclick=()=>{const n=$('#camN').value.trim()||'دوربین',u=$('#camU').value.trim();if(!/^https?:\/\//.test(u)){toast('لینک معتبر نیست');return}S.cams=(S.cams||[]).concat([{n,u}]);saveS();$('#camCard').outerHTML=camCard();bindCam()};
+  $$('#camCard [data-cdel]').forEach(b=>b.onclick=()=>{S.cams.splice(+b.dataset.cdel,1);saveS();$('#camCard').outerHTML=camCard();bindCam()});
+  $$('#camCard .camimg').forEach(im=>{im.onerror=()=>{im.replaceWith(Object.assign(document.createElement('div'),{className:'note',textContent:'⚠️ تصویر بارگذاری نشد'}))};im.onclick=()=>{const g=$('#glance');g.style.background='#000';g.innerHTML=`<div style="height:100%;display:flex;align-items:center;justify-content:center"><img src="${im.src}" style="max-width:100%"></div><div class="gx">برای بستن ضربه بزنید</div>`;g.classList.add('on');g.onclick=()=>g.classList.remove('on')}});
+  clearInterval(bindCam.t);bindCam.t=setInterval(()=>{if(curTab!=='tr'){clearInterval(bindCam.t);return}$$('#camCard .camimg').forEach(im=>{im.src=im.dataset.u+(im.dataset.u.includes('?')?'&':'?')+'t='+Date.now()})},12e4)}
 
 /* ---------- CLIMATE & RECORDS ---------- */
 let CLIM={};

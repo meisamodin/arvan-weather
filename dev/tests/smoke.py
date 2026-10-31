@@ -162,6 +162,11 @@ def handle(route):
         import time as _t
         now = int(_t.time() * 1000)
         return J({'features': [{'id': 'q%d' % i, 'properties': {'mag': m, 'time': now - h * 3600000, 'place': 'x'}, 'geometry': {'coordinates': [lo, la, dp]}} for i, (m, h, la, lo, dp) in enumerate([(4.6, 3, 34.4, 47.2, 10), (3.1, 30, 27.3, 56.4, 12), (5.2, 100, 30.1, 57.0, 8), (2.8, 5, 35.9, 51.0, 9)])]})
+    if 'overpass' in u.hostname or 'interpreter' in u.path:
+        import random as _r
+        els = [{'type': 'node', 'lat': 35.69 + (i % 7) * .01, 'lon': 51.39 + (i % 5) * .012, 'tags': {'name': ['عمارت شمس‌العماره', 'هتل اسپیناس', 'جایگاه سوخت ۱۲۴', 'موزه ملی', 'کاخ گلستان', 'بوستان آب و آتش'][i % 6], 'tourism': ['museum', 'hotel', None, 'museum', 'attraction', None][i % 6], 'amenity': [None, None, 'fuel', None, None, None][i % 6], 'stars': '5' if i % 6 == 1 else None, 'fuel:cng': 'yes', 'phone': '+98 21 1234', 'opening_hours': 'Mo-Su 08:00-20:00'}} for i in range(18)]
+        for e in els: e['tags'] = {k: v for k, v in e['tags'].items() if v}
+        return J({'elements': els})
     if u.hostname == 'www.kermanshahmet.ir':
         b = io.BytesIO(); im = Image.new('RGB', (600, 600), (20, 20, 20))
         for x in range(200, 330):
@@ -181,6 +186,7 @@ def handle(route):
         b = io.BytesIO(); im = Image.new('RGBA', (1040, 800), (0, 0, 0, 0)); [im.putpixel((x, y), (40, 120, 255, 200)) for x in range(400, 700) for y in range(300, 450)]; im.save(b, 'PNG'); return route.fulfill(status=200, content_type='image/png', body=b.getvalue())
     if 'tilecache.rainviewer.com' in u.hostname: return route.fulfill(status=200, content_type='image/png', body=RADAR)
     if 'Reference' in route.request.url: return route.fulfill(status=200, content_type='image/png', body=png((0, 0, 0, 0)))
+    if 'World_Street_Map' in route.request.url: return route.fulfill(status=200, content_type='image/png', body=png((236, 232, 220, 255)))
     if 'cartocdn' in u.hostname or 'arcgisonline' in u.hostname: return route.fulfill(status=200, content_type='image/png', body=TILE)
     if u.hostname == 'cdn.jsdelivr.net': return route.fulfill(status=200, content_type='text/css', body='')
     return route.continue_()
@@ -216,7 +222,7 @@ with sync_playwright() as p:
     pg.click('#mapLayers .chip[data-v=pres]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5d-map-pres.png')
     pg.click('nav button[data-t=now]'); pg.wait_for_timeout(500); pg.click('#ircV button[data-v=rain]'); pg.wait_for_timeout(1500); pg.locator('#ircCard').screenshot(path=f'{OUT}/irc-rain.png')
     pg.evaluate('openStats(IRC.find(c=>c[0]==="سنندج"))'); pg.wait_for_timeout(2500); pg.locator('.sheet.on .panel').evaluate('e=>e.style.maxHeight="none"'); pg.locator('.sheet.on .panel').screenshot(path=f'{OUT}/stats.png'); pg.evaluate("document.querySelectorAll('.sheet.on').forEach(e=>e.remove())"); pg.wait_for_timeout(300)
-    pg.click('nav button[data-t=tr]'); pg.wait_for_timeout(2500); pg.click('#tpGo'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/tr1.png', full_page=True)
+    pg.click('nav button[data-t=tr]'); pg.wait_for_timeout(2500); pg.locator('#poiCard').screenshot(path=f'{OUT}/poi.png'); pg.click('#poiCard details.poi >> nth=0'); pg.wait_for_timeout(300); pg.locator('#poiCard').screenshot(path=f'{OUT}/poi2.png'); pg.click('#poiBody [data-pm="0"] >> nth=0'); pg.wait_for_timeout(1000); pg.screenshot(path=f'{OUT}/poimap.png'); pg.click('#pmX'); pg.wait_for_timeout(200); pg.click('#tpGo'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/tr1.png', full_page=True)
     pg.click('nav button[data-t=fc]'); pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/fc2.png', full_page=True)
     pg.click('nav button[data-t=now]'); pg.wait_for_timeout(500); pg.evaluate('openGlance()'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/glance.png'); pg.click('#glance'); pg.wait_for_timeout(300)
     pg.click('nav button[data-t=md]'); pg.wait_for_timeout(300)
