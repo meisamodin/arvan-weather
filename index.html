@@ -441,7 +441,7 @@ body[data-fx=fog]{--bg1:#6b7480!important;--bg2:#a9b1ba!important}
 
 <script>
 'use strict';
-const VERSION='1.21.0';
+const VERSION='1.21.1';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -720,12 +720,19 @@ function dayMarks(times){const m=[];times.forEach((t,i)=>{if(i>0&&t.slice(11,13)
 
 /* ---------- seasonal outlook ---------- */
 let SEA=null;
-async function loadSeasonal(c){const k='sea.'+c.id;if(SEA&&SEA.id===c.id&&Date.now()-SEA.t<12*36e5)return SEA;const ck=offGet(k);if(ck&&Date.now()-ck.t<24*36e5)return SEA=ck;
-  const base=`https://seasonal-api.open-meteo.com/v1/seasonal?latitude=${c.lat}&longitude=${c.lon}&timezone=auto`;let j=null,m='';
-  for(const mod of ['ecmwf_seasonal_ensemble_mean_seamless','ecmwf_seas5_ensemble_mean','']){try{j=await getJSON(base+'&monthly=temperature_2m_mean,precipitation_sum'+(mod?'&models='+mod:''),40000);m=mod;break}catch(e){if(e.limit)throw e}}
-  if(!j||!j.monthly)throw new Error('na');const M=j.monthly,pick=k=>{const key=Object.keys(M).find(x=>x===k||x.startsWith(k+'_'));return key?M[key]:null};
-  let A=null;for(const v of [['temperature_2m_anomaly','precipitation_anomaly'],['temperature_2m_mean_anomaly','precipitation_sum_anomaly']]){try{const a=await getJSON(base+'&monthly='+v.join(',')+(m?'&models='+m:''),40000);if(a.monthly){const ak=k=>{const key=Object.keys(a.monthly).find(x=>x===k||x.startsWith(k+'_'));return key?a.monthly[key]:null};A={t:ak(v[0]),p:ak(v[1])};break}}catch(e){if(e.limit)break}}
-  SEA={id:c.id,t:Date.now(),time:M.time,tm:pick('temperature_2m_mean'),pr:pick('precipitation_sum'),A};offSave(k,SEA);return SEA}
+async function loadSeasonal(c){const k='sea2.'+c.id;if(SEA&&SEA.id===c.id&&Date.now()-SEA.t<12*36e5)return SEA;const ck=offGet(k);if(ck&&Date.now()-ck.t<24*36e5)return SEA=ck;
+  const base=`https://seasonal-api.open-meteo.com/v1/seasonal?latitude=${(+c.lat).toFixed(2)}&longitude=${(+c.lon).toFixed(2)}`,errs=[];
+  const avgKeys=(O,v)=>{const ks=Object.keys(O).filter(x=>x===v||x.startsWith(v+'_member'));if(!ks.length)return null;return O[ks[0]].map((_,i)=>{const xs=ks.map(k=>O[k][i]).filter(x=>x!=null);return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null})};
+  let res=null;
+  /* 1) monthly aggregates */
+  for(const mod of ['ecmwf_seasonal_ensemble_mean_seamless','ecmwf_seas5_ensemble_mean','']){if(res)break;try{const j=await getJSON(base+'&monthly=temperature_2m_mean,precipitation_sum'+(mod?'&models='+mod:''),40000);if(j.monthly&&j.monthly.time){res={time:j.monthly.time,tm:avgKeys(j.monthly,'temperature_2m_mean'),pr:avgKeys(j.monthly,'precipitation_sum'),m:mod}}}catch(e){if(e.limit)throw e;errs.push('m:'+(mod||'-')+':'+e.message)}}
+  /* 2) daily → monthly */
+  if(!res)for(const mod of ['ecmwf_seasonal_ensemble_mean_seamless','ecmwf_seas5_ensemble_mean','ecmwf_seas5','']){if(res)break;try{const j=await getJSON(base+'&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&forecast_days=183'+(mod?'&models='+mod:''),60000);const d=j.daily;if(!d||!d.time)continue;
+      const tx=avgKeys(d,'temperature_2m_max'),tn=avgKeys(d,'temperature_2m_min'),pr=avgKeys(d,'precipitation_sum'),M={};d.time.forEach((t,i)=>{const m=t.slice(0,7)+'-01',o=M[m]||(M[m]={t:0,n:0,p:0,np:0});if(tx&&tn&&tx[i]!=null&&tn[i]!=null){o.t+=(tx[i]+tn[i])/2;o.n++}if(pr&&pr[i]!=null){o.p+=pr[i];o.np++}});
+      const K=Object.keys(M).sort().filter(m=>M[m].n>=20);res={time:K,tm:K.map(m=>M[m].t/M[m].n),pr:K.map(m=>M[m].p*(M[m].np?Math.min(1.15,(new Date(m.slice(0,4),+m.slice(5,7),0).getDate())/M[m].np):1)),m:mod,daily:1}}catch(e){if(e.limit)throw e;errs.push('d:'+(mod||'-')+':'+e.message)}}
+  if(!res){const e=new Error(errs.slice(-2).join(' | ')||'na');e.diag=1;throw e}
+  let A=null;if(!res.daily)for(const v of [['temperature_2m_anomaly','precipitation_anomaly'],['temperature_2m_mean_anomaly','precipitation_sum_anomaly']]){try{const a=await getJSON(base+'&monthly='+v.join(',')+(res.m?'&models='+res.m:''),40000);if(a.monthly){A={t:avgKeys(a.monthly,v[0]),p:avgKeys(a.monthly,v[1])};if(A.t)break;A=null}}catch(e){if(e.limit)break}}
+  SEA={id:c.id,t:Date.now(),time:res.time,tm:res.tm,pr:res.pr,A};offSave(k,SEA);return SEA}
 function seaHtml(o){
   const rows=o.time.map((t,i)=>{const mid=new Date(t.slice(0,7)+'-15T12:00:00Z'),mn=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{month:'long'}).format(mid),gm=new Intl.DateTimeFormat('fa-IR-u-ca-gregory',{month:'long'}).format(mid),tm=o.tm&&o.tm[i],pr=o.pr&&o.pr[i],ta=o.A&&o.A.t?o.A.t[i]:null,pa=o.A&&o.A.p?o.A.p[i]:null;
     const tl=ta==null?'':Math.abs(ta)<.5?['نرمال','var(--sub)']:ta>0?[`${fa(Math.abs(dT(ta)),1)}° گرم‌تر`,'#fb923c']:[`${fa(Math.abs(dT(ta)),1)}° سردتر`,'#60a5fa'];
@@ -733,7 +740,7 @@ function seaHtml(o){
     return `<div class="sear"><div><b>${mn}</b><small>${gm}</small></div><div><b>${tm!=null?tS(tm):'–'}</b>${tl?`<small style="color:${tl[1]}">${tl[0]}</small>`:''}</div><div><b>${pr!=null?fa(Math.round(pr))+' mm':'–'}</b>${pl?`<small style="color:${pl[1]}">${pl[0]}</small>`:''}</div></div>`}).join('');
   let sum='';if(o.A&&o.A.t){const n=Math.min(3,o.time.length),ta=o.A.t.slice(0,n).reduce((a,b)=>a+(b||0),0)/n,pa=o.A.p?o.A.p.slice(0,n).reduce((a,b)=>a+(b||0),0):0;sum=`<div class="anom" style="background:${ta>.5?'rgba(249,115,22,.2)':ta<-.5?'rgba(59,130,246,.2)':'var(--card2)'}"><b>۳ ماه آینده: ${Math.abs(ta)<.5?'دمای نزدیک به معمول':ta>0?'احتمالاً گرم‌تر از معمول':'احتمالاً سردتر از معمول'}${o.A.p?(Math.abs(pa)<5?' و بارش نزدیک به معمول':pa>0?' و پربارش‌تر از معمول':' و کم‌بارش‌تر از معمول'):''}</b><small>«معمول» یعنی میانگین بلندمدت همان ماه در مدل اروپایی</small></div>`}
   return `${sum}<div class="sear seah"><div>ماه</div><div>میانگین دما</div><div>مجموع بارش</div></div>${rows}<div class="note" style="margin-top:6px">پیش‌بینی فصلی مدل ECMWF (میانگین ۵۱ اجرا). فقط <b>روند کلی</b> را نشان می‌دهد (گرم‌تر/سردتر، پربارش/کم‌بارش) و دقت روزانه ندارد؛ هر ماه به‌روز می‌شود.</div>`}
-async function fillSea(){const el=$('#sea');if(!el||!D)return;const c=city();try{const o=await loadSeasonal(c);if(c.id!==curId||!$('#sea'))return;$('#sea').innerHTML=seaHtml(o)}catch(e){el.innerHTML=`<div class="note">${e.limit?esc(e.message):'پیش‌بینی فصلی در دسترس نیست.'}</div>`}}
+async function fillSea(){const el=$('#sea');if(!el||!D)return;const c=city();try{const o=await loadSeasonal(c);if(c.id!==curId||!$('#sea'))return;$('#sea').innerHTML=seaHtml(o)}catch(e){el.innerHTML=`<div class="note">${e.limit?esc(e.message):'پیش‌بینی فصلی فعلاً در دسترس نیست.'}</div>${e.diag?`<details class="hp" style="border:0"><summary style="font-size:11px;color:var(--dim)">جزئیات فنی</summary><div style="direction:ltr;font-size:11px;word-break:break-all">${esc(e.message)}</div></details>`:''}<button class="chip" style="margin-top:6px" onclick="SEA=null;fillSea()">تلاش دوباره</button>`}}
 
 /* ---------- FORECAST tab ---------- */
 const FCV={temp:'دما',rain:'بارش',wind:'باد',hum:'رطوبت و ابر',dew:'نقطه شبنم',uv:'UV',pres:'فشار',vis:'دید افقی'};
