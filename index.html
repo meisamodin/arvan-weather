@@ -446,7 +446,7 @@ body[data-fx=fog]{--bg1:#6b7480!important;--bg2:#a9b1ba!important}
 
 <script>
 'use strict';
-const VERSION='1.23.1';
+const VERSION='1.23.2';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2026,10 +2026,13 @@ function nasaSetup(){
 const LT_BB={lon0:40,lon1:66,lat0:22,lat1:42};
 function ltOverlay(ctx){if(!S.ltOv||!R.lt)return;const f=R.lt.fr.slice().reverse().find(f=>f.im.complete&&!f.im.bad&&f.im.naturalWidth);if(f)drawEq(ctx,f.im,LT_BB)}
 function ltSetup(){
-  if(R.lt&&Date.now()-R.lt.t<5*60e3)return;const end=Math.floor((Date.now()-15*6e4)/3e5)*3e5,fr=[];
+  if(R.lt&&Date.now()-R.lt.t<3*60e3)return;const end=Math.floor((Date.now()-6*6e4)/3e5)*3e5,fr=[],q=[];
   const wms=(ly,t,w,h)=>`https://view.eumetsat.int/geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS=${ly}&STYLES=&SRS=EPSG:4326&BBOX=${LT_BB.lon0},${LT_BB.lat0},${LT_BB.lon1},${LT_BB.lat1}&WIDTH=${w}&HEIGHT=${h}&FORMAT=image/png&TRANSPARENT=TRUE&EXCEPTIONS=application/vnd.ogc.se_xml${t?'&TIME='+t:''}`;
-  for(let k=12;k>=0;k--){const t=k?new Date(end-k*6e5):new Date(Date.now()-10*6e4),iso=t.toISOString().slice(0,19)+'Z';const im=new Image();im.onload=()=>{im.ok=1;if(isRad()&&R.src==='lt'){mapRender();updRdInfo()}};im.onerror=()=>{im.bad=1;if(isRad()&&R.src==='lt')updRdInfo()};im.src=wms('mtg_fd:li_afa',k?iso:'',1040,800);fr.push({t,im})}
-  const ir=new Image();ir.onload=()=>{ir.ok=1;if(isRad()&&R.src==='lt'){mapRender();updRdInfo()}};ir.onerror=()=>{ir.bad=1;if(isRad()&&R.src==='lt')updRdInfo()};ir.src=wms('mtg_fd:ir105_hrfi','',1040,800);
+  for(let k=12;k>=0;k--){const t=k?new Date(end-(k-1)*3e5):new Date(Date.now()-5*6e4),iso=t.toISOString().slice(0,19)+'Z';const im=new Image();im.onload=()=>{im.ok=1;if(isRad()&&R.src==='lt'){mapRender();updRdInfo()}};im.onerror=()=>{im.bad=1;if(isRad()&&R.src==='lt')updRdInfo()};fr.push({t,im,last:!k});q.push([im,wms('mtg_fd:li_afa',k?iso:'',780,600)])}
+  if(fr.length>1&&fr[fr.length-2].t>=fr[fr.length-1].t)fr[fr.length-1].t=new Date(+fr[fr.length-2].t+3e5);
+  q.reverse();let qi=0;const nxt=()=>{const e=q[qi++];if(!e)return;const [im,u]=e;const o=im.onload,b=im.onerror;im.onload=()=>{o();nxt();prune()};im.onerror=()=>{b();nxt();prune()};im.src=u};
+  const prune=()=>{const L=R.lt;if(!L||L.fr!==fr||fr.some(f=>!f.im.ok&&!f.im.bad))return;const g=fr.filter(f=>f.im.ok);if(g.length&&g.length<fr.length){L.fr=g;R.fis.lt=g.length-1;if(isRad()&&R.src==='lt'){mapRender();updRdInfo()}}};nxt();nxt();nxt();
+  const ir=new Image();ir.onload=()=>{ir.ok=1;if(isRad()&&R.src==='lt'){mapRender();updRdInfo()}};ir.onerror=()=>{ir.bad=1;if(isRad()&&R.src==='lt')updRdInfo()};ir.src=wms('mtg_fd:ir105_hrfi','',780,600);
   R.lt={t:Date.now(),fr,ir};R.fis.lt=fr.length-1;
 }
 /* model storm masses: cloud cover + CAPE + thunderstorm codes over Iran (works even if satellites are blocked) */
@@ -2068,7 +2071,7 @@ function drawRadar(ctx){
   else if(R.src==='nasa'&&R.nasa){const f=R.nasa.fr[R.fis.nasa];if(f&&f.im.complete&&!f.im.bad&&f.im.naturalWidth){ctx.globalAlpha=.9;drawEq(ctx,f.im,{lat1:42,lat0:22,lon0:40,lon1:66});ctx.globalAlpha=1}}
 }
 function rdFrames(){if(R.src==='lt')return R.lt?R.lt.fr.map(f=>f.t):[];if(isRV())return MP.frames.map(f=>new Date(f.time*1000));if(R.src==='iran')return R.iran?R.iran.times.map(t=>new Date(t+':00Z')):[];return R.nasa?R.nasa.fr.map(f=>f.t):[]}
-function rdLabel(i){const fr=rdFrames(),d=fr[i];if(!d)return '';let s=fmtRT(d);if(R.src==='iran'){const m=Math.round((d-Date.now())/6e4);if(i===R.iran.now)s+=' · اکنون';else if(m>0)s+=' · پیش‌بینی';}else if(R.src==='nasa')s+=' · '+fmtRT(d,{weekday:'short'});else if(R.src==='lt'){const m=Math.round((Date.now()-d)/6e4);s+=' · '+fa(m)+' دقیقه پیش';const f=R.lt.fr[i];if(f&&f.im.bad)s+=' (بدون داده)'}return s}
+function rdLabel(i){const fr=rdFrames(),d=fr[i];if(!d)return '';let s=fmtRT(d);if(R.src==='iran'){const m=Math.round((d-Date.now())/6e4);if(i===R.iran.now)s+=' · اکنون';else if(m>0)s+=' · پیش‌بینی';}else if(R.src==='nasa')s+=' · '+fmtRT(d,{weekday:'short'});else if(R.src==='lt'){const f=R.lt.fr[i];if(f&&f.last)s='آخرین تصویر';else{const m=Math.round((Date.now()-d)/6e4);s+=' · '+fa(m)+' دقیقه پیش'}if(f&&f.im.bad)s+=' (بدون داده)'}return s}
 function rdSet(i){if(isRV()){R.fis.rv=i;MP.fi=i}else R.fis[R.src]=i;mapRender();const s=$('#rSl'),b=$('#rT');if(s)s.value=i;if(b)b.textContent=rdLabel(i)}
 async function radarChanged(){
   clearInterval(R.timer);R.timer=null;clearWind();
@@ -2101,7 +2104,7 @@ function updRdInfo(){
   const IRL=`<div class="note" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">رادارهای زمینی سازمان هواشناسی کشور داده عمومی ندارند؛ تصاویر آن‌ها را در <a href="http://radar.irimo.ir/" target="_blank" rel="noopener">سامانه رادار سازمان هواشناسی</a> ببینید. نقشه‌های رادار و مدل‌های سایت Meteologix هم در <a href="https://meteologix.com/ir" target="_blank" rel="noopener">meteologix.com</a> در دسترس است.</div>`;
   const info={iran:['بارش سراسری ایران (مدل‌های عددی)',`linear-gradient(to right,${grad(RAIN_ST)})`,['۰٫۱','۱','۴','۱۲','۳۵+'],`پوشش کامل کشور (حدود ۱۵۰ کیلومتری) و <b>شبکه ریزتر ۸۰ کیلومتری برای غرب کشور</b> (کردستان، کرمانشاه، ایلام، لرستان، همدان، آذربایجان غربی، خوزستان) · از ${fa(2)} ساعت گذشته تا ${fa(6)} ساعت آینده، هر ${fa(R.iran?R.iran.step:15)} دقیقه · رنگ‌های بنفش‌کم‌رنگ = برف. این داده تخمین مدل است، نه تصویر مستقیم رادار.`],
     ksh:['رادار زمینی (RainViewer)','linear-gradient(to right,#88ddee,#0099cc,#0077aa,#005588,#ffee00,#ffaa00,#ff4400,#c10000,#ffaaff)',['Light','Moderate','Heavy','Extreme'],'تصویر بالا مستقیم از اداره کل هواشناسی کرمانشاه است (راهنمای رنگ روی خود تصویر). نقشه پایین داده همان رادار در شبکه جهانی است و می‌توانید زوم و جابه‌جا کنید.'],
-    lt:['آذرخش‌ها از ماهواره (MTG Lightning Imager)','linear-gradient(to right,#fef08a,#facc15,#f97316,#ef4444,#a21caf)',['کم','','زیاد'],'نقطه‌های رنگی = محل صاعقه‌ها از ماهواره Meteosat نسل سوم (EUMETSAT)، حدود ۱۵ دقیقه تأخیر. لایه خاکستری ماهواره = ابرها (سفید و سرد = ابر طوفانی بلند). <b>لایه مدل</b>: خاکستری = توده ابر، زرد تا بنفش = توده‌های ناپایدار (انرژی همرفتی CAPE)، ⚡ = رعد و برق پیش‌بینی‌شده — این لایه همیشه در دسترس است حتی اگر سرور ماهواره باز نشود. اگر نقطه رنگی ماهواره‌ای نیست یعنی الان صاعقه‌ای ثبت نشده است.'],
+    lt:['آذرخش‌ها از ماهواره (MTG Lightning Imager)','linear-gradient(to right,#fef08a,#facc15,#f97316,#ef4444,#a21caf)',['کم','','زیاد'],'نقطه‌های رنگی = محل صاعقه‌ها از ماهواره Meteosat نسل سوم (EUMETSAT)، حدود ۵ تا ۱۰ دقیقه تأخیر (زمان پردازش ماهواره). لایه خاکستری ماهواره = ابرها (سفید و سرد = ابر طوفانی بلند). <b>لایه مدل</b>: خاکستری = توده ابر، زرد تا بنفش = توده‌های ناپایدار (انرژی همرفتی CAPE)، ⚡ = رعد و برق پیش‌بینی‌شده — این لایه همیشه در دسترس است حتی اگر سرور ماهواره باز نشود. اگر نقطه رنگی ماهواره‌ای نیست یعنی الان صاعقه‌ای ثبت نشده است.'],
     nasa:['تخمین بارش ماهواره‌ای ناسا (GPM IMERG)','linear-gradient(to right,#b4f0ff,#33b7ff,#2e5bff,#00c44f,#ffe200,#ff7a00,#ff0000)',['سبک','','','','شدید'],'بارش واقعی مشاهده‌شده از ماهواره، کل ایران و منطقه، هر ۳۰ دقیقه · حدود ۷ ساعت تأخیر دارد.'],
     rv:['رادارهای هواشناسی کشور (از طریق RainViewer)','linear-gradient(to right,#88ddee,#0099cc,#0077aa,#005588,#ffee00,#ffaa00,#ff4400,#c10000,#ffaaff)',['Light','Moderate','Heavy','Extreme'],'تصویر واقعی ۹ رادار سازمان هواشناسی (کرمانشاه، تهران، تبریز، اردبیل، گیلان، مازندران، اهواز، بوشهر، شیراز) · ۲ ساعت گذشته، هر ۱۰ دقیقه · دایره‌ها برد تقریبی ۲۵۰ کیلومتری هر رادار است. اگر رادار خاموش یا قطع باشد، آن منطقه خالی می‌ماند.']}[R.src];
   const bad=(R.src==='nasa'&&R.nasa&&R.nasa.fr.every(f=>f.im.bad))||(R.src==='lt'&&R.lt&&R.lt.fr.every(f=>f.im.bad));
