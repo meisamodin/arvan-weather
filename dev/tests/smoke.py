@@ -93,9 +93,15 @@ def handle(route):
         if 'minutely_15' in q and len(lats) > 1:
             st = datetime.now(timezone.utc).replace(tzinfo=None, second=0, microsecond=0); st -= timedelta(minutes=st.minute % 15 + 120)
             T = [(st + timedelta(minutes=15 * k)).strftime('%Y-%m-%dT%H:%M') for k in range(33)]
+            lons_ = q.get('longitude', ['0'])[0].split(',')
             def m15(i):
-                r, c = divmod(i, 28)
-                return {'minutely_15': {'time': T, 'precipitation': [round(max(0, math.sin((c - k * .15) / 3) * math.cos(r / 4)) * 1.6, 2) for k in range(33)], 'snowfall': [0.3 if r < 4 and c < 8 else 0] * 33}}
+                r, c = (40 - float(lats[i])) / .75, (float(lons_[i]) - 44) / .75
+                o = {'minutely_15': {'time': T, 'precipitation': [round(max(0, math.sin((c - k * .15) / 3) * math.cos(r / 4)) * 1.6, 2) for k in range(33)], 'snowfall': [0.3 if r < 4 and c < 8 else 0] * 33}}
+                if 'hourly' in q:
+                    h0 = datetime.now(timezone.utc).replace(tzinfo=None, minute=0, second=0, microsecond=0)
+                    cp = max(0, 2600 - ((r - 8) ** 2 + (c - 5) ** 2) * 160)
+                    o['hourly'] = {'time': [(h0 + timedelta(hours=k)).strftime('%Y-%m-%dT%H:%M') for k in range(13)], 'cloud_cover': [max(0, min(100, 60 + 40 * math.sin(c / 2 + r / 3 + k / 4))) for k in range(13)], 'cape': [cp] * 13, 'weather_code': [95 if cp > 1800 else 3] * 13}
+                return o
             return J([m15(i) for i in range(len(lats))])
         BASEH = set(['temperature_2m','apparent_temperature','relative_humidity_2m','dew_point_2m','precipitation_probability','precipitation','weather_code','cloud_cover','visibility','wind_speed_10m','wind_direction_10m','wind_gusts_10m','uv_index','is_day','pressure_msl','snowfall',''])
         if len(lats) > 1 or any(v not in BASEH for v in hv):
@@ -161,6 +167,7 @@ def handle(route):
         n = len(q.get('latitude', ['0'])[0].split(','))
         if n > 1: return J([{'current': {'us_aqi': (i * 37) % 190 + 10, 'pm2_5': 20 + i % 30, 'dust': (i * 53) % 300}, 'hourly': {'time': [], 'dust': []}} for i in range(n)])
         return J(aqi())
+    if u.hostname == 'geocoding-api.open-meteo.com' and 'Abdanan' in route.request.url: return J({'results': [{'name': 'قلعهٔ آب دانان', 'admin1': 'ایلام', 'country': 'ایران', 'country_code': 'IR', 'latitude': 32.99, 'longitude': 47.42}]})
     if u.hostname == 'geocoding-api.open-meteo.com': return J({'results': [{'name': 'شیراز', 'admin1': 'استان فارس', 'country': 'ایران', 'latitude': 29.61, 'longitude': 52.53}]})
     if u.hostname == 'api.rainviewer.com': return J({'host': 'https://tilecache.rainviewer.com', 'radar': {'past': [{'time': 1793446800 + i * 600, 'path': f'/v2/radar/{i}'} for i in range(12)]}})
     if u.hostname == 'archive-api.open-meteo.com' and len(q['latitude'][0].split(',')) > 1:
@@ -228,10 +235,11 @@ with sync_playwright() as p:
     pg.click('nav button[data-t=map]'); pg.wait_for_timeout(2500)
     pg.screenshot(path=f'{OUT}/4b-map-wind.png'); pg.click('#mapLevels .chip[data-v="250hPa"]'); pg.wait_for_timeout(2500); pg.mouse.click(150, 450); pg.wait_for_timeout(300); pg.screenshot(path=f'{OUT}/4c-map-jet.png')
     pg.click('#mapLayers .chip[data-v=temp]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5-map-temp.png')
-    pg.click('nav button[data-t=rd]'); pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/r1-iran.png', full_page=True)
+    pg.evaluate('OM.used=[]'); pg.click('nav button[data-t=rd]'); pg.wait_for_timeout(2500); print('OMUSED', pg.evaluate("JSON.stringify(OM.used.map(u=>[Math.round((Date.now()-u[0])/1000),Math.round(u[1])]))"), pg.evaluate('!!R.iran')); pg.screenshot(path=f'{OUT}/r1a-wait.png'); pg.wait_for_timeout(1000); pg.click('#rdInfo [data-rg=all]'); pg.wait_for_timeout(1500); print('USED2', pg.evaluate("JSON.stringify(OM.used.map(u=>[Math.round((Date.now()-u[0])/1000),Math.round(u[1])]))")); print('IRAN', pg.evaluate('!!R.iran'), pg.evaluate('loadIran().then(()=>"ok").catch(e=>String(e&&e.stack||e))')); pg.screenshot(path=f'{OUT}/r1-iran.png', full_page=True)
     pg.click('#rdSrc .chip[data-v=nasa]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/r2-nasa.png')
     pg.click('#rdSrc .chip[data-v=ksh]'); pg.wait_for_timeout(1800); pg.screenshot(path=f'{OUT}/r6-ksh.png', full_page=True)
     pg.click('#rdSrc .chip[data-v=lt]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/r5-lt.png', full_page=True)
+    pg.evaluate("window.scrollTo(0,0)"); pg.click('#cityBtn'); pg.wait_for_timeout(500); pg.fill('#q', 'Abdanan'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/c1-abdanan.png'); pg.fill('#q', 'سنند'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/c2-sanandaj.png'); pg.keyboard.press('Escape'); pg.evaluate("closeSheets()"); pg.wait_for_timeout(300)
     pg.click('#rdSrc .chip[data-v=rv]'); pg.wait_for_timeout(1200); pg.click('#rdInfo [data-st=IRKR]'); pg.wait_for_timeout(800); pg.screenshot(path=f'{OUT}/r3-rv.png', full_page=True)
     pg.click('nav button[data-t=map]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/r4-backmap.png')
     pg.click('#mapLayers .chip[data-v=wind]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5b-map-wind.png')

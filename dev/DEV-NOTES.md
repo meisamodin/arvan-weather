@@ -79,3 +79,8 @@
 - رادار: کارت بارش ۲ ساعته، شفافیت، صاعقه روی نقشه (`S.ltOv`)؛ نقشه: لایه احساس دما و CAPE، تمام‌صفحه
 - سفر: کاوشگر مکان‌ها با Overpass (`loadPOI`، دسته‌ها `POI_C`) و نقشه داخلی `poiMap`؛ دوربین‌ها `S.cams`
 - مدل‌ها: ۱۵ مدل و ۲۷ پارامتر، پیش‌بینی گروهی ensemble-api (`fillEns`)
+
+## v1.23.0
+- City search: built-in list of 616 Iranian cities (`IC_RAW`): 484 county centres (coordinates from GeoNames, via sajaddp/list-of-cities-in-Iran county-centers) + 132 towns from babaie774/iran-geography-data (MIT, filtered within 320 km of province centre). Local hits first, Open-Meteo geocoder results inside Iran snapped to local names (6 km), old saved names like «قلعه آب دانان» auto-renamed.
+- Radar «بارش سراسری»: grids lightened (IR 1.5°, west .75° → 154+117 locations), storm vars fetched in the same request, cached frame painted first, queue countdown via `OM.onWait`. Map grid requests are now cancellable (`getJSON(url,ms,chk)`), so the map tab no longer eats the per-minute quota after leaving it — this was the cause of the endless «در حال دریافت».
+- Lightning view: model storm-mass layer (cloud cover + CAPE + ⚡ thunder codes, now/+3…+12h), per-source status, city list of forecast thunder; latest LI frame requested without TIME.
