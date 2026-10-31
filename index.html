@@ -316,6 +316,12 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 .pmf{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:10px 12px calc(12px + env(safe-area-inset-bottom));background:rgba(15,26,51,.95);color:#fff;border-radius:20px 20px 0 0}.pmf .chip{text-decoration:none;color:inherit}
 .ensr{display:grid;grid-template-columns:70px 1fr 36px 74px;gap:6px;align-items:center;padding:4px 0;border-top:1px solid var(--line);font-size:12.5px}.ensh{border-top:0}.ensr small{font-size:10.5px;color:var(--sub);text-align:left}
 .ensb{position:relative;height:10px;border-radius:5px;background:rgba(255,255,255,.08);overflow:hidden}.ensb i{position:absolute;right:0;top:0;bottom:0;border-radius:5px}
+#bgFx{position:fixed;inset:0;width:100vw;height:100vh;z-index:-1;pointer-events:none}
+body[data-fx=rain],body[data-fx=storm]{--bg1:#2b3b52!important;--bg2:#4f6680!important}
+body[data-fx=rain] .card,body[data-fx=storm] .card{backdrop-filter:blur(14px) saturate(1.1);-webkit-backdrop-filter:blur(14px)}
+body[data-fx=storm]{--bg1:#1d1b2e!important;--bg2:#3b3656!important}
+body[data-fx=snow]{--bg1:#6f87a6!important;--bg2:#c3d2e3!important}
+body[data-fx=fog]{--bg1:#6b7480!important;--bg2:#a9b1ba!important}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 
 </style>
@@ -386,6 +392,8 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
   <details class="hp" style="border:0;padding:4px 0"><summary style="font-size:13px;color:var(--sub)">🗺️ کلید API نشان (برای مکان‌های دقیق‌تر)</summary><div>از platform.neshan.org یک «کلید سرویس» با دسترسی «جستجو» بسازید و اینجا وارد کنید تا بخش دیدنی‌ها، هتل‌ها و پمپ بنزین از نقشه نشان پر شود.<input class="inp" id="nsKey" placeholder="service.xxxxxxxx" autocomplete="off" style="margin-top:6px;direction:ltr"></div></details>
   <div class="sec">ظاهر</div>
   <div style="margin:8px 0"><div style="margin-bottom:6px">پوسته</div><div class="seg" data-k="theme" style="flex-wrap:wrap"><button data-v="dyn">🌈 پویا</button><button data-v="dark">🌙 تیره</button><button data-v="oled">⚫ مشکی</button><button data-v="light">☀️ روشن</button><button data-v="sys">📱 سیستم</button></div><small style="color:var(--dim)">«پویا» رنگ برنامه را با وضعیت هوا و شب و روز عوض می‌کند.</small></div>
+  <div class="setl"><span>🌧️ افکت زنده هوا روی کل صفحه<br><small style="color:var(--dim)">باران، قطره روی شیشه، برف، رعد و برق، مه و آفتاب متناسب با هوای شهر</small></span><button class="sw" id="pfxSw"></button></div>
+  <div class="chips" id="fxPrev" style="margin:2px 0 8px"><span class="note" style="align-self:center">پیش‌نمایش:</span><button class="chip" data-v="">خودکار</button><button class="chip" data-v="rain">🌧️ باران</button><button class="chip" data-v="storm">⛈️ رعد</button><button class="chip" data-v="snow">❄️ برف</button><button class="chip" data-v="fog">🌫️ مه</button><button class="chip" data-v="sun">☀️ آفتاب</button><button class="chip" data-v="stars">🌙 شب</button></div>
   <div class="setl"><span>اندازه متن</span><div class="seg" data-k="fs"><button data-v="90">کوچک</button><button data-v="100">عادی</button><button data-v="112">بزرگ</button><button data-v="125">خیلی بزرگ</button></div></div>
   <div class="sec">صفحه اصلی</div>
   <div class="setl"><span>تب شروع</span><select class="inp" id="startTab" style="width:auto;padding:7px 10px"><option value="now">اکنون</option><option value="fc">پیش‌بینی</option><option value="rd">رادار</option><option value="map">نقشه</option><option value="md">مدل‌ها</option></select></div>
@@ -428,10 +436,11 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 
 <div class="toast" id="toast"></div>
 <div id="glance"></div>
+<canvas id="bgFx" aria-hidden="true"></canvas>
 
 <script>
 'use strict';
-const VERSION='1.19.0';
+const VERSION='1.20.0';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -446,7 +455,7 @@ let cities=LS.get('cities',[DEF_CITY]); if(!cities.length)cities=[DEF_CITY];
 let curId=LS.get('cur',cities[0].id); if(!cities.find(c=>c.id===curId))curId=cities[0].id;
 const S=Object.assign({t:'c',w:'kmh',p:'hpa',notif:false,aqStd:'us',models:['ecmwf_ifs025','gfs_seamless','icon_seamless','gem_seamless','ukmo_seamless','ecmwf_aifs025_single'],mVar:'temp',fcVar:'temp',fcRange:48,mapLayer:'wind',mapLevel:'10m',profH:0,theme:'dyn',fs:'100'},LS.get('settings',{}));
 if(S.mapLayer==='radar')S.mapLayer='wind';
-const saveS=()=>LS.set('settings',S);
+const saveS=()=>{const {fxPrev,...k}=S;LS.set('settings',k)};
 const city=()=>cities.find(c=>c.id===curId)||cities[0];
 let D=null, AQ=null, loading=false, curTab='now';
 
@@ -1223,15 +1232,21 @@ async function fillAgri(){
 
 /* ---------- animated FX (full-screen glance + hero background) ---------- */
 function fxKind(c,day){const k=kind(c);return k==='rain'||k==='drizzle'?'rain':k==='thunder'?'storm':k==='snow'?'snow':k==='fog'?'fog':k==='cloudy'||k==='partly'?(day?'clouds':'stars'):(day?'sun':'stars')}
-function startFX(cv,kd,dense=1){
-  let raf=0,W=0,H=0,P=[],fl=0;const ctx=cv.getContext('2d'),dpr=Math.min(2,devicePixelRatio||1);
+function startFX(cv,kd,dense=1,opt={}){
+  let raf=0,W=0,H=0,P=[],fl=0,G=[],SP=[];const ctx=cv.getContext('2d'),dpr=Math.min(2,devicePixelRatio||1);
   const size=()=>{W=cv.clientWidth;H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)};size();
   const N={rain:220,storm:260,snow:140,stars:120,clouds:7,fog:6,sun:1}[kd]*dense|0;
   const mk=()=>kd==='rain'||kd==='storm'?{x:Math.random()*W*1.2,y:Math.random()*H,v:10+Math.random()*8,l:10+Math.random()*14}:kd==='snow'?{x:Math.random()*W,y:Math.random()*H,v:.6+Math.random()*1.4,r:1+Math.random()*2.6,p:Math.random()*6}:kd==='stars'?{x:Math.random()*W,y:Math.random()*H*.75,r:Math.random()*1.4+.3,p:Math.random()*6}:{x:Math.random()*W,y:Math.random()*H*.6,v:.15+Math.random()*.35,r:60+Math.random()*90};
   for(let i=0;i<N;i++)P.push(mk());let t=0;
+  const glass=opt.glass&&(kd==='rain'||kd==='storm'),mkG=()=>({x:Math.random()*W,y:Math.random()*H,r:2+Math.random()*Math.random()*9,v:0,st:Math.random()*400});
+  if(glass)for(let i=0;i<Math.round(W*H/9000);i++)G.push(mkG());
   const loop=()=>{t++;ctx.clearRect(0,0,W,H);
     if(kd==='rain'||kd==='storm'){ctx.strokeStyle='rgba(190,215,255,.55)';ctx.lineWidth=1.2;ctx.beginPath();P.forEach(p=>{ctx.moveTo(p.x,p.y);ctx.lineTo(p.x-p.l*.25,p.y+p.l);p.y+=p.v;p.x-=p.v*.25;if(p.y>H){p.y=-20;p.x=Math.random()*W*1.2}});ctx.stroke();
-      if(kd==='storm'){if(fl>0){ctx.fillStyle=`rgba(255,255,255,${fl/12})`;ctx.fillRect(0,0,W,H);fl--}else if(Math.random()<.006)fl=10}}
+      if(opt.splash&&Math.random()<.5)SP.push({x:Math.random()*W,y:H-Math.random()*H*.25,a:1});SP=SP.filter(s=>(s.a-=.06)>0);ctx.strokeStyle='rgba(200,225,255,.45)';SP.forEach(s=>{ctx.beginPath();ctx.ellipse(s.x,s.y,(1-s.a)*9,(1-s.a)*3,0,0,7);ctx.stroke()});
+      if(glass){G.forEach(g=>{if(g.st>0){g.st--}else if(g.r>5){g.v=Math.min(4,g.v+.04*g.r/6);g.y+=g.v;if(Math.random()<.04)G.push({x:g.x+(Math.random()-.5)*2,y:g.y-g.r,r:g.r*.35,v:0,st:200+Math.random()*200,tr:1});g.x+=(Math.random()-.5)*.6}
+        const gr=ctx.createRadialGradient(g.x-g.r*.35,g.y-g.r*.35,g.r*.1,g.x,g.y,g.r);gr.addColorStop(0,'rgba(255,255,255,.75)');gr.addColorStop(.35,'rgba(210,230,255,.22)');gr.addColorStop(.8,'rgba(90,120,170,.18)');gr.addColorStop(1,'rgba(255,255,255,.5)');ctx.fillStyle=gr;ctx.beginPath();ctx.ellipse(g.x,g.y,g.r*.9,g.r,0,0,7);ctx.fill()});
+        G=G.filter(g=>g.y-g.r<H&&!(g.tr&&g.st<=0&&g.r<2.2&&Math.random()<.002));while(G.length<Math.round(W*H/9000))G.push(mkG());if(G.length>W*H/4000)G.splice(0,G.length-Math.round(W*H/4000));if(Math.random()<.25)G.push({...mkG(),r:1+Math.random()*2.5,st:0})}
+      if(kd==='storm'){if(fl>0){ctx.fillStyle=`rgba(255,255,255,${fl/12})`;ctx.fillRect(0,0,W,H);fl--;if(fl===8&&opt.bolt){ctx.strokeStyle='rgba(255,255,240,.9)';ctx.lineWidth=2.5;ctx.beginPath();let x=W*(.2+Math.random()*.6),y=0;ctx.moveTo(x,y);while(y<H*.6){x+=(Math.random()-.5)*60;y+=20+Math.random()*30;ctx.lineTo(x,y)}ctx.stroke()}}else if(Math.random()<.006)fl=10}}
     else if(kd==='snow'){ctx.fillStyle='rgba(255,255,255,.9)';P.forEach(p=>{p.p+=.02;p.y+=p.v;p.x+=Math.sin(p.p)*.6;if(p.y>H){p.y=-5;p.x=Math.random()*W}ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill()})}
     else if(kd==='stars'){P.forEach(p=>{p.p+=.03;ctx.fillStyle=`rgba(255,255,255,${.35+.65*Math.abs(Math.sin(p.p))})`;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill()})}
     else if(kd==='clouds'||kd==='fog'){P.forEach(p=>{p.x+=p.v;if(p.x-p.r>W)p.x=-p.r;const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);g.addColorStop(0,kd==='fog'?'rgba(230,235,240,.32)':'rgba(255,255,255,.28)');g.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill()})}
@@ -1241,8 +1256,14 @@ function startFX(cv,kd,dense=1){
   if(!matchMedia('(prefers-reduced-motion: reduce)').matches)loop();
   return {stop(){cancelAnimationFrame(raf);ctx.clearRect(0,0,W,H)},size};
 }
-let HFX=null;
-function heroFX(){if(HFX){HFX.stop();HFX=null}const cv=$('#heroFx');if(!cv||!D||document.hidden)return;HFX=startFX(cv,fxKind(D.current.weather_code,D.current.is_day),.45)}
+let HFX=null,PFX=null,PFXK='';
+function pageFX(){
+  const cv=$('#bgFx');if(!cv)return;const on=S.pageFx!==false&&D&&!document.hidden&&!matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const kd=on?(S.fxPrev||fxKind(D.current.weather_code,D.current.is_day)):'';document.body.dataset.fx=kd;
+  if(kd===PFXK&&PFX)return;if(PFX){PFX.stop();PFX=null}PFXK=kd;if(!kd)return;
+  PFX=startFX(cv,kd,kd==='rain'||kd==='storm'?1.6:kd==='snow'?1.4:1,{glass:true,splash:true,bolt:true})}
+addEventListener('resize',()=>{if(PFX){PFX.stop();PFX=null;PFXK='';pageFX()}});
+function heroFX(){pageFX();if(HFX){HFX.stop();HFX=null}const cv=$('#heroFx');if(!cv||!D||document.hidden||S.pageFx!==false)return;HFX=startFX(cv,fxKind(D.current.weather_code,D.current.is_day),.45)}
 let GFX=null;
 function openGlance(){
   if(!D)return;const c=D.current,d=D.daily,h=D.hourly,s=i0(),el=$('#glance');
@@ -2048,10 +2069,10 @@ $('#gpsBtn').onclick=()=>{if(!navigator.geolocation){toast('مرورگر از م
 
 /* ---------- settings ---------- */
 const CARDS=[['nc','🌧️ بارش ۲ ساعته'],['hr','⏱️ ساعتی'],['dy','📅 روزانه'],['dt','🔢 جزئیات'],['aq','🍃 کیفیت هوا'],['ex','🏃 ورزش'],['ac','🎯 شاخص‌ها'],['sn','🌅 خورشید و ماه'],['ic','🇮🇷 شهرهای کشور']];
-function renderSettings(){const nk=$('#nsKey');if(nk)nk.value=S.neshanKey||'';const st=$('#startTab');if(st)st.value=S.startTab||'now';const ct=$('#cardTg');if(ct){ct.innerHTML=CARDS.map(c=>`<button class="chip ${(S.hide||[]).includes(c[0])?'':'on'}" data-k="${c[0]}">${c[1]}</button>`).join('');$$('#cardTg .chip').forEach(b=>b.onclick=()=>{const k=b.dataset.k;S.hide=(S.hide||[]).includes(k)?S.hide.filter(x=>x!==k):[...(S.hide||[]),k];saveS();b.classList.toggle('on');if(D)renderNow()})}const ok=$('#omKey');if(ok)ok.value=S.omKey||'';const ss=$('#srcSel');if(ss)ss.value=S.src||'best';const ms=$('#mornSw');if(ms)ms.classList.toggle('on',!!S.morning);$$('#setS .seg').forEach(sg=>$$('button',sg).forEach(b=>b.classList.toggle('on',S[sg.dataset.k]===b.dataset.v)));$('#notifSw').classList.toggle('on',!!S.notif&&('Notification' in window)&&Notification.permission==='granted')}
+function renderSettings(){const pf=$('#pfxSw');if(pf)pf.classList.toggle('on',S.pageFx!==false);$$('#fxPrev .chip').forEach(b=>b.classList.toggle('on',(S.fxPrev||'')===b.dataset.v));const nk=$('#nsKey');if(nk)nk.value=S.neshanKey||'';const st=$('#startTab');if(st)st.value=S.startTab||'now';const ct=$('#cardTg');if(ct){ct.innerHTML=CARDS.map(c=>`<button class="chip ${(S.hide||[]).includes(c[0])?'':'on'}" data-k="${c[0]}">${c[1]}</button>`).join('');$$('#cardTg .chip').forEach(b=>b.onclick=()=>{const k=b.dataset.k;S.hide=(S.hide||[]).includes(k)?S.hide.filter(x=>x!==k):[...(S.hide||[]),k];saveS();b.classList.toggle('on');if(D)renderNow()})}const ok=$('#omKey');if(ok)ok.value=S.omKey||'';const ss=$('#srcSel');if(ss)ss.value=S.src||'best';const ms=$('#mornSw');if(ms)ms.classList.toggle('on',!!S.morning);$$('#setS .seg').forEach(sg=>$$('button',sg).forEach(b=>b.classList.toggle('on',S[sg.dataset.k]===b.dataset.v)));$('#notifSw').classList.toggle('on',!!S.notif&&('Notification' in window)&&Notification.permission==='granted')}
 $('#setBtn').onclick=()=>{renderSettings();openSheet('setS')};
 $$('#setS .seg').forEach(sg=>$$('button',sg).forEach(b=>b.onclick=()=>{S[sg.dataset.k]=b.dataset.v;saveS();renderSettings();applyTheme();renderAll()}));
-$('#mornSw').onclick=async()=>{const on=!S.morning;await setMorning(on);renderSettings()};$('#nsKey').onchange=e=>{S.neshanKey=e.target.value.trim();saveS();PX.cache={};toast(S.neshanKey?'کلید نشان ذخیره شد':'کلید نشان حذف شد')};$('#omKey').onchange=e=>{S.omKey=e.target.value.trim();saveS();OM.cool=0;toast(S.omKey?'کلید ذخیره شد':'کلید حذف شد');load(true)};$('#srcSel').onchange=e=>{S.src=e.target.value;saveS();cities.forEach(c=>LS.del('cache.'+c.id));toast('منبع پیش‌بینی عوض شد');load(true)};$('#fbMail').onclick=()=>{location.href='mailto:meisam.rostami2010@gmail.com?subject='+encodeURIComponent('بازخورد اروان ودر '+VERSION)+'&body='+encodeURIComponent('\n\n\n—— اطلاعات فنی ——\n'+techInfo())};$('#fbCopy').onclick=async()=>{try{await navigator.clipboard.writeText(techInfo());toast('کپی شد')}catch(e){toast('کپی ممکن نشد')}};$('#startTab').onchange=e=>{S.startTab=e.target.value;saveS();toast('ذخیره شد')};$('#expBtn').onclick=exportData;$('#impBtn').onclick=()=>$('#impF').click();$('#impF').onchange=e=>{const f=e.target.files[0];if(f)importData(f);e.target.value=''};$('#fuBtn').onclick=forceUpdate;$('#shareAppBtn').onclick=shareApp;
+$('#mornSw').onclick=async()=>{const on=!S.morning;await setMorning(on);renderSettings()};$('#nsKey').onchange=e=>{S.neshanKey=e.target.value.trim();saveS();PX.cache={};toast(S.neshanKey?'کلید نشان ذخیره شد':'کلید نشان حذف شد')};$('#omKey').onchange=e=>{S.omKey=e.target.value.trim();saveS();OM.cool=0;toast(S.omKey?'کلید ذخیره شد':'کلید حذف شد');load(true)};$('#srcSel').onchange=e=>{S.src=e.target.value;saveS();cities.forEach(c=>LS.del('cache.'+c.id));toast('منبع پیش‌بینی عوض شد');load(true)};$('#fbMail').onclick=()=>{location.href='mailto:meisam.rostami2010@gmail.com?subject='+encodeURIComponent('بازخورد اروان ودر '+VERSION)+'&body='+encodeURIComponent('\n\n\n—— اطلاعات فنی ——\n'+techInfo())};$('#fbCopy').onclick=async()=>{try{await navigator.clipboard.writeText(techInfo());toast('کپی شد')}catch(e){toast('کپی ممکن نشد')}};$('#startTab').onchange=e=>{S.startTab=e.target.value;saveS();toast('ذخیره شد')};$('#pfxSw').onclick=()=>{S.pageFx=S.pageFx===false;saveS();renderSettings();heroFX()};$$('#fxPrev .chip').forEach(b=>b.onclick=()=>{S.fxPrev=b.dataset.v||'';renderSettings();if(D){const k=S.fxPrev;const map={rain:[63,1],storm:[95,1],snow:[73,1],fog:[45,1],sun:[0,1],stars:[0,0]};if(k)setBG(map[k][0],map[k][1]);else setBG(D.current.weather_code,D.current.is_day)}PFXK='';heroFX();toast(S.fxPrev?'پیش‌نمایش؛ با بستن برنامه به حالت خودکار برمی‌گردد':'افکت خودکار بر اساس هوای شهر')});$('#expBtn').onclick=exportData;$('#impBtn').onclick=()=>$('#impF').click();$('#impF').onchange=e=>{const f=e.target.files[0];if(f)importData(f);e.target.value=''};$('#fuBtn').onclick=forceUpdate;$('#shareAppBtn').onclick=shareApp;
 $('#notifSw').onclick=async()=>{if(!('Notification' in window)){toast('این دستگاه از اعلان پشتیبانی نمی‌کند');return}
   if(S.notif){S.notif=false;saveS();renderSettings();return}
   const p=await Notification.requestPermission();if(p==='granted'){S.notif=true;saveS();toast('اعلان هشدارها فعال شد');checkNotify()}else toast('اجازه اعلان داده نشد');renderSettings()};
@@ -2066,7 +2087,7 @@ $('#refBtn').onclick=()=>{load(true);if(curTab==='md'){Object.keys(MDATA).forEac
 
 /* ---------- boot ---------- */
 $('#verTxt').textContent='نسخه '+VERSION;$('#ver2').textContent=VERSION;
-document.addEventListener('visibilitychange',()=>{if(document.hidden){if(HFX){HFX.stop();HFX=null}}else{if(curTab==='now'){if(D)renderNow();else heroFX()}if(D&&Date.now()-D._t>15*60e3)load(true)}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){if(HFX){HFX.stop();HFX=null}if(PFX){PFX.stop();PFX=null;PFXK=''}}else{if(curTab==='now'){if(D)renderNow();else heroFX()}if(D&&Date.now()-D._t>15*60e3)load(true)}});
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 if(S.home&&cities.find(c=>c.id===S.home)){curId=S.home;LS.set('cur',curId)}
 applyTheme();load(false);try{const qt=new URLSearchParams(location.search).get('tab')||(S.startTab!=='now'?S.startTab:'');if(['fc','rd','tr','aq','map','md'].includes(qt))setTimeout(()=>go(qt),300)}catch(e){}if(FIRST_RUN)setTimeout(onboard,400);updOnline();
