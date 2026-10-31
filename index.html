@@ -322,6 +322,7 @@ body[data-fx=rain] .card,body[data-fx=storm] .card{backdrop-filter:blur(14px) sa
 body[data-fx=storm]{--bg1:#1d1b2e!important;--bg2:#3b3656!important}
 body[data-fx=snow]{--bg1:#6f87a6!important;--bg2:#c3d2e3!important}
 body[data-fx=fog]{--bg1:#6b7480!important;--bg2:#a9b1ba!important}
+.sear{display:grid;grid-template-columns:1fr 1.2fr 1.2fr;gap:6px;padding:7px 0;border-top:1px solid var(--line);align-items:center}.sear small{display:block;font-size:11px;color:var(--sub)}.sear b{font-size:14px}.seah{font-size:11.5px;color:var(--dim);border-top:0;margin-top:8px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 
 </style>
@@ -440,7 +441,7 @@ body[data-fx=fog]{--bg1:#6b7480!important;--bg2:#a9b1ba!important}
 
 <script>
 'use strict';
-const VERSION='1.20.2';
+const VERSION='1.21.0';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -503,7 +504,7 @@ function setBG(code,day){if(typeof resTheme==='function'&&resTheme()!=='dyn')ret
 async function getJSON(url,ms=15000){url=await omGate(url);const ac=new AbortController();const t=setTimeout(()=>ac.abort(),ms);try{const r=await fetch(url,{signal:ac.signal});if(!r.ok){let m='';try{m=(await r.json()).reason}catch(e){}if(r.status===429&&/open-meteo/.test(url)){omOn429(m);const e=omLimitErr();throw e}throw new Error(m||('HTTP '+r.status))}return await r.json()}catch(e){if(e.name==='AbortError')throw new Error('زمان پاسخ‌گویی سرور تمام شد');throw e}finally{clearTimeout(t)}}
 /* ---------- Open-Meteo quota guard + MET Norway fallback ---------- */
 const OM={used:[],cool:0,why:'',warned:0};
-const OM_HOSTS={'api.open-meteo.com':'customer-api.open-meteo.com','archive-api.open-meteo.com':'customer-archive-api.open-meteo.com','air-quality-api.open-meteo.com':'customer-air-quality-api.open-meteo.com','marine-api.open-meteo.com':'customer-marine-api.open-meteo.com','ensemble-api.open-meteo.com':'customer-ensemble-api.open-meteo.com'};
+const OM_HOSTS={'api.open-meteo.com':'customer-api.open-meteo.com','archive-api.open-meteo.com':'customer-archive-api.open-meteo.com','air-quality-api.open-meteo.com':'customer-air-quality-api.open-meteo.com','marine-api.open-meteo.com':'customer-marine-api.open-meteo.com','seasonal-api.open-meteo.com':'customer-seasonal-api.open-meteo.com','ensemble-api.open-meteo.com':'customer-ensemble-api.open-meteo.com'};
 function omWeight(U){const P=U.searchParams,n=(P.get('latitude')||'0').split(',').length,vars=['hourly','daily','current','minutely_15'].reduce((s,k)=>s+((P.get(k)||'').split(',').filter(Boolean).length),0);
   let days=(+(P.get('forecast_days')||7))+(+(P.get('past_days')||0));const sd=P.get('start_date'),ed=P.get('end_date'),sh=P.get('start_hour'),eh=P.get('end_hour');if(sd&&ed)days=(new Date(ed)-new Date(sd))/864e5+1;else if(sh&&eh)days=(new Date(eh)-new Date(sh))/864e5;
   const mods=(P.get('models')||'x').split(',').length;return n*Math.max(1,vars/10)*Math.max(1,days/14)*mods}
@@ -558,8 +559,8 @@ async function metForecast(c){
   return {latitude:c.lat,longitude:c.lon,utc_offset_seconds:off,timezone:D&&D.timezone||'Asia/Tehran',current:cur,hourly:H,daily:Dd,src:'met',_n:1};
 }
 
-const HV='temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,precipitation_probability,precipitation,weather_code,cloud_cover,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,is_day,pressure_msl';
-const DV='weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,sunrise,sunset,daylight_duration,uv_index_max,precipitation_sum,precipitation_probability_max,precipitation_hours,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant';
+const HV='temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,precipitation_probability,precipitation,weather_code,cloud_cover,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,is_day,pressure_msl,snowfall';
+const DV='weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,sunrise,sunset,daylight_duration,uv_index_max,precipitation_sum,precipitation_probability_max,precipitation_hours,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,snowfall_sum';
 const CV='temperature_2m,apparent_temperature,relative_humidity_2m,is_day,precipitation,weather_code,cloud_cover,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m,visibility,uv_index';
 const FC_URL=c=>`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=${CV}&hourly=${HV}&daily=${DV}&timezone=auto&forecast_days=16&past_days=1&minutely_15=precipitation&forecast_minutely_15=9${S.src&&S.src!=='best'&&S.src!=='blend'?'&models='+S.src:''}`;
 const BLEND=['ecmwf_ifs025','gfs_seamless','icon_seamless','gem_seamless','ukmo_seamless'];
@@ -679,7 +680,7 @@ function renderNow(){
    <div class="card"><h3>💧 رطوبت</h3><div class="big">${fa(c.relative_humidity_2m)}٪</div><div class="note">نقطه شبنم ${tS(c.dew_point_2m)}</div></div>
    <div class="card"><h3>☀️ شاخص UV</h3><div class="big">${fa(uv,0)} <small>${uvTxt(uv)}</small></div><div class="meter" style="background:linear-gradient(to left,#4ade80,#facc15,#fb923c,#ef4444,#a855f7)"><em style="right:${Math.min(100,uv/11*100)}%"></em></div><div class="note">بیشینه امروز ${fa(d.uv_index_max[0],0)}</div></div>
    <div class="card"><h3>🌡️ احساس واقعی</h3><div class="big">${tS(c.apparent_temperature)}</div><div class="note">${feelNote(c)}</div></div>
-   <div class="card"><h3>🌧️ بارش</h3><div class="big">${fa(d.precipitation_sum[0],1)}<small> میلی‌متر</small></div><div class="note">امروز · ${fa(d.precipitation_hours[0])} ساعت بارش · فردا ${fa(d.precipitation_sum[1],1)} mm</div></div>
+   ${(()=>{const o=obsToday(),sn=o.sn>=.1;return `<div class="card"><h3>${sn?'🌨️ برف و باران':'🌧️ بارش'} امروز</h3><div class="big">${fa(o.r,o.r<10?1:0)}<small> mm تا الان</small></div>${sn?`<div class="note" style="margin-top:2px">❄️ ${fa(o.sn,1)} cm برف تا الان</div>`:''}<div class="note">کل امروز: ${fa(d.precipitation_sum[0]||0,1)} mm${d.snowfall_sum&&d.snowfall_sum[0]>=.1?' · برف '+fa(d.snowfall_sum[0],1)+' cm':''}${o.yr!=null?' · دیروز: '+fa(o.yr,1)+' mm'+(o.ysn>=.1?' / '+fa(o.ysn,1)+' cm برف':''):''}</div></div>`})()}
    <div class="card"><h3>⏲️ فشار هوا</h3><div class="big" style="font-size:21px">${pS(c.pressure_msl)}</div><div class="note">${pTrend()}</div></div>
    <div class="card"><h3>👁️ دید افقی</h3><div class="big">${vis==null?'–':fa(vis/1000,vis<10000?1:0)}<small> کیلومتر</small></div><div class="note">${vis==null?'در این منبع موجود نیست':vis>=10000?'دید کامل':vis>=4000?'دید خوب':vis>=1000?'دید محدود':'دید بسیار کم'}</div></div>
    <div class="card"><h3>☁️ ابرناکی</h3><div class="big">${fa(c.cloud_cover)}٪</div><div class="note">${c.cloud_cover<20?'آسمان باز':c.cloud_cover<60?'ابرهای پراکنده':'آسمان پوشیده'}</div></div>
@@ -693,6 +694,8 @@ function renderNow(){
   html+=`<div style="text-align:center;margin:6px 0 0"><button class="chip" onclick="$('#setBtn').click();setTimeout(()=>{const e=$('#cardSet');if(e)e.scrollIntoView({block:'center'})},300)">⚙️ شخصی‌سازی کارت‌ها</button></div>`;
   $('#t-now').innerHTML=html;heroFX();if(!hid('ic'))bindIRC();if(!hid('ex'))animEx();
 }
+function obsToday(){const h=D.hourly,day=D.current.time.slice(0,10),now=D.current.time.slice(0,13);let r=0,sn=0,hrs=0;h.time.forEach((t,k)=>{if(t.slice(0,10)===day&&t.slice(0,13)<=now){const p=h.precipitation[k]||0;r+=p;if(p>=.1)hrs++;if(h.snowfall)sn+=h.snowfall[k]||0}});
+  const y=D.yday||{};return{r,sn,hrs,yr:y.precipitation_sum,ysn:y.snowfall_sum}}
 function feelNote(c){const df=c.apparent_temperature-c.temperature_2m;if(Math.abs(df)<2)return 'مشابه دمای واقعی';return df<0?(c.wind_speed_10m>15?'باد هوا را سردتر نشان می‌دهد':'سردتر از دمای واقعی'):(c.relative_humidity_2m>60?'رطوبت هوا را گرم‌تر نشان می‌دهد':'گرم‌تر از دمای واقعی')}
 function pTrend(){const h=D.hourly,s=i0(),p0=h.pressure_msl[Math.max(0,s-3)],p1=h.pressure_msl[Math.min(h.time.length-1,s+3)];const df=p1-p0;return Math.abs(df)<1?'پایدار':df>0?'رو به افزایش ↑ (هوای پایدارتر)':'رو به کاهش ↓ (احتمال ناپایداری)'}
 function compass(deg){return `<svg class="compass" viewBox="0 0 56 56"><circle cx="28" cy="28" r="25" fill="none" stroke="rgba(255,255,255,.3)"/><text x="28" y="11" text-anchor="middle" font-size="8" fill="#fff">N</text><g transform="rotate(${deg+180} 28 28)"><path d="M28 8 L33 30 L28 26 L23 30z" fill="#7dd3fc"/></g></svg>`}
@@ -714,6 +717,23 @@ function chart({n,step=44,h=170,series,xl,marks=[],valLabel}){
   return `<div class="scroll-x chart"><svg width="${W}" height="${h}" viewBox="0 0 ${W} ${h}" style="direction:ltr">${out}</svg></div>`;
 }
 function dayMarks(times){const m=[];times.forEach((t,i)=>{if(i>0&&t.slice(11,13)==='00'){const di=D.daily.time.indexOf(t.slice(0,10));m.push({i,t:di>=0?dayName(t,di):fmtJ(t,{weekday:'short'})})}});return m}
+
+/* ---------- seasonal outlook ---------- */
+let SEA=null;
+async function loadSeasonal(c){const k='sea.'+c.id;if(SEA&&SEA.id===c.id&&Date.now()-SEA.t<12*36e5)return SEA;const ck=offGet(k);if(ck&&Date.now()-ck.t<24*36e5)return SEA=ck;
+  const base=`https://seasonal-api.open-meteo.com/v1/seasonal?latitude=${c.lat}&longitude=${c.lon}&timezone=auto`;let j=null,m='';
+  for(const mod of ['ecmwf_seasonal_ensemble_mean_seamless','ecmwf_seas5_ensemble_mean','']){try{j=await getJSON(base+'&monthly=temperature_2m_mean,precipitation_sum'+(mod?'&models='+mod:''),40000);m=mod;break}catch(e){if(e.limit)throw e}}
+  if(!j||!j.monthly)throw new Error('na');const M=j.monthly,pick=k=>{const key=Object.keys(M).find(x=>x===k||x.startsWith(k+'_'));return key?M[key]:null};
+  let A=null;for(const v of [['temperature_2m_anomaly','precipitation_anomaly'],['temperature_2m_mean_anomaly','precipitation_sum_anomaly']]){try{const a=await getJSON(base+'&monthly='+v.join(',')+(m?'&models='+m:''),40000);if(a.monthly){const ak=k=>{const key=Object.keys(a.monthly).find(x=>x===k||x.startsWith(k+'_'));return key?a.monthly[key]:null};A={t:ak(v[0]),p:ak(v[1])};break}}catch(e){if(e.limit)break}}
+  SEA={id:c.id,t:Date.now(),time:M.time,tm:pick('temperature_2m_mean'),pr:pick('precipitation_sum'),A};offSave(k,SEA);return SEA}
+function seaHtml(o){
+  const rows=o.time.map((t,i)=>{const mid=new Date(t.slice(0,7)+'-15T12:00:00Z'),mn=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{month:'long'}).format(mid),gm=new Intl.DateTimeFormat('fa-IR-u-ca-gregory',{month:'long'}).format(mid),tm=o.tm&&o.tm[i],pr=o.pr&&o.pr[i],ta=o.A&&o.A.t?o.A.t[i]:null,pa=o.A&&o.A.p?o.A.p[i]:null;
+    const tl=ta==null?'':Math.abs(ta)<.5?['نرمال','var(--sub)']:ta>0?[`${fa(Math.abs(dT(ta)),1)}° گرم‌تر`,'#fb923c']:[`${fa(Math.abs(dT(ta)),1)}° سردتر`,'#60a5fa'];
+    const pp=pa==null||pr==null?null:(pr-pa)>0?Math.round(pa/(pr-pa)*100):null,pl=pp==null?'':Math.abs(pp)<15?['نرمال','var(--sub)']:pp>0?[`${fa(pp)}٪ پربارش‌تر`,'#38bdf8']:[`${fa(-pp)}٪ کم‌بارش‌تر`,'#f59e0b'];
+    return `<div class="sear"><div><b>${mn}</b><small>${gm}</small></div><div><b>${tm!=null?tS(tm):'–'}</b>${tl?`<small style="color:${tl[1]}">${tl[0]}</small>`:''}</div><div><b>${pr!=null?fa(Math.round(pr))+' mm':'–'}</b>${pl?`<small style="color:${pl[1]}">${pl[0]}</small>`:''}</div></div>`}).join('');
+  let sum='';if(o.A&&o.A.t){const n=Math.min(3,o.time.length),ta=o.A.t.slice(0,n).reduce((a,b)=>a+(b||0),0)/n,pa=o.A.p?o.A.p.slice(0,n).reduce((a,b)=>a+(b||0),0):0;sum=`<div class="anom" style="background:${ta>.5?'rgba(249,115,22,.2)':ta<-.5?'rgba(59,130,246,.2)':'var(--card2)'}"><b>۳ ماه آینده: ${Math.abs(ta)<.5?'دمای نزدیک به معمول':ta>0?'احتمالاً گرم‌تر از معمول':'احتمالاً سردتر از معمول'}${o.A.p?(Math.abs(pa)<5?' و بارش نزدیک به معمول':pa>0?' و پربارش‌تر از معمول':' و کم‌بارش‌تر از معمول'):''}</b><small>«معمول» یعنی میانگین بلندمدت همان ماه در مدل اروپایی</small></div>`}
+  return `${sum}<div class="sear seah"><div>ماه</div><div>میانگین دما</div><div>مجموع بارش</div></div>${rows}<div class="note" style="margin-top:6px">پیش‌بینی فصلی مدل ECMWF (میانگین ۵۱ اجرا). فقط <b>روند کلی</b> را نشان می‌دهد (گرم‌تر/سردتر، پربارش/کم‌بارش) و دقت روزانه ندارد؛ هر ماه به‌روز می‌شود.</div>`}
+async function fillSea(){const el=$('#sea');if(!el||!D)return;const c=city();try{const o=await loadSeasonal(c);if(c.id!==curId||!$('#sea'))return;$('#sea').innerHTML=seaHtml(o)}catch(e){el.innerHTML=`<div class="note">${e.limit?esc(e.message):'پیش‌بینی فصلی در دسترس نیست.'}</div>`}}
 
 /* ---------- FORECAST tab ---------- */
 const FCV={temp:'دما',rain:'بارش',wind:'باد',hum:'رطوبت و ابر',dew:'نقطه شبنم',uv:'UV',pres:'فشار',vis:'دید افقی'};
@@ -747,10 +767,11 @@ function renderFc(){
    <div class="chips nowrap scroll-x" id="fcV" style="margin-bottom:10px">${Object.entries(FCV).map(([k,v])=>`<button class="chip ${S.fcVar===k?'on':''}" data-v="${k}">${v}</button>`).join('')}</div>
    ${chart({n,step,series:se,xl:lab,marks:dayMarks(times)})}<div class="legend">${leg}</div></div>`;
 
+  html+=`<div class="card"><h3>🔮 پیش‌بینی فصلی<span class="r">۶ ماه آینده</span></h3><div id="sea"><div class="sk"></div><div class="sk"></div><div class="sk"></div></div></div>`;
   html+=`<div class="card"><h3>🎈 باد در ارتفاعات<span class="r" style="cursor:pointer;color:var(--acc)" onclick="go('map')">نقشه متحرک ›</span></h3><div id="prof"><div class="sk"></div><div class="sk"></div><div class="sk"></div></div></div>`;
   html+=`<div class="card"><h3>🌾 کشاورزی و باغ<span class="r">۷ روز آینده</span></h3><div id="agri"><div class="sk"></div><div class="sk"></div></div></div>`;
   html+=orecCard();
-  $('#t-fc').innerHTML=html;fillProf();fillAgri();
+  $('#t-fc').innerHTML=html;fillProf();fillAgri();fillSea();
   $$('#fcV .chip').forEach(b=>b.onclick=()=>{S.fcVar=b.dataset.v;saveS();renderFc()});
   $$('#fcR button').forEach(b=>b.onclick=()=>{S.fcRange=+b.dataset.v;saveS();renderFc()});
   $$('#t-fc .dd .hd').forEach(b=>b.onclick=()=>b.parentElement.classList.toggle('open'));

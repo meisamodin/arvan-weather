@@ -68,6 +68,11 @@ def metmock():
 def handle(route):
     u = urllib.parse.urlparse(route.request.url); q = urllib.parse.parse_qs(u.query)
     J = lambda o: route.fulfill(status=200, content_type='application/json', body=json.dumps(o))
+    if u.hostname == 'seasonal-api.open-meteo.com':
+        mv = q.get('monthly', [''])[0]; T = ['2026-%02d-01' % m for m in range(11, 13)] + ['2027-%02d-01' % m for m in range(1, 5)]
+        if 'anomaly' in mv and 'temperature_2m_anomaly' in mv: return J({'monthly': {'time': T, 'temperature_2m_anomaly': [1.2, .8, .3, -.2, .9, 1.5], 'precipitation_anomaly': [-8, -12, 5, 10, -3, -6]}})
+        if 'anomaly' in mv: return route.fulfill(status=400, content_type='application/json', body='{"error":true,"reason":"bad"}')
+        return J({'monthly': {'time': T, 'temperature_2m_mean': [11, 6, 3, 5, 9, 15], 'precipitation_sum': [22, 30, 41, 38, 45, 30]}})
     if u.hostname == 'ensemble-api.open-meteo.com':
         st = NOW.replace(hour=0); T = [(st + timedelta(hours=k)).strftime('%Y-%m-%dT%H:%M') for k in range(240)]; h = {'time': T}
         for m in range(31):
@@ -87,7 +92,7 @@ def handle(route):
                 r, c = divmod(i, 28)
                 return {'minutely_15': {'time': T, 'precipitation': [round(max(0, math.sin((c - k * .15) / 3) * math.cos(r / 4)) * 1.6, 2) for k in range(33)], 'snowfall': [0.3 if r < 4 and c < 8 else 0] * 33}}
             return J([m15(i) for i in range(len(lats))])
-        BASEH = set(['temperature_2m','apparent_temperature','relative_humidity_2m','dew_point_2m','precipitation_probability','precipitation','weather_code','cloud_cover','visibility','wind_speed_10m','wind_direction_10m','wind_gusts_10m','uv_index','is_day','pressure_msl',''])
+        BASEH = set(['temperature_2m','apparent_temperature','relative_humidity_2m','dew_point_2m','precipitation_probability','precipitation','weather_code','cloud_cover','visibility','wind_speed_10m','wind_direction_10m','wind_gusts_10m','uv_index','is_day','pressure_msl','snowfall',''])
         if len(lats) > 1 or any(v not in BASEH for v in hv):
             N = 49 if 'start_hour' in q else 72
             st = datetime.now(timezone.utc).replace(tzinfo=None).replace(minute=0, second=0, microsecond=0) if 'start_hour' in q else NOW.replace(hour=0)
