@@ -95,7 +95,10 @@ def handle(route):
                 if v == 'wind_speed_10m': return round(real('wind_gusts_10m', la, lo, k) * .6, 0)
                 if v == 'wind_direction_10m': return round(230 + 40 * math.sin(lo / 4), 0)
                 if v == 'cape': return round(1800 * e(-((la - 29) ** 2 + (lo - 50) ** 2) / 18), 0)
-                return None
+                if v == 'geopotential_height_250hPa': return round(10900 - 8 * max(0, la - 14) ** 1.3, 0)
+                if 'direction' in v: return round(260 + 30 * math.sin((lo - kk) / 9), 0)
+                if v == 'wind_speed_250hPa': return round(80 + 200 * e(-((la - 32 - 4 * math.sin(lo / 12)) ** 2) / 14), 0)
+                return round(40 + 30 * math.sin(la / 5 + lo / 7 + kk / 3), 1)
             def one(i):
                 h = {'time': [(st + timedelta(hours=k * STEP)).strftime('%Y-%m-%dT%H:%M') for k in range(N)]}
                 if 'models' in q:
@@ -205,7 +208,7 @@ with sync_playwright() as p:
     pg.click('nav button[data-t=now]'); pg.wait_for_timeout(500); pg.evaluate('openGlance()'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/glance.png'); pg.click('#glance'); pg.wait_for_timeout(300)
     pg.click('nav button[data-t=md]'); pg.wait_for_timeout(300)
     pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/wb1.png', full_page=True)
-    pg.click('#wbL .chip[data-l="72"]'); pg.wait_for_timeout(800); pg.screenshot(path=f'{OUT}/wb1b.png', full_page=True); pg.click('#t-md [data-wp=z500]'); pg.wait_for_timeout(2500); pg.click('#wbCmp'); pg.wait_for_timeout(3000); pg.screenshot(path=f'{OUT}/wb2.png', full_page=True)
+    pg.click('#wbL .chip[data-l="72"]'); pg.wait_for_timeout(800); pg.screenshot(path=f'{OUT}/wb1b.png', full_page=True); pg.click('#t-md [data-wp=jet]'); pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/wb-jet.png', full_page=True); pg.click('#t-md [data-wp=z500]'); pg.wait_for_timeout(2500); pg.click('#wbCmp'); pg.wait_for_timeout(3000); pg.screenshot(path=f'{OUT}/wb2.png', full_page=True)
     pg.click('#mdV button[data-v=city]'); pg.wait_for_timeout(500)
     pg.click('#t-md .mchip[data-m=kma_seamless]'); pg.wait_for_timeout(200); pg.click('#t-md .mchip[data-m=knmi_seamless]'); pg.wait_for_timeout(1500)
     pg.screenshot(path=f'{OUT}/6-models.png', full_page=True)

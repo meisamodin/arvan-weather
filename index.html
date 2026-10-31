@@ -230,7 +230,7 @@ select.inp option{color:#0f172a}
 .gh{display:flex;gap:14px;margin-top:30px;background:rgba(255,255,255,.12);border-radius:20px;padding:12px 16px}.gh div{text-align:center}.gh svg{width:38px;height:38px;display:block}.gh small{font-size:12px;opacity:.8}.gx{position:absolute;bottom:calc(20px + env(safe-area-inset-bottom));font-size:12px;opacity:.6}
 .day.lc{opacity:.72}
 .wbc{padding:8px}.wbcv{width:100%;display:block;border-radius:14px;background:#1d2433;margin-top:6px;box-shadow:0 8px 22px -10px rgba(0,0,0,.6)}.wbsep{height:1px;background:var(--line);margin:10px 4px}.wbtime{display:flex;align-items:center;gap:10px}.wbtime b{font-size:14px}
-.chip.lc{min-width:46px;text-align:center;padding:5px 9px}.chip.lc[disabled]{opacity:.3;pointer-events:none}.mxd{font-size:9.5px;opacity:.6;margin-inline-start:4px}.wblg{margin-top:8px}.wblg b{font-size:12px;color:var(--sub)}
+.chip.lc{min-width:46px;text-align:center;padding:5px 9px}.chip.lc[disabled]{opacity:.3;pointer-events:none}.mxd{font-size:9.5px;opacity:.6;margin-inline-start:6px;direction:ltr;display:inline-block}.wblg{margin-top:8px}.wblg b{font-size:12px;color:var(--sub)}
 
 /* ===== v1.6 design polish ===== */
 body::before,body::after{content:"";position:fixed;z-index:-1;border-radius:50%;filter:blur(60px);opacity:.55;pointer-events:none;animation:aw-float 18s ease-in-out infinite alternate}
@@ -396,7 +396,7 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 
 <script>
 'use strict';
-const VERSION='1.12.0';
+const VERSION='1.13.0';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -677,6 +677,9 @@ const MODELS=[
  ['g','bom_access_global','ACCESS-G','استرالیا · BOM','#e879f9'],
  ['ai','ecmwf_aifs025_single','ECMWF AIFS','هوش مصنوعی · اروپا','#93c5fd'],
  ['ai','gfs_graphcast025','GraphCast','هوش مصنوعی · گوگل دیپ‌مایند / NOAA','#fca5a5'],
+ ['g','ecmwf_ifs','ECMWF HRES','اروپا · وضوح بالا ۹ کیلومتری','#2563eb'],
+ ['g','icon_global','ICON-Global','آلمان · جهانی ۱۳ کیلومتری','#f59e0b'],
+ ['g','gfs_global','GFS 0.25','آمریکا · جهانی','#dc2626'],
  ['r','icon_eu','ICON-EU','آلمان · منطقه اروپا','#fde047'],
  ['r','metno_seamless','MET Nordic','نروژ · منطقه اسکاندیناوی','#5eead4'],
  ['r','knmi_seamless','HARMONIE','هلند · KNMI','#fdba74'],
@@ -1044,23 +1047,39 @@ async function setMorning(on){
 /* ---------- MODEL MAPS (pro charts, lead-hour picker) ---------- */
 const mkG=(lat0,lat1,lon0,lon1,st,z)=>{const g={lat0,lat1,lon0,lon1,st,z};g.nr=Math.round((lat1-lat0)/st)+1;g.nc=Math.round((lon1-lon0)/st)+1;return g};
 const WB_BB=mkG(20,44,36,66,1.5,5),WB_BIG=mkG(14,70,-24,84,4,3);
-const WB_M=['ecmwf_ifs025','gfs_seamless','icon_seamless','gem_seamless','ukmo_seamless','meteofrance_seamless','jma_seamless','cma_grapes_global','ecmwf_aifs025_single','gfs_graphcast025'];
-const WB_MAXD={ecmwf_ifs025:15,gfs_seamless:16,icon_seamless:8,gem_seamless:10,ukmo_seamless:7,meteofrance_seamless:4,jma_seamless:11,cma_grapes_global:10,ecmwf_aifs025_single:15,gfs_graphcast025:10};
+const WB_M=['ecmwf_ifs025','ecmwf_ifs','gfs_seamless','gfs_global','icon_seamless','icon_global','gem_seamless','ukmo_seamless','meteofrance_seamless','jma_seamless','cma_grapes_global','kma_seamless','bom_access_global','ecmwf_aifs025_single','gfs_graphcast025'];
+const WB_MAXD={ecmwf_ifs:10,gfs_global:16,icon_global:8,kma_seamless:12,bom_access_global:10,ecmwf_ifs025:15,gfs_seamless:16,icon_seamless:8,gem_seamless:10,ukmo_seamless:7,meteofrance_seamless:4,jma_seamless:11,cma_grapes_global:10,ecmwf_aifs025_single:15,gfs_graphcast025:10};
 const WB_LEADS=[0,6,12,18,24,36,48,60,72,84,96,120,144,168,192,216,240,264,288,312,336,360];
 const WB_P={
- combo:['🌍 ۵۰۰ + بارش (نمای حرفه‌ای)',null],
- z500a:['ارتفاع و ناهنجاری ۵۰۰ (اروپا تا آسیا)',['geopotential_height_500hPa'],WB_BIG],
- mslp:['فشار سطح دریا و بارش ۶ ساعته',['pressure_msl','precipitation']],
- z500:['ارتفاع ۵۰۰ و باد (ایران)',['geopotential_height_500hPa','wind_speed_500hPa','wind_direction_500hPa']],
- t2:['دمای ۲ متری',['temperature_2m']],
- t850:['دمای ۸۵۰ (۱۵۰۰ متر)',['temperature_850hPa','geopotential_height_850hPa']],
- prec:['بارش تجمعی',['precipitation']],
- snow:['برف تجمعی',['snowfall']],
- dt24:['تغییر دما در ۲۴ ساعت',['temperature_2m']],
- thick:['ضخامت ۱۰۰۰–۵۰۰ و فشار',['geopotential_height_500hPa','geopotential_height_1000hPa','pressure_msl']],
- wind:['تندباد ۱۰ متری',['wind_gusts_10m','wind_speed_10m','wind_direction_10m']],
- cape:['ناپایداری (CAPE)',['cape','precipitation']]};
-const wbPanels=p=>p==='combo'?[['z500a',WB_BIG],['mslp',WB_BB]]:[[p,WB_P[p][2]||WB_BB]];
+ combo:['🌍 ۵۰۰ + بارش (نمای حرفه‌ای)',null,null,'big'],
+ z500a:['ارتفاع و ناهنجاری ۵۰۰',['geopotential_height_500hPa'],WB_BIG,'big'],
+ jet:['جت‌استریم ۲۵۰',['wind_speed_250hPa','wind_direction_250hPa','geopotential_height_250hPa'],WB_BIG,'big'],
+ t850a:['دمای ۸۵۰ (کلان)',['temperature_850hPa','geopotential_height_850hPa'],WB_BIG,'big'],
+ mslpb:['فشار سطح دریا (کلان)',['pressure_msl','precipitation'],WB_BIG,'big'],
+ mslp:['فشار و بارش ۶ ساعته',['pressure_msl','precipitation'],null,'sfc'],
+ p24:['بارش ۲۴ ساعته',['precipitation'],null,'sfc'],
+ prec:['بارش تجمعی',['precipitation'],null,'sfc'],
+ t2:['دمای ۲ متری',['temperature_2m'],null,'sfc'],
+ td2:['نقطه شبنم',['dew_point_2m'],null,'sfc'],
+ rh2:['رطوبت نسبی',['relative_humidity_2m'],null,'sfc'],
+ wind:['تندباد ۱۰ متری',['wind_gusts_10m','wind_speed_10m','wind_direction_10m'],null,'sfc'],
+ cloud:['ابرناکی کل',['cloud_cover'],null,'sfc'],
+ vis:['دید افقی',['visibility'],null,'sfc'],
+ dt24:['تغییر دما در ۲۴ ساعت',['temperature_2m'],null,'sfc'],
+ z500:['ارتفاع ۵۰۰ و باد',['geopotential_height_500hPa','wind_speed_500hPa','wind_direction_500hPa'],null,'up'],
+ t500:['دمای ۵۰۰',['temperature_500hPa','geopotential_height_500hPa'],null,'up'],
+ rh700:['رطوبت ۷۰۰',['relative_humidity_700hPa','geopotential_height_700hPa'],null,'up'],
+ t850:['دمای ۸۵۰',['temperature_850hPa','geopotential_height_850hPa'],null,'up'],
+ w850:['باد ۸۵۰',['wind_speed_850hPa','wind_direction_850hPa'],null,'up'],
+ thick:['ضخامت ۱۰۰۰–۵۰۰',['geopotential_height_500hPa','geopotential_height_1000hPa','pressure_msl'],null,'up'],
+ fzl:['ارتفاع یخبندان',['freezing_level_height'],null,'up'],
+ snow:['برف تجمعی',['snowfall'],null,'cv'],
+ sdep:['عمق برف',['snow_depth'],null,'cv'],
+ cape:['CAPE (ناپایداری)',['cape','precipitation'],null,'cv'],
+ li:['شاخص صعود (LI)',['lifted_index'],null,'cv'],
+ pwat:['آب قابل بارش',['total_column_integrated_water_vapour'],null,'cv']};
+const WB_GRP=[['big','🌍 نمای کلان (اروپا تا آسیا)'],['sfc','🏙️ سطح زمین (ایران)'],['up','🎈 ترازهای بالا'],['cv','⛈️ برف و ناپایداری']];
+const wbPanels=p=>p==='combo'?[['z500a',WB_BIG],['mslp',WB_BB]]:[[p,WB_P[p][2]||WB_BB]];const wbGrid=p=>WB_P[p][2]||WB_BB;
 const WB={m:S.wbM||'gfs_seamless',m2:S.wbM2||'ecmwf_ifs025',p:S.wbP&&WB_P[S.wbP]?S.wbP:'combo',L:24,cmp:false,cache:{},timer:null,tiles:{}};
 async function wbData(m,p,G){
   const vars=WB_P[p][1].join(','),key=m+'|'+vars+'|'+G.st,c=WB.cache[key];if(c&&(c.p||Date.now()-c.t<60*60e3))return c.p||c;
@@ -1090,7 +1109,22 @@ function wbField(d,p,ti,G){
    case 't850':col=V.temperature_850hPa.map(a=>at(a,ti));cont=V.geopotential_height_850hPa.map(a=>a[ti]==null?null:a[ti]/10);cint=3;break;
    case 'thick':col=V.geopotential_height_500hPa.map((a,i)=>a[ti]!=null&&V.geopotential_height_1000hPa[i][ti]!=null?(a[ti]-V.geopotential_height_1000hPa[i][ti])/10:null);cont=V.pressure_msl.map(a=>at(a,ti));cint=4;lab='hl';break;
    case 'wind':col=V.wind_gusts_10m.map(a=>at(a,ti));arrows=[V.wind_speed_10m,V.wind_direction_10m];break;
-   case 'cape':col=V.cape.map(a=>at(a,ti));break;}
+   case 'cape':col=V.cape.map(a=>at(a,ti));break;
+   case 'jet':col=V.wind_speed_250hPa.map(a=>at(a,ti));cont=V.geopotential_height_250hPa.map(a=>a[ti]==null?null:a[ti]/10);cint=12;arrows=[V.wind_speed_250hPa,V.wind_direction_250hPa];break;
+   case 't850a':col=V.temperature_850hPa.map(a=>at(a,ti));cont=V.geopotential_height_850hPa.map(a=>a[ti]==null?null:a[ti]/10);cint=4;break;
+   case 'mslpb':col=V.precipitation.map(a=>at(a,ti));cont=V.pressure_msl.map(a=>at(a,ti));cint=4;lab='hl';break;
+   case 'p24':col=V.precipitation.map(a=>{let s=0,ok=0;for(let k=Math.max(0,ti-3);k<=ti;k++)if(a[k]!=null){s+=a[k];ok=1}return ok?s:null});break;
+   case 'td2':col=V.dew_point_2m.map(a=>at(a,ti));cont=col;cint=5;break;
+   case 'rh2':col=V.relative_humidity_2m.map(a=>at(a,ti));break;
+   case 'cloud':col=V.cloud_cover.map(a=>at(a,ti));break;
+   case 'vis':col=V.visibility.map(a=>a[ti]==null?null:a[ti]/1000);break;
+   case 't500':col=V.temperature_500hPa.map(a=>at(a,ti));cont=V.geopotential_height_500hPa.map(a=>a[ti]==null?null:a[ti]/10);cint=6;break;
+   case 'rh700':col=V.relative_humidity_700hPa.map(a=>at(a,ti));cont=V.geopotential_height_700hPa.map(a=>a[ti]==null?null:a[ti]/10);cint=3;break;
+   case 'w850':col=V.wind_speed_850hPa.map(a=>at(a,ti));arrows=[V.wind_speed_850hPa,V.wind_direction_850hPa];break;
+   case 'fzl':col=V.freezing_level_height.map(a=>at(a,ti));cont=col;cint=500;break;
+   case 'sdep':col=V.snow_depth.map(a=>a[ti]==null?null:a[ti]*100);break;
+   case 'li':col=V.lifted_index.map(a=>at(a,ti));cont=col;cint=2;break;
+   case 'pwat':col=V.total_column_integrated_water_vapour.map(a=>at(a,ti));break;}
   return {col,cont,cint,arrows:arrows?arrows[0].map((a,i)=>[a[ti],arrows[1][i][ti]]):null,lab}
 }
 const WB_PAL={
@@ -1101,11 +1135,22 @@ const WB_PAL={
  z500:[[528,[110,40,160]],[540,[60,90,200]],[552,[60,170,220]],[564,[90,200,120]],[576,[240,210,70]],[588,[240,120,40]],[594,[190,40,40]]],
  thick:[[516,[110,40,160]],[528,[60,90,200]],[540,[60,170,220]],[552,[90,200,120]],[564,[240,210,70]],[576,[240,120,40]],[588,[190,40,40]]],
  dt24:[[-15,[40,60,200]],[-8,[80,140,240]],[-3,[170,210,250]],[0,[245,245,245]],[3,[250,200,160]],[8,[240,120,60]],[15,[190,30,30]]],
- cape:[[100,[200,240,200]],[500,[120,210,120]],[1000,[240,230,80]],[2000,[245,150,40]],[3000,[220,40,40]],[4500,[180,40,180]]]};
-const WB_SPARSE={mslp:1,prec:1,snow:1,cape:1};
-function wbColor(p,v){if(v==null)return null;if(p==='t2'||p==='t850')return interp(TEMP_ST,v);if(p==='wind')return interp(WIND_ST,v);const P=WB_PAL[p];if(!P)return null;if(WB_SPARSE[p]&&v<P[0][0])return null;return interp(P,v)}
-const WB_U={mslp:'mm/6h',prec:'mm',snow:'cm',z500:'dam',z500a:'dam',thick:'dam',dt24:'°C',cape:'J/kg',t2:'°C',t850:'°C',wind:'km/h'};
-function wbLegend(p){const P=p==='t2'||p==='t850'?TEMP_ST.slice(1,13):p==='wind'?WIND_ST.slice(0,12):WB_PAL[p];
+ cape:[[100,[200,240,200]],[500,[120,210,120]],[1000,[240,230,80]],[2000,[245,150,40]],[3000,[220,40,40]],[4500,[180,40,180]]],
+ jet:[[60,[60,90,150]],[100,[60,150,220]],[140,[90,210,170]],[180,[240,225,80]],[220,[245,150,40]],[260,[220,50,50]],[320,[170,40,170]]],
+ p24:[[.5,[180,230,250]],[2,[110,190,245]],[5,[60,140,230]],[10,[40,180,90]],[20,[240,220,60]],[35,[240,140,40]],[60,[220,40,40]],[100,[170,40,170]]],
+ rh2:[[0,[150,90,40]],[25,[220,190,120]],[45,[200,220,170]],[65,[90,190,200]],[85,[40,110,210]],[100,[30,50,150]]],
+ rh700:[[0,[150,90,40]],[30,[210,180,120]],[50,[220,225,210]],[70,[120,200,150]],[85,[40,160,90]],[100,[20,110,60]]],
+ cloud:[[0,[40,50,70]],[30,[100,115,135]],[60,[170,180,195]],[100,[245,248,252]]],
+ vis:[[.2,[150,40,40]],[1,[230,120,50]],[3,[240,210,90]],[8,[150,200,230]],[20,[60,110,180]],[50,[30,60,120]]],
+ w850:[[0,[30,58,138]],[20,[37,99,235]],[40,[16,185,129]],[60,[250,204,21]],[90,[249,115,22]],[130,[220,38,38]]],
+ fzl:[[0,[120,60,200]],[1000,[70,120,230]],[2000,[80,190,220]],[3000,[120,210,140]],[4000,[240,210,80]],[5000,[240,130,50]]],
+ sdep:[[1,[220,230,255]],[10,[170,190,250]],[30,[120,140,240]],[60,[150,90,230]],[120,[255,255,255]]],
+ li:[[-8,[170,40,170]],[-6,[220,40,40]],[-4,[245,140,40]],[-2,[245,220,70]],[0,[200,230,190]],[3,[150,190,220]],[8,[90,120,180]]],
+ pwat:[[5,[150,110,60]],[10,[210,190,130]],[18,[180,220,170]],[25,[90,190,200]],[35,[40,110,210]],[50,[90,40,170]]]};
+const WB_SPARSE={mslp:1,mslpb:1,prec:1,p24:1,snow:1,cape:1,sdep:1};
+function wbColor(p,v){if(v==null)return null;if(p==='mslpb')p='mslp';if(p==='t2'||p==='t850'||p==='t850a'||p==='td2'||p==='t500')return interp(p==='t500'?TEMP_ST.map(s=>[s[0]-25,s[1]]):TEMP_ST,v);if(p==='wind')return interp(WIND_ST,v);const P=WB_PAL[p];if(!P)return null;if(WB_SPARSE[p]&&v<P[0][0])return null;return interp(P,v)}
+const WB_U={jet:'km/h',t850a:'°C',mslpb:'mm/6h',p24:'mm/24h',td2:'°C',rh2:'%',cloud:'%',vis:'km',t500:'°C',rh700:'%',w850:'km/h',fzl:'m',sdep:'cm',li:'°C',pwat:'mm',mslp:'mm/6h',prec:'mm',snow:'cm',z500:'dam',z500a:'dam',thick:'dam',dt24:'°C',cape:'J/kg',t2:'°C',t850:'°C',wind:'km/h'};
+function wbLegend(p){if(p==='mslpb')p='mslp';const P=p==='t500'?TEMP_ST.slice(0,9).map(s=>[s[0]-25,s[1]]):p==='t2'||p==='t850'||p==='t850a'||p==='td2'?TEMP_ST.slice(1,13):p==='wind'?WIND_ST.slice(0,12):WB_PAL[p];
   return `<div class="cbar" style="background:linear-gradient(to right,${grad(P)})"></div><div class="cbar-l"><span>${fa(P[0][0])}</span><span>${fa(P[Math.floor(P.length/2)][0])}</span><span>${fa(P[P.length-1][0])} ${WB_U[p]}</span></div>`}
 function upGrid(vals,G,f){const nr=(G.nr-1)*f+1,nc=(G.nc-1)*f+1,o=new Array(nr*nc),g={cols:G.nc,rows:G.nr};for(let r=0;r<nr;r++)for(let c=0;c<nc;c++)o[r*nc+c]=bil(vals,g,c/f,r/f);return{v:o,G:{...G,nr,nc,st:G.st/f}}}
 function contours(vals,lev,G){const nr=G.nr,nc=G.nc,seg=[];const v=(r,c)=>vals[r*nc+c];
@@ -1138,8 +1183,9 @@ function wbDraw(cv,d,m,p,ti,G){
   const G2=(r,c)=>[PX(G.lon0+c*G.st),PY(G.lat1-r*G.st)];
   if((F.lab==='hl'||F.lab==='z')&&F.cont){x.textAlign='center';x.direction='ltr';const R=F.lab==='z'?1:2;for(let r=R;r<nr-R;r++)for(let c=R;c<nc-R;c++){const v=F.cont[r*nc+c];if(v==null)continue;let mx=true,mn=true;for(let dr=-R;dr<=R;dr++)for(let dc=-R;dc<=R;dc++){if(!dr&&!dc)continue;const w=F.cont[(r+dr)*nc+c+dc];if(w==null)continue;if(w>=v)mx=false;if(w<=v)mn=false}
     if(mx||mn){const [px,py]=G2(r,c);if(py<34)continue;x.font='900 17px Tahoma,sans-serif';x.lineWidth=3.5;x.strokeStyle='rgba(0,0,0,.75)';x.strokeText(mx?'H':'L',px,py-6);x.fillStyle=mx?'#60a5fa':'#f87171';x.fillText(mx?'H':'L',px,py-6);x.font='700 9px Tahoma';x.fillStyle='#fff';x.lineWidth=3;x.strokeText(Math.round(v),px,py+9);x.fillText(Math.round(v),px,py+9)}}}
-  if(F.arrows){x.strokeStyle='rgba(255,255,255,.9)';x.lineWidth=1.3;for(let r=0;r<nr;r+=2)for(let c=0;c<nc;c+=2){const a=F.arrows[r*nc+c];if(!a||a[0]==null||a[1]==null)continue;const [px,py]=G2(r,c),L=Math.min(22,4+a[0]/(p==='z500'?7:3.5)),ang=(a[1]+180)*Math.PI/180,dx=Math.sin(ang)*L,dy=-Math.cos(ang)*L;
+  if(F.arrows){const AS=2;x.strokeStyle='rgba(255,255,255,.9)';x.lineWidth=1.3;for(let r=0;r<nr;r+=AS)for(let c=0;c<nc;c+=AS){const a=F.arrows[r*nc+c];if(!a||a[0]==null||a[1]==null)continue;const [px,py]=G2(r,c),L=Math.min(G===WB_BIG?16:22,4+a[0]/(p==='z500'||p==='jet'?(p==='jet'?14:7):3.5)),ang=(a[1]+180)*Math.PI/180,dx=Math.sin(ang)*L,dy=-Math.cos(ang)*L;
     x.beginPath();x.moveTo(px-dx/2,py-dy/2);x.lineTo(px+dx/2,py+dy/2);const hx=px+dx/2,hy=py+dy/2,a1=Math.atan2(dy,dx);x.lineTo(hx-5*Math.cos(a1-.5),hy-5*Math.sin(a1-.5));x.moveTo(hx,hy);x.lineTo(hx-5*Math.cos(a1+.5),hy-5*Math.sin(a1+.5));x.stroke()}}
+  if(G===WB_BIG){x.fillStyle='rgba(255,255,255,.9)';[[35.7,51.4]].forEach(q=>{x.beginPath();x.arc(PX(q[1]),PY(q[0]),3,0,7);x.fill()})}
   if(G!==WB_BIG)POPULAR.slice(0,10).forEach(q=>{const px=PX(q[2]),py=PY(q[1]);x.fillStyle='#fff';x.beginPath();x.arc(px,py,2,0,7);x.fill()});
   const vt=new Date(d.times[ti]+':00Z'),lead=(ti-d.bi)*6;
   hdr(`${MM[m]?MM[m][2]:m} · ${WB_P[p][0]}`,`+${lead}h · ${fmtRT(vt,{weekday:'short',day:'numeric',month:'short',hour:'2-digit'})}`);
@@ -1147,7 +1193,7 @@ function wbDraw(cv,d,m,p,ti,G){
 }
 let WBD={};
 const wbKey=(m,p,G)=>m+'|'+p+'|'+G.st;
-function wbDrawAll(){$$('#mdBox canvas.wbcv').forEach(cv=>{const m=cv.dataset.m,p=cv.dataset.p,G=p==='z500a'?WB_BIG:(WB_P[p][2]||WB_BB),d=WBD[wbKey(m,p,G)];wbDraw(cv,d,m,p,d?d.bi+WB.L/6:0,G)});wbTimeLbl()}
+function wbDrawAll(){$$('#mdBox canvas.wbcv').forEach(cv=>{const m=cv.dataset.m,p=cv.dataset.p,G=wbGrid(p),d=WBD[wbKey(m,p,G)];wbDraw(cv,d,m,p,d?d.bi+WB.L/6:0,G)});wbTimeLbl()}
 async function wbLoad(){
   const msg=$('#wbMsg');if(msg)msg.textContent='در حال دریافت نقشه‌های مدل…';const ms=[WB.m].concat(WB.cmp?[WB.m2]:[]),jobs=[];
   ms.forEach(m=>wbPanels(WB.p).forEach(([p,G])=>{const k=wbKey(m,p,G);jobs.push(wbData(m,p,G).then(d=>{WBD[k]=d;if(curTab==='md')wbDrawAll()}).catch(()=>{WBD[k]=null;if(curTab==='md')wbDrawAll();return m}))}));
@@ -1165,13 +1211,13 @@ function renderWB(el){
   const ms=[WB.m].concat(WB.cmp?[WB.m2]:[]),cvs=ms.map(m=>wbPanels(WB.p).map(([p])=>`<canvas class="wbcv" data-m="${m}" data-p="${p}"></canvas>`).join('')).join('<div class="wbsep"></div>');
   el.innerHTML=`<div class="card"><h3>🗺️ نقشه‌های مدل<span class="r">هر ۶ ساعت · تا ${fa(wbMaxLead())} ساعت آینده</span></h3>
    <div class="mgrp">مدل</div><div class="chips">${WB_M.map(id=>mc(id,id===WB.m,'wm')).join('')}</div>
-   <div class="mgrp">نقشه</div><div class="chips">${Object.entries(WB_P).map(([k,v])=>`<button class="chip ${k===WB.p?'on':''}" data-wp="${k}">${v[0]}</button>`).join('')}</div>
+   ${WB_GRP.map(([g,t])=>`<div class="mgrp">${t}</div><div class="chips">${Object.entries(WB_P).filter(([k,v])=>v[3]===g).map(([k,v])=>`<button class="chip ${k===WB.p?'on':''}" data-wp="${k}">${v[0]}</button>`).join('')}</div>`).join('')}
    <div class="setl" style="margin-top:10px"><span>مقایسه با مدل دوم</span><button class="sw ${WB.cmp?'on':''}" id="wbCmp"></button></div>
    ${WB.cmp?`<div class="chips">${WB_M.filter(i=>i!==WB.m).map(id=>mc(id,id===WB.m2,'wm2')).join('')}</div>`:''}</div>
    <div class="card wbc"><div class="wbtime"><button class="ibtn" id="wbPlay">${WB.timer?'⏸':'▶'}</button><b id="wbT"></b></div><div class="chips nowrap scroll-x" id="wbL" style="margin:8px 0"></div>
     ${cvs}<div class="note" id="wbMsg" style="text-align:center"></div>
     ${wbPanels(WB.p).map(([p])=>`<div class="wblg"><b>${WB_P[p][0]}</b>${wbLegend(p)}</div>`).join('')}
-    <div class="note" style="margin-top:6px">${WB.p==='combo'?'<b>بالا:</b> ارتفاع ۵۰۰ هکتوپاسکال (خطوط، دکامتر) و ناهنجاری آن؛ آبی/بنفش = ناوه و هوای سرد (سامانه بارشی)، نارنجی/قرمز = پشته و هوای گرم و پایدار. <b>پایین:</b> فشار سطح دریا (خطوط سفید، H پرفشار، L کم‌فشار) و بارش ۶ ساعته روی ایران.':{mslp:'خطوط سفید: فشار سطح دریا هر ۴ هکتوپاسکال · H پرفشار، L کم‌فشار · رنگ: بارش ۶ ساعته',z500a:'ارتفاع ۵۰۰ هکتوپاسکال و ناهنجاری آن نسبت به میانگین همان عرض جغرافیایی',z500:'خطوط: ارتفاع ۵۰۰ (دکامتر) · پیکان: باد ترازهای میانی',t2:'دمای ۲ متری با خطوط هم‌دما',dt24:'تغییر دما نسبت به ۲۴ ساعت قبل',prec:'بارش تجمعی از اکنون تا ساعت انتخابی',snow:'برف تجمعی (سانتی‌متر) از اکنون تا ساعت انتخابی',t850:'دمای حدود ۱۵۰۰ متری؛ زیر صفر یعنی احتمال برف در ارتفاعات',thick:'ضخامت ۱۰۰۰–۵۰۰؛ مرز ۵۴۰ تقریباً خط باران و برف',wind:'رنگ: تندباد · پیکان: جهت باد',cape:'بالای ۱۰۰۰ احتمال رعد و برق و تگرگ'}[WB.p]} · هر مدل بازه پیش‌بینی خودش را دارد (عدد کنار نام مدل).</div></div>`;
+    <div class="note" style="margin-top:6px">${WB.p==='combo'?'<b>بالا:</b> ارتفاع ۵۰۰ هکتوپاسکال (خطوط، دکامتر) و ناهنجاری آن؛ آبی/بنفش = ناوه و هوای سرد (سامانه بارشی)، نارنجی/قرمز = پشته و هوای گرم و پایدار. <b>پایین:</b> فشار سطح دریا (خطوط سفید، H پرفشار، L کم‌فشار) و بارش ۶ ساعته روی ایران.':{mslp:'خطوط سفید: فشار سطح دریا هر ۴ هکتوپاسکال · H پرفشار، L کم‌فشار · رنگ: بارش ۶ ساعته',z500a:'ارتفاع ۵۰۰ هکتوپاسکال و ناهنجاری آن نسبت به میانگین همان عرض جغرافیایی',z500:'خطوط: ارتفاع ۵۰۰ (دکامتر) · پیکان: باد ترازهای میانی',t2:'دمای ۲ متری با خطوط هم‌دما',dt24:'تغییر دما نسبت به ۲۴ ساعت قبل',prec:'بارش تجمعی از اکنون تا ساعت انتخابی',snow:'برف تجمعی (سانتی‌متر) از اکنون تا ساعت انتخابی',t850:'دمای حدود ۱۵۰۰ متری؛ زیر صفر یعنی احتمال برف در ارتفاعات',thick:'ضخامت ۱۰۰۰–۵۰۰؛ مرز ۵۴۰ تقریباً خط باران و برف',wind:'رنگ: تندباد · پیکان: جهت باد',cape:'بالای ۱۰۰۰ احتمال رعد و برق و تگرگ',jet:'رنگ: سرعت باد جت‌استریم (حدود ۱۰ کیلومتری) · خطوط: ارتفاع ۲۵۰ · مسیر جت مسیر عبور سامانه‌هاست',t850a:'دمای ۸۵۰ هکتوپاسکال روی اروپا تا آسیا؛ زبانه‌های آبی ورود هوای سرد را نشان می‌دهند',mslpb:'فشار سطح دریا و بارش ۶ ساعته در مقیاس کلان',p24:'بارش ۲۴ ساعت منتهی به ساعت انتخابی',td2:'نقطه شبنم؛ بالاتر یعنی هوای مرطوب‌تر',rh2:'رطوبت نسبی ۲ متری',cloud:'پوشش ابر کل',vis:'دید افقی (کیلومتر)؛ قرمز = مه یا گرد و غبار',t500:'دمای ۵۰۰ هکتوپاسکال (حدود ۵٫۵ کیلومتری)؛ سرد بودن آن ناپایداری را بیشتر می‌کند',rh700:'رطوبت ۷۰۰ هکتوپاسکال (حدود ۳ کیلومتری)؛ سبز پررنگ = ابر و بارش',w850:'باد ۸۵۰ هکتوپاسکال؛ جریان رطوبت از دریاها به سمت ایران را نشان می‌دهد',fzl:'ارتفاع خط صفر درجه (متر)؛ بالاتر از آن بارش برف است',sdep:'عمق برف روی زمین (سانتی‌متر)',li:'شاخص صعود؛ منفی‌تر یعنی ناپایدارتر و احتمال رعد و برق بیشتر',pwat:'کل بخار آب ستون هوا؛ بالای ۲۵ میلی‌متر یعنی پتانسیل بارش سنگین'}[WB.p]} · هر مدل بازه پیش‌بینی خودش را دارد (عدد کنار نام مدل).</div></div>`;
   $$('#t-md [data-wm]').forEach(b=>b.onclick=()=>{WB.m=S.wbM=b.dataset.wm;if(WB.m2===WB.m)WB.m2=WB_M.find(i=>i!==WB.m);saveS();renderModels()});
   $$('#t-md [data-wm2]').forEach(b=>b.onclick=()=>{WB.m2=S.wbM2=b.dataset.wm2;saveS();renderModels()});
   $$('#t-md [data-wp]').forEach(b=>b.onclick=()=>{WB.p=S.wbP=b.dataset.wp;saveS();renderModels()});
