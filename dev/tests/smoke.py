@@ -3,7 +3,7 @@ Usage: python3 dev/tests/smoke.py [outdir]   (run from repo root)
 Serves the app locally, fakes Open-Meteo / RainViewer / map tiles, opens every tab and saves screenshots.
 """
 import json, math, sys, threading, http.server, functools, os, io, random, urllib.parse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from playwright.sync_api import sync_playwright
 from PIL import Image
 
@@ -62,7 +62,25 @@ def handle(route):
     J = lambda o: route.fulfill(status=200, content_type='application/json', body=json.dumps(o))
     if u.hostname == 'api.open-meteo.com':
         lats = q.get('latitude', ['0'])[0].split(',')
-        if len(lats) > 1:
+        hv = q.get('hourly', [''])[0].split(',')
+        if len(lats) > 1 or any('hPa' in v or '100m' in v for v in hv):
+            N = 49 if 'start_hour' in q else 72
+            st = datetime.now(timezone.utc).replace(tzinfo=None).replace(minute=0, second=0, microsecond=0) if 'start_hour' in q else NOW.replace(hour=0)
+            tz = q.get('timezone', ['GMT'])[0]
+            if tz == 'auto': st = NOW.replace(hour=0)
+            def one(i):
+                h = {'time': [(st + timedelta(hours=k)).strftime('%Y-%m-%dT%H:%M') for k in range(N)]}
+                for v in hv:
+                    lvl = 1 + (2 if 'hPa' in v and int(v.split('_')[-1][:-3]) < 400 else 0)
+                    if 'direction' in v: h[v] = [(230 + i * 9 + k * 2) % 360 for k in range(N)]
+                    elif 'speed' in v or 'gust' in v: h[v] = [round((8 + (i * 7) % 40 + 6 * math.sin(k / 5)) * lvl, 1) for k in range(N)]
+                    elif 'geopotential' in v: h[v] = [{'200hPa':11800,'250hPa':10400,'300hPa':9200,'500hPa':5600,'700hPa':3050,'850hPa':1500,'950hPa':520}.get(v.split('_')[-1], 0)] * N
+                    elif 'temperature' in v: h[v] = [round(18 - (i % 10) - (k % 24) / 4, 1) for k in range(N)]
+                    elif 'cloud' in v: h[v] = [(i * 13 + k * 3) % 100 for k in range(N)]
+                    else: h[v] = [round(max(0, math.sin(i / 3 + k / 6)) * 4, 1) for k in range(N)]
+                return {'elevation': 1190, 'hourly': h}
+            return J([one(i) for i in range(len(lats))] if len(lats) > 1 else one(0))
+        if False:
             return J([{'current': {'temperature_2m': 10 + 8 * math.sin(i / 7) + i % 5, 'cloud_cover': (i * 13) % 100, 'wind_speed_10m': (i * 7) % 70, 'wind_direction_10m': (i * 30) % 360, 'precipitation': (i % 9) * .6}} for i in range(len(lats))])
         if 'models' in q:
             m = q['models'][0]
@@ -96,8 +114,10 @@ with sync_playwright() as p:
     pg.screenshot(path=f'{OUT}/1-now.png', full_page=True)
     for t, name in [('fc', '2-forecast'), ('aq', '3-aqi')]:
         pg.click(f'nav button[data-t={t}]'); pg.wait_for_timeout(500); pg.screenshot(path=f'{OUT}/{name}.png', full_page=True)
-    pg.click('nav button[data-t=map]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/4-map-radar.png')
+    pg.click('nav button[data-t=map]'); pg.wait_for_timeout(2500)
+    pg.screenshot(path=f'{OUT}/4b-map-wind.png'); pg.click('#mapLevels .chip[data-v="250hPa"]'); pg.wait_for_timeout(2500); pg.mouse.click(150, 450); pg.wait_for_timeout(300); pg.screenshot(path=f'{OUT}/4c-map-jet.png')
     pg.click('#mapLayers .chip[data-v=temp]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5-map-temp.png')
+    pg.click('#mapLayers .chip[data-v=radar]'); pg.wait_for_timeout(800); pg.screenshot(path=f'{OUT}/4-map-radar.png')
     pg.click('#mapLayers .chip[data-v=wind]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5b-map-wind.png')
     pg.click('nav button[data-t=md]'); pg.wait_for_timeout(300)
     pg.click('#t-md .mchip[data-m=kma_seamless]'); pg.wait_for_timeout(200); pg.click('#t-md .mchip[data-m=knmi_seamless]'); pg.wait_for_timeout(1500)
