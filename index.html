@@ -323,6 +323,9 @@ body[data-fx=storm]{--bg1:#1d1b2e!important;--bg2:#3b3656!important}
 body[data-fx=snow]{--bg1:#6f87a6!important;--bg2:#c3d2e3!important}
 body[data-fx=fog]{--bg1:#6b7480!important;--bg2:#a9b1ba!important}
 .sear{display:grid;grid-template-columns:1fr 1.2fr 1.2fr;gap:6px;padding:7px 0;border-top:1px solid var(--line);align-items:center}.sear small{display:block;font-size:11px;color:var(--sub)}.sear b{font-size:14px}.seah{font-size:11.5px;color:var(--dim);border-top:0;margin-top:8px}
+.obsh{font-size:12.5px;color:var(--sub);margin-top:4px;min-height:0}.obsh b{color:var(--txt)}
+.obsw{display:flex;align-items:center;gap:14px}.obsw .big{font-size:40px}.obsd{display:flex;flex-wrap:wrap;gap:6px}.obsd span{font-size:12px;background:var(--card2);border-radius:999px;padding:2px 9px}
+.obr{grid-template-columns:1fr 46px 90px 30px!important}.obr small{font-size:11px;color:var(--sub);text-align:left}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 
 </style>
@@ -441,7 +444,7 @@ body[data-fx=fog]{--bg1:#6b7480!important;--bg2:#a9b1ba!important}
 
 <script>
 'use strict';
-const VERSION='1.21.1';
+const VERSION='1.22.0';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -656,8 +659,9 @@ function renderNow(){
   let html='';
   {const AL=alerts(),one=a=>`<div class="alert ${a.lv}"><span class="ai">${a.ic}</span><div><b>${esc(a.t)}</b><span>${esc(a.m)}</span></div></div>`;html+=AL.slice(0,2).map(one).join('');if(AL.length>2)html+=`<details class="almore"><summary>⚠️ ${fa(AL.length-2)} هشدار دیگر</summary>${AL.slice(2).map(one).join('')}</details>`}
   html+=`<section class="hero">${skyBand()}<canvas id="heroFx"></canvas><div class="ic">${icon(c.weather_code,c.is_day)}</div><div class="tmp">${tS(c.temperature_2m)}</div><div class="desc">${WC[c.weather_code]||''}</div>
-   <div class="sub">احساس واقعی ${tS(c.apparent_temperature)} · بیشینه ${tS(d.temperature_2m_max[0])} · کمینه ${tS(d.temperature_2m_min[0])}</div><div class="qk"><span>💧 ${fa(c.relative_humidity_2m)}٪</span><span>💨 ${fa(Math.round(wV(c.wind_speed_10m)))} ${WU[S.w][1]}</span><span>☔ ${fa(d.precipitation_probability_max[0]||0)}٪</span><span>☀️ UV ${fa(Math.round(d.uv_index_max[0]||0))}</span></div><div class="sum">${summary()}</div>
+   <div class="sub">احساس واقعی ${tS(c.apparent_temperature)} · بیشینه ${tS(d.temperature_2m_max[0])} · کمینه ${tS(d.temperature_2m_min[0])}</div><div class="obsh" id="obsHero"></div><div class="qk"><span>💧 ${fa(c.relative_humidity_2m)}٪</span><span>💨 ${fa(Math.round(wV(c.wind_speed_10m)))} ${WU[S.w][1]}</span><span>☔ ${fa(d.precipitation_probability_max[0]||0)}٪</span><span>☀️ UV ${fa(Math.round(d.uv_index_max[0]||0))}</span></div><div class="sum">${summary()}</div>
    <div class="stale">به‌روزرسانی: ${ago(D._t)} · ${D.src==='met'?'🇳🇴 منبع پشتیبان: هواشناسی نروژ (MET Norway)':D.src==='blend'?'🤝 میانگین '+fa(D.blend||5)+' مدل':D.src&&D.src!=='best'&&MM[D.src]?'مدل '+MM[D.src][2]:'بهترین ترکیب مدل‌ها'}</div><div class="tools"><button class="chip" onclick="shareWeather()">📤 اشتراک</button><button class="chip" onclick="storyCard()">🖼️ کارت استوری</button><button class="chip" onclick="openGlance()">⛶ تمام‌صفحه</button><a class="chip" href="#" onclick="go('rd');return false" style="text-decoration:none;color:inherit">📡 رادار</a></div></section>`;
+  html+='<div id="obsSlot"></div>';
   if(!hid('nc'))html+=nowcastCard();
   // hourly 24
   let hs='';const sev=[];d.time.forEach((t,i)=>{if(d.sunrise[i])sev.push([d.sunrise[i],'🌅','طلوع']);if(d.sunset[i])sev.push([d.sunset[i],'🌇','غروب'])});
@@ -692,7 +696,7 @@ function renderNow(){
   if(!hid('sn'))html+=sunCard();
   if(!hid('ic'))html+=ircCard();
   html+=`<div style="text-align:center;margin:6px 0 0"><button class="chip" onclick="$('#setBtn').click();setTimeout(()=>{const e=$('#cardSet');if(e)e.scrollIntoView({block:'center'})},300)">⚙️ شخصی‌سازی کارت‌ها</button></div>`;
-  $('#t-now').innerHTML=html;heroFX();if(!hid('ic'))bindIRC();if(!hid('ex'))animEx();
+  $('#t-now').innerHTML=html;heroFX();if(!hid('ic'))bindIRC();if(!hid('ex'))animEx();if(!hid('ob'))fillObs();
 }
 function obsToday(){const h=D.hourly,day=D.current.time.slice(0,10),now=D.current.time.slice(0,13);let r=0,sn=0,hrs=0;h.time.forEach((t,k)=>{if(t.slice(0,10)===day&&t.slice(0,13)<=now){const p=h.precipitation[k]||0;r+=p;if(p>=.1)hrs++;if(h.snowfall)sn+=h.snowfall[k]||0}});
   const y=D.yday||{};return{r,sn,hrs,yr:y.precipitation_sum,ysn:y.snowfall_sum}}
@@ -1699,6 +1703,31 @@ function exCard(){
 }
 function animEx(){const el=$('.excount');if(!el)return;const to=+el.dataset.to,t0=performance.now();const st=t=>{const p=Math.min(1,(t-t0)/1200),e=1-Math.pow(1-p,3);el.textContent=fa(Math.round(to*e));if(p<1)requestAnimationFrame(st)};requestAnimationFrame(st)}
 
+/* ---------- official observations (airport METAR) ---------- */
+const ICAO_FA={OIII:'تهران (مهرآباد)',OIIE:'فرودگاه امام',OIMM:'مشهد',OIFM:'اصفهان',OISS:'شیراز',OITT:'تبریز',OICC:'کرمانشاه',OICS:'سنندج',OICI:'ایلام',OIAW:'اهواز',OIKB:'بندرعباس',OIKK:'کرمان',OIYY:'یزد',OINR:'رامسر',OIGG:'رشت',OITR:'ارومیه',OIHH:'همدان',OIHS:'همدان (نوژه)',OITZ:'زنجان',OITL:'اردبیل',OINZ:'ساری',OING:'گرگان',OIZH:'زاهدان',OIMB:'بیرجند',OIBB:'بوشهر',OIBK:'کیش',OIKQ:'قشم',OIZC:'چابهار',OIAA:'آبادان',OICK:'خرم‌آباد',OIFS:'شهرکرد',OISY:'یاسوج',OIAD:'دزفول',OIAI:'مسجدسلیمان',OIHR:'اراک',OIIS:'سمنان',OIMN:'بجنورد',OIMS:'سبزوار',OIBL:'بندرلنگه',OISL:'لار',OIAH:'گچساران',OIKJ:'جیرفت',OIKR:'رفسنجان',OIKM:'بم',OIZB:'زابل',OIMT:'طبس',OIMJ:'شاهرود',OINE:'کلاله',OITP:'پارس‌آباد',OITK:'خوی',OIAM:'ماهشهر',OIBJ:'جم',OIBA:'ابوموسی',OIKY:'سیرجان',OIZI:'ایرانشهر',OIZS:'سراوان',OISF:'فسا',OICJ:'بجنورد'};
+let OBS=null,OBSP=null;
+async function loadObs(){if(OBS&&Date.now()-OBS.t<10*60e3)return OBS;if(OBSP)return OBSP;
+  OBSP=(async()=>{try{const j=await getJSON('https://aviationweather.gov/api/data/metar?bbox=24,43,40.5,64&format=json&hours=2',20000);const by={};(Array.isArray(j)?j:[]).forEach(m=>{const id=m.icaoId;if(!id||m.temp==null)return;const tm=m.obsTime?m.obsTime*1000:Date.parse((m.reportTime||'').replace(' ','T')+'Z');if(!by[id]||tm>by[id].tm)by[id]={id,n:ICAO_FA[id]||m.name||id,la:+m.lat,lo:+m.lon,t:+m.temp,td:m.dewp!=null?+m.dewp:null,wd:m.wdir,ws:m.wspd!=null?+m.wspd*1.852:null,wg:m.wgst!=null?+m.wgst*1.852:null,vis:m.visib,p:m.altim!=null?+m.altim:null,raw:m.rawOb||'',tm,wx:m.wxString||''}});
+    OBS={t:Date.now(),L:Object.values(by)};offSave('obs',OBS);return OBS}catch(e){const o=offGet('obs');if(o){OBS=o;return o}throw e}finally{OBSP=null}})();return OBSP}
+function nearObs(la,lo,max=70){if(!OBS)return null;let b=null;OBS.L.forEach(o=>{const d=hav(la,lo,o.la,o.lo);if(d<=max&&(!b||d<b.d))b={...o,d}});return b}
+const rhOf=(t,td)=>td==null?null:Math.round(100*Math.exp(17.625*td/(243.04+td))/Math.exp(17.625*t/(243.04+t)));
+const WXF={RA:'باران',SN:'برف',DZ:'نم‌نم',TS:'رعد و برق',FG:'مه',BR:'غبارآلود رقیق',HZ:'غبار',DU:'گرد و غبار',SA:'شن',GR:'تگرگ',SH:'رگبار',FU:'دود'};
+const wxFa=w=>w?w.replace(/([+-]?)([A-Z]{2,})/g,(m,s,c)=>{const p=c.match(/.{2}/g).map(x=>WXF[x]||'').filter(Boolean).join(' ');return (s==='+'?'شدید ':s==='-'?'سبک ':'')+p}).trim():'';
+function obsCard(){const c=city(),o=nearObs(+c.lat,+c.lon);if(!o)return '';const mins=Math.round((Date.now()-o.tm)/6e4),rh=rhOf(o.t,o.td),model=D&&D.current?D.current.temperature_2m:null,df=model!=null?model-o.t:null;
+  return `<div class="card obsc"><h3>🛰️ دمای ثبت‌شده ایستگاه<span class="r">${esc(o.n)} · ${o.d<3?'داخل شهر':fa(Math.round(o.d))+' کیلومتر'}</span></h3>
+   <div class="obsw"><div class="big">${tS(o.t)}</div><div class="obsd">${rh!=null?`<span>💧 ${fa(rh)}٪</span>`:''}${o.ws!=null?`<span>💨 ${fa(Math.round(wV(o.ws)))} ${WU[S.w][1]}${o.wd!=null&&o.wd!=='VRB'?' از '+dirName(+o.wd):''}</span>`:''}${o.vis!=null?`<span>👁️ ${String(o.vis).includes('+')||+o.vis>=6?'+۱۰':fa((+o.vis*1.609).toFixed(1))} km</span>`:''}${o.wx?`<span>🌦️ ${wxFa(o.wx)}</span>`:''}</div></div>
+   <div class="note">اندازه‌گیری واقعی ایستگاه هواشناسی فرودگاه · ${mins<1?'همین الان':fa(mins)+' دقیقه پیش'}${df!=null&&Math.abs(df)>=1.5?` · پیش‌بینی مدل ${fa(Math.abs(Math.round(dT(df))))}° ${df>0?'گرم‌تر':'سردتر'} بود`:''}</div></div>`}
+async function fillObs(){try{await loadObs()}catch(e){return}if(curTab!=='now'||!D)return;const ex=$('#obsSlot');if(ex&&!ex.innerHTML)ex.innerHTML=obsCard();const hl=$('#obsHero');if(hl){const c=city(),o=nearObs(+c.lat,+c.lon);hl.innerHTML=o?`🛰️ ایستگاه ${esc(o.n)}: <b>${tS(o.t)}</b> (${fa(Math.max(0,Math.round((Date.now()-o.tm)/6e4)))} دقیقه پیش)`:''}}
+function drawObs(ctx){if(!OBS)return;ctx.textAlign='center';ctx.textBaseline='middle';OBS.L.forEach(o=>{const x=lon2x(o.lo,MP.z)-MP.sx,y=lat2y(o.la,MP.z)-MP.sy;if(x<-30||y<-30||x>MP.w+30||y>MP.h+30)return;const col=rgb(tempColor(o.t));
+  ctx.beginPath();ctx.arc(x,y,15,0,7);ctx.fillStyle=col;ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#fff';ctx.stroke();ctx.font='800 12px Vazirmatn,Tahoma';ctx.fillStyle='#0f172a';ctx.fillText(fa(Math.round(cT(o.t)))+'°',x,y+1);
+  if(MP.z>=6){ctx.font='600 10px Vazirmatn,Tahoma';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.6)';ctx.strokeText(o.n,x,y+24);ctx.fillStyle='#fff';ctx.fillText(o.n,x,y+24)}
+  if(o.ws>3&&o.wd!=null&&o.wd!=='VRB'){const a=(+o.wd+180)*Math.PI/180,L=8+Math.min(18,o.ws/3);ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+Math.sin(a)*16,y-Math.cos(a)*16);ctx.lineTo(x+Math.sin(a)*(16+L),y-Math.cos(a)*(16+L));ctx.stroke()}})}
+async function obsInfo(){const el=$('#mapInfo');el.innerHTML='<div class="sk"></div>';try{await loadObs()}catch(e){el.innerHTML='<div class="note">دریافت داده ایستگاه‌ها ممکن نشد.</div>';return}if(S.mapLayer!=='obs'||isRad())return;mapRender();
+  const L=OBS.L.slice().sort((a,b)=>b.t-a.t);el.innerHTML=`<b>🛰️ دمای واقعی ${fa(L.length)} ایستگاه هواشناسی فرودگاهی کشور</b><div class="note">اندازه‌گیری ساعتی ایستگاه‌ها (گزارش METAR)، نه پیش‌بینی مدل · خط سفید: جهت باد</div>
+   <div class="wk" style="margin-top:6px"><div><span>🔥</span><small>گرم‌ترین</small><b>${esc(L[0].n)} ${tS(L[0].t)}</b></div><div><span>🥶</span><small>سردترین</small><b>${esc(L[L.length-1].n)} ${tS(L[L.length-1].t)}</b></div></div>
+   <div class="irl" style="margin-top:6px">${L.map(o=>`<button class="irr obr" data-la="${o.la}" data-lo="${o.lo}"><span class="irn">${esc(o.n)}</span><b style="color:${rgb(tempColor(o.t))}">${tS(o.t)}</b><small>${rhOf(o.t,o.td)!=null?'💧'+fa(rhOf(o.t,o.td))+'٪ ':''}${o.ws!=null?'💨'+fa(Math.round(wV(o.ws))):''}</small><small>${fa(Math.round((Date.now()-o.tm)/6e4))}′</small></button>`).join('')}</div>`;
+  $$('#mapInfo .obr').forEach(b=>b.onclick=()=>{MP.lat=+b.dataset.la;MP.lon=+b.dataset.lo;MP.z=8;mapRender();$('#map').scrollIntoView({behavior:'smooth',block:'center'})})}
+
 /* ---------- onboarding / feedback / offline ---------- */
 function techInfo(){const c=city();return [`نسخه: ${VERSION}`,`شهر: ${c.name} (${(+c.lat).toFixed(2)}, ${(+c.lon).toFixed(2)})`,`تب: ${curTab}`,`منبع: ${S.src||'best'} · تم: ${S.theme} · واحد: ${S.t}/${S.w}`,`آنلاین: ${navigator.onLine?'بله':'خیر'} · نصب‌شده: ${matchMedia('(display-mode: standalone)').matches?'بله':'خیر'}`,`صفحه: ${screen.width}×${screen.height} @${devicePixelRatio}`,`مرورگر: ${navigator.userAgent}`,`آخرین داده: ${D&&D._t?new Date(D._t).toISOString():'-'}`].join('\n')}
 function onboard(){
@@ -1724,11 +1753,11 @@ function offGet(k){try{return JSON.parse(localStorage.getItem('aw.off.'+k)||'nul
 /* ---------- MAP (Windy-style: animated wind particles, altitude levels, 48h timeline) ---------- */
 let mapInit=false;
 const MP={mode:'map',views:{},z:6,lat:35.7,lon:51.4,frames:[],fi:0,timer:null,gtimer:null,host:'',grid:null,req:0,w:0,h:0,sx:0,sy:0,ti:0,imgs:{base:new Map(),ovl:new Map(),lbl:new Map()}};
-const LAYERS={wind:'💨 باد',temp:'🌡️ دما',rain:'💧 بارش',dust:'🟤 گرد و غبار',cloud:'☁️ ابر',gust:'🌪️ تندباد',eq:'🌍 زلزله',pres:'⏲️ فشار',hum:'💦 رطوبت',snow:'❄️ برف',feels:'🥵 احساس دما',cape:'⛈️ ناپایداری'};
+const LAYERS={wind:'💨 باد',temp:'🌡️ دما',rain:'💧 بارش',dust:'🟤 گرد و غبار',cloud:'☁️ ابر',gust:'🌪️ تندباد',eq:'🌍 زلزله',pres:'⏲️ فشار',hum:'💦 رطوبت',snow:'❄️ برف',feels:'🥵 احساس دما',cape:'⛈️ ناپایداری',obs:'🛰️ ایستگاه‌ها'};
 const LEVELS=[['10m','سطح زمین','۱۰ متری سطح زمین'],['100m','۱۰۰ متر','۱۰۰ متری سطح زمین'],['950hPa','۵۰۰ متر','۹۵۰ هکتوپاسکال · حدود ۵۰۰ متر'],['850hPa','۱۵۰۰ متر','۸۵۰ هکتوپاسکال · حدود ۱۵۰۰ متر'],['700hPa','۳۰۰۰ متر','۷۰۰ هکتوپاسکال · حدود ۳۰۰۰ متر'],['500hPa','۵۵۰۰ متر','۵۰۰ هکتوپاسکال · حدود ۵۵۰۰ متر'],['300hPa','۹۰۰۰ متر','۳۰۰ هکتوپاسکال · حدود ۹۰۰۰ متر'],['250hPa','۱۰٫۴ کیلومتر · جت','۲۵۰ هکتوپاسکال · حدود ۱۰٬۴۰۰ متر (جت‌استریم)'],['200hPa','۱۱٫۸ کیلومتر','۲۰۰ هکتوپاسکال · حدود ۱۱٬۸۰۰ متر']];
 const LVM=Object.fromEntries(LEVELS.map(l=>[l[0],l]));
 function lvVars(l){if(l==='10m')return{ws:'wind_speed_10m',wd:'wind_direction_10m',t:'temperature_2m',c:'cloud_cover'};if(l==='100m')return{ws:'wind_speed_100m',wd:'wind_direction_100m',t:'temperature_120m',c:'cloud_cover_low'};return{ws:'wind_speed_'+l,wd:'wind_direction_'+l,t:'temperature_'+l,c:'cloud_cover_'+l}}
-const SURF_ONLY={rain:1,gust:1,radar:1,dust:1,pres:1,hum:1,snow:1,eq:1,feels:1,cape:1};
+const SURF_ONLY={rain:1,gust:1,radar:1,dust:1,pres:1,hum:1,snow:1,eq:1,feels:1,cape:1,obs:1};
 const curLvl=()=>SURF_ONLY[S.mapLayer]||!LVM[S.mapLevel]?'10m':S.mapLevel;
 const ws=z=>256*2**z;
 const lon2x=(lo,z)=>(lo+180)/360*ws(z), lat2y=(la,z)=>{const r=la*Math.PI/180;return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*ws(z)};
@@ -1785,7 +1814,7 @@ async function mapLayerChanged(){$$('#mapLayers .chip').forEach(x=>x.classList.t
     if(!MP.frames.length){mapMsg('در حال دریافت رادار…');try{const j=await getJSON('https://api.rainviewer.com/public/weather-maps.json');MP.host=j.host;MP.frames=(j.radar&&j.radar.past)||[];MP.fi=MP.frames.length-1;mapMsg(MP.frames.length?'':'داده رادار در دسترس نیست')}catch(e){mapMsg('اتصال به سرور رادار برقرار نشد')}}
     else mapMsg('');
     if(MP.z>7)MP.z=7;
-  } else {mapMsg('');clearWind();if(MP.grid&&(MP.grid.lvl!==curLvl()||(S.mapLayer==='dust'&&!MP.grid.hasDust)))MP.grid=null;if(S.mapLayer==='eq'){if(MP.z>6)MP.z=5}else{if(MP.grid)gridPrep();gridLater(0)}}
+  } else {mapMsg('');clearWind();if(MP.grid&&(MP.grid.lvl!==curLvl()||(S.mapLayer==='dust'&&!MP.grid.hasDust)))MP.grid=null;if(S.mapLayer==='eq'||S.mapLayer==='obs'){if(MP.z>6)MP.z=5}else{if(MP.grid)gridPrep();gridLater(0)}}
   mapRender();updMapInfo();
 }
 const WIND_ST=[[0,[98,113,183]],[5,[57,97,159]],[10,[74,148,169]],[15,[77,141,123]],[20,[83,165,83]],[30,[53,159,53]],[40,[167,157,81]],[50,[159,127,58]],[60,[161,108,92]],[75,[129,58,78]],[90,[175,80,136]],[110,[117,74,147]],[140,[109,97,163]],[180,[68,105,141]],[250,[92,144,152]]];
@@ -1804,7 +1833,7 @@ function gridColor(v){const L=S.mapLayer;if(v==null)return [0,0,0,0];
   if(v<.1)return [40,45,60,90];const st=[[.1,[90,180,240]],[1,[40,130,230]],[3,[30,80,200]],[6,[140,60,220]],[12,[230,60,160]],[25,[250,80,60]]];return [...interp(st,v),220]}
 let gridT=null;function gridLater(ms=450){clearTimeout(gridT);if(isRad()||!mapInit)return;gridT=setTimeout(fetchGrid,ms)}
 async function fetchGrid(){
-  if(curTab!=='map'||isRad()||S.mapLayer==='eq')return;
+  if(curTab!=='map'||isRad()||S.mapLayer==='eq'||S.mapLayer==='obs')return;
   const z=MP.z,cx=lon2x(MP.lon,z),cy=lat2y(MP.lat,z),lvl=curLvl(),g=MP.grid;
   if(g&&g.lvl===lvl&&g.gz===z){const sx=cx-MP.w/2,sy=cy-MP.h/2;if(sx>=g.gx0&&sy>=g.gy0&&sx+MP.w<=g.gx0+g.dx*(g.cols-1)&&sy+MP.h<=g.gy0+g.dy*(g.rows-1))return}
   const pad=.3,cols=10,rows=Math.max(10,Math.round(10*MP.h/MP.w)),gx0=cx-MP.w*(.5+pad),gy0=cy-MP.h*(.5+pad),dx=MP.w*(1+2*pad)/(cols-1),dy=MP.h*(1+2*pad)/(rows-1);
@@ -1836,7 +1865,7 @@ function gridPrep(){
 function bil(a,g,c,r){if(c<0||r<0||c>g.cols-1||r>g.rows-1)return null;const c0=Math.min(g.cols-2,c|0),r0=Math.min(g.rows-2,r|0),fx=c-c0,fy=r-r0,i=r0*g.cols+c0,j=i+g.cols;const A=a[i],B=a[i+1],C=a[j],D2=a[j+1];if(A==null||B==null||C==null||D2==null)return null;return A*(1-fx)*(1-fy)+B*fx*(1-fy)+C*(1-fx)*fy+D2*fx*fy}
 function gpos(x,y){const g=MP.grid,s=2**(g.gz-MP.z);return [((MP.sx+x)*s-g.gx0)/g.dx,((MP.sy+y)*s-g.gy0)/g.dy]}
 function drawGrid(){
-  const ctx=sizeCanvas($('#mCan'));ctx.clearRect(0,0,MP.w,MP.h);if(isRad()){drawRadar(ctx);return}if(S.mapLayer==='eq'){drawEQ(ctx);return}const g=MP.grid;if(!g||!g.bg)return;
+  const ctx=sizeCanvas($('#mCan'));ctx.clearRect(0,0,MP.w,MP.h);if(isRad()){drawRadar(ctx);return}if(S.mapLayer==='eq'){drawEQ(ctx);return}if(S.mapLayer==='obs'){drawObs(ctx);return}const g=MP.grid;if(!g||!g.bg)return;
   const s=2**(MP.z-g.gz),x0=g.gx0*s-MP.sx,y0=g.gy0*s-MP.sy,w=g.dx*(g.cols-1)*s,h=g.dy*(g.rows-1)*s;
   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(g.bg,x0,y0,w,h);
   if(S.mapLayer==='wind'||S.mapLayer==='gust')return;
@@ -1847,7 +1876,7 @@ function drawGrid(){
 }
 /* wind particles */
 const WA={ps:[],raf:0};
-const windOn=()=>mapInit&&curTab==='map'&&!isRad()&&S.mapLayer!=='eq'&&MP.grid&&MP.grid.U&&!document.hidden;
+const windOn=()=>mapInit&&curTab==='map'&&!isRad()&&S.mapLayer!=='eq'&&S.mapLayer!=='obs'&&MP.grid&&MP.grid.U&&!document.hidden;
 function field(x,y){const g=MP.grid,[c,r]=gpos(x,y);if(c<0||r<0||c>=g.cols-1||r>=g.rows-1)return null;const c0=c|0,r0=r|0,fx=c-c0,fy=r-r0,i=r0*g.cols+c0,j=i+g.cols;if(!(g.ok[i]&g.ok[i+1]&g.ok[j]&g.ok[j+1]))return null;const w1=(1-fx)*(1-fy),w2=fx*(1-fy),w3=(1-fx)*fy,w4=fx*fy;return [g.U[i]*w1+g.U[i+1]*w2+g.U[j]*w3+g.U[j+1]*w4,g.Vv[i]*w1+g.Vv[i+1]*w2+g.Vv[j]*w3+g.Vv[j+1]*w4]}
 const seedP=()=>({x:Math.random()*MP.w,y:Math.random()*MP.h,a:0,m:30+Math.random()*70|0});
 function windLoop(){
@@ -1881,6 +1910,7 @@ function setGT(i){MP.ti=i;gridPrep();mapRender();const s=$('#gSl'),b=$('#gT');if
 function updMapInfo(){
   if(isRad()){updRdInfo();return}
   if(S.mapLayer==='eq'){eqInfo();return}
+  if(S.mapLayer==='obs'){obsInfo();return}
   const el=$('#mapInfo');if(!el)return;
   if(S.mapLayer==='radar'){
     if(!MP.frames.length){el.innerHTML='<div class="note">رادار بارش ۲ ساعت گذشته (هر ۱۰ دقیقه). اگر بارگذاری نشد، لایه‌های باد، دما و بارش را امتحان کنید.</div><div class="note" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">🇮🇷 <b>رادارهای کشور:</b> شبکه رادار سازمان هواشناسی ایران داده عمومی (API) ندارد و در شبکه جهانی رادار هم پوشش ایران محدود است. برای دیدن تصاویر رادارهای داخلی (تبریز، اهواز، خزر و…) <a href="http://radar.irimo.ir/" target="_blank" rel="noopener">سامانه رادار سازمان هواشناسی</a> را باز کنید. لایه «بارش» همین نقشه کل ایران را پوشش می‌دهد.</div>';return}
@@ -2110,7 +2140,7 @@ $('#gpsBtn').onclick=()=>{if(!navigator.geolocation){toast('مرورگر از م
     e=>toast(e.code===1?'دسترسی به موقعیت داده نشد':'موقعیت پیدا نشد'),{enableHighAccuracy:false,timeout:15000,maximumAge:600000})};
 
 /* ---------- settings ---------- */
-const CARDS=[['nc','🌧️ بارش ۲ ساعته'],['hr','⏱️ ساعتی'],['dy','📅 روزانه'],['dt','🔢 جزئیات'],['aq','🍃 کیفیت هوا'],['ex','🏃 ورزش'],['ac','🎯 شاخص‌ها'],['sn','🌅 خورشید و ماه'],['ic','🇮🇷 شهرهای کشور']];
+const CARDS=[['ob','🛰️ ایستگاه رسمی'],['nc','🌧️ بارش ۲ ساعته'],['hr','⏱️ ساعتی'],['dy','📅 روزانه'],['dt','🔢 جزئیات'],['aq','🍃 کیفیت هوا'],['ex','🏃 ورزش'],['ac','🎯 شاخص‌ها'],['sn','🌅 خورشید و ماه'],['ic','🇮🇷 شهرهای کشور']];
 function renderSettings(){const pf=$('#pfxSw');if(pf)pf.classList.toggle('on',S.pageFx!==false);$$('#fxPrev .chip').forEach(b=>b.classList.toggle('on',(S.fxPrev||'')===b.dataset.v));const nk=$('#nsKey');if(nk)nk.value=S.neshanKey||'';const st=$('#startTab');if(st)st.value=S.startTab||'now';const ct=$('#cardTg');if(ct){ct.innerHTML=CARDS.map(c=>`<button class="chip ${(S.hide||[]).includes(c[0])?'':'on'}" data-k="${c[0]}">${c[1]}</button>`).join('');$$('#cardTg .chip').forEach(b=>b.onclick=()=>{const k=b.dataset.k;S.hide=(S.hide||[]).includes(k)?S.hide.filter(x=>x!==k):[...(S.hide||[]),k];saveS();b.classList.toggle('on');if(D)renderNow()})}const ok=$('#omKey');if(ok)ok.value=S.omKey||'';const ss=$('#srcSel');if(ss)ss.value=S.src||'best';const ms=$('#mornSw');if(ms)ms.classList.toggle('on',!!S.morning);$$('#setS .seg').forEach(sg=>$$('button',sg).forEach(b=>b.classList.toggle('on',S[sg.dataset.k]===b.dataset.v)));$('#notifSw').classList.toggle('on',!!S.notif&&('Notification' in window)&&Notification.permission==='granted')}
 $('#setBtn').onclick=()=>{renderSettings();openSheet('setS')};
 $$('#setS .seg').forEach(sg=>$$('button',sg).forEach(b=>b.onclick=()=>{S[sg.dataset.k]=b.dataset.v;saveS();renderSettings();applyTheme();renderAll()}));

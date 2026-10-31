@@ -68,6 +68,11 @@ def metmock():
 def handle(route):
     u = urllib.parse.urlparse(route.request.url); q = urllib.parse.parse_qs(u.query)
     J = lambda o: route.fulfill(status=200, content_type='application/json', body=json.dumps(o))
+    if u.hostname == 'aviationweather.gov':
+        import time as _t
+        now = int(_t.time())
+        st = [('OIII', 35.69, 51.31, 14), ('OIMM', 36.23, 59.64, 9), ('OISS', 29.54, 52.59, 18), ('OITT', 38.13, 46.24, 6), ('OICS', 35.25, 47.01, 4), ('OIAW', 31.34, 48.76, 27), ('OIKB', 27.22, 56.38, 29)]
+        return J([{'icaoId': i, 'name': i, 'lat': la, 'lon': lo, 'temp': tt, 'dewp': tt - 8, 'wdir': 240, 'wspd': 8, 'visib': '6+', 'altim': 1015, 'obsTime': now - 1500, 'wxString': '-RA' if i == 'OITT' else None} for i, la, lo, tt in st])
     if u.hostname == 'seasonal-api.open-meteo.com':
         mv = q.get('monthly', [''])[0]; T = ['2026-%02d-01' % m for m in range(11, 13)] + ['2027-%02d-01' % m for m in range(1, 5)]
         if 'anomaly' in mv and 'temperature_2m_anomaly' in mv: return J({'monthly': {'time': T, 'temperature_2m_anomaly': [1.2, .8, .3, -.2, .9, 1.5], 'precipitation_anomaly': [-8, -12, 5, 10, -3, -6]}})
@@ -231,6 +236,7 @@ with sync_playwright() as p:
     pg.click('nav button[data-t=map]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/r4-backmap.png')
     pg.click('#mapLayers .chip[data-v=wind]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5b-map-wind.png')
     pg.click('#mapLayers .chip[data-v=eq]'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/5c-map-eq.png', full_page=True)
+    pg.click('#mapLayers .chip[data-v=obs]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5e-map-obs.png', full_page=True)
     pg.click('#mapLayers .chip[data-v=pres]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5d-map-pres.png')
     pg.click('nav button[data-t=now]'); pg.wait_for_timeout(500); pg.click('#ircV button[data-v=rain]'); pg.wait_for_timeout(1500); pg.locator('#ircCard').screenshot(path=f'{OUT}/irc-rain.png')
     pg.click('nav button[data-t=tr]'); pg.wait_for_timeout(2500); pg.locator('#poiCard').screenshot(path=f'{OUT}/poi.png'); pg.click('#poiCard details.poi >> nth=0'); pg.wait_for_timeout(300); pg.locator('#poiCard').screenshot(path=f'{OUT}/poi2.png'); pg.click('#poiBody [data-pm="0"] >> nth=0'); pg.wait_for_timeout(1000); pg.screenshot(path=f'{OUT}/poimap.png'); pg.click('#pmX'); pg.wait_for_timeout(200); pg.click('#tpGo'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/tr1.png', full_page=True)
