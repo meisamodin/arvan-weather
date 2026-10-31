@@ -181,7 +181,7 @@ with sync_playwright() as p:
     pg.click('#mapLayers .chip[data-v=eq]'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/5c-map-eq.png', full_page=True)
     pg.click('#mapLayers .chip[data-v=pres]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5d-map-pres.png')
     pg.click('nav button[data-t=now]'); pg.wait_for_timeout(500); pg.click('#ircV button[data-v=rain]'); pg.wait_for_timeout(1500); pg.locator('#ircCard').screenshot(path=f'{OUT}/irc-rain.png')
-    pg.evaluate('openStats(IRC[0])'); pg.wait_for_timeout(2500); pg.locator('.sheet.on .panel').evaluate('e=>e.style.maxHeight="none"'); pg.locator('.sheet.on .panel').screenshot(path=f'{OUT}/stats.png'); pg.click('.sheet.on [data-close]'); pg.wait_for_timeout(300)
+    pg.evaluate('openStats(IRC[0])'); pg.wait_for_timeout(2500); pg.locator('.sheet.on .panel').evaluate('e=>e.style.maxHeight="none"'); pg.locator('.sheet.on .panel').screenshot(path=f'{OUT}/stats.png'); pg.evaluate("document.querySelectorAll('.sheet.on').forEach(e=>e.remove())"); pg.wait_for_timeout(300)
     pg.click('nav button[data-t=tr]'); pg.wait_for_timeout(2500); pg.click('#tpGo'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/tr1.png', full_page=True)
     pg.click('nav button[data-t=fc]'); pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/fc2.png', full_page=True)
     pg.click('nav button[data-t=now]'); pg.wait_for_timeout(500); pg.evaluate('openGlance()'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/glance.png'); pg.click('#glance'); pg.wait_for_timeout(300)

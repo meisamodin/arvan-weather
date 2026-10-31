@@ -276,6 +276,15 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 .grbar{transform-box:fill-box;transform-origin:bottom;animation:aw-grow .7s cubic-bezier(.2,.8,.2,1) both}
 .irw{grid-template-columns:72px 26px 30px 1fr 38px 40px!important}.wyb{position:relative;height:8px;border-radius:4px;background:rgba(255,255,255,.1)}.wyb i{position:absolute;right:0;top:0;bottom:0;border-radius:4px;background:linear-gradient(to left,#38bdf8,#2563eb)}.wyb em{position:absolute;top:-3px;width:2px;height:14px;background:#fff;border-radius:1px}
 .wyp{font-size:11.5px;font-weight:700;text-align:left}
+.skyb{position:relative;border-radius:20px;overflow:hidden;margin:0 0 6px;height:112px;box-shadow:0 10px 24px -14px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.18)}.skyb svg{width:100%;height:100%;display:block}
+.skyt{position:absolute;bottom:7px;right:12px;left:12px;text-align:right;text-shadow:0 1px 6px rgba(0,0,0,.35);color:#fff}.skyt b{font-size:15px;display:block}.skyt small{font-size:11.5px;opacity:.92}
+.skyorb{transform:translate(var(--x),var(--y));animation:aw-orb 2.2s cubic-bezier(.2,.8,.2,1)}@keyframes aw-orb{from{transform:translate(var(--x0),74px)}}
+.exw{display:flex;gap:14px;align-items:center}.exg{position:relative;width:122px;height:122px;flex:0 0 auto}.exg svg{width:100%;height:100%}
+.exarc{animation:aw-arc 1.3s cubic-bezier(.2,.8,.2,1) .15s forwards}@keyframes aw-arc{to{stroke-dashoffset:var(--off)}}
+.exn{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}.exn b{font-size:32px;line-height:1}.exn small{font-size:10.5px;color:var(--dim)}
+.exr{flex:1;min-width:0}.exrun{font-size:32px;display:inline-block;margin-bottom:2px}.exrun.go{animation:aw-run .45s ease-in-out infinite alternate}@keyframes aw-run{from{transform:translate(0,0) rotate(-4deg)}to{transform:translate(-12px,-4px) rotate(4deg)}}
+.exrun.stop{animation:aw-bob 3s ease-in-out infinite}
+.exh{display:flex;gap:2px;align-items:flex-end;height:68px;direction:rtl;margin-top:4px}.exh div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}.exh i{display:block;width:100%;border-radius:3px 3px 1px 1px;transform-origin:bottom;animation:aw-grow .6s both}.exh i.bst{box-shadow:0 0 0 2px #fff,0 0 12px #fff}.exh small{font-size:9px;color:var(--dim);height:12px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 
 </style>
@@ -383,7 +392,7 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 
 <script>
 'use strict';
-const VERSION='1.8.0';
+const VERSION='1.9.0';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -540,7 +549,7 @@ function renderNow(){
   const c=D.current,d=D.daily,h=D.hourly,s=i0();
   let html='';
   for(const a of alerts())html+=`<div class="alert ${a.lv}"><span class="ai">${a.ic}</span><div><b>${esc(a.t)}</b><span>${esc(a.m)}</span></div></div>`;
-  html+=`<section class="hero"><canvas id="heroFx"></canvas><div class="ic">${icon(c.weather_code,c.is_day)}</div><div class="tmp">${tS(c.temperature_2m)}</div><div class="desc">${WC[c.weather_code]||''}</div>
+  html+=`<section class="hero">${skyBand()}<canvas id="heroFx"></canvas><div class="ic">${icon(c.weather_code,c.is_day)}</div><div class="tmp">${tS(c.temperature_2m)}</div><div class="desc">${WC[c.weather_code]||''}</div>
    <div class="sub">احساس واقعی ${tS(c.apparent_temperature)} · بیشینه ${tS(d.temperature_2m_max[0])} · کمینه ${tS(d.temperature_2m_min[0])}</div><div class="sum">${summary()}</div>
    <div class="stale">به‌روزرسانی: ${ago(D._t)} · ${D.src==='blend'?'🤝 میانگین '+fa(D.blend||5)+' مدل':D.src&&D.src!=='best'&&MM[D.src]?'مدل '+MM[D.src][2]:'بهترین ترکیب مدل‌ها'}</div><div class="tools"><button class="chip" onclick="shareWeather()">📤 اشتراک</button><button class="chip" onclick="storyCard()">🖼️ کارت استوری</button><button class="chip" onclick="openGlance()">⛶ تمام‌صفحه</button><a class="chip" href="#" onclick="go('rd');return false" style="text-decoration:none;color:inherit">📡 رادار</a></div></section>`;
   html+=nowcastCard();
@@ -552,7 +561,9 @@ function renderNow(){
   d.time.forEach((t,i)=>{const lo=d.temperature_2m_min[i],hi=d.temperature_2m_max[i],r1=(lo-gmin)/rg*100,r2=(gmax-hi)/rg*100,pr=d.precipitation_probability_max[i];
     let dot='';if(i===0){dot=`<em style="right:${((c.temperature_2m-gmin)/rg*100).toFixed(1)}%"></em>`}
     ds+=`<div class="day${i>=10?' lc':''}"><div class="n">${dayName(t,i)}<small>${fmtJ(t,{day:'numeric',month:'short'})}</small></div>${icon(d.weather_code[i],1)}<div class="p">${pr>=10?'💧'+fa(pr)+'٪':''}</div><div class="lo">${tS(lo)}</div><div class="bar"><i style="right:${r1.toFixed(1)}%;left:${r2.toFixed(1)}%;background:linear-gradient(to left,${rgb(tempColor(lo))},${rgb(tempColor(hi))})"></i>${dot}</div><div class="hi">${tS(hi)}</div></div>`});
+  const _ex=1;
   html+=`<div class="card"><h3>📅 پیش‌بینی ${fa(d.time.length)} روزه${d.time.length>10?'<span class="r">روزهای کم‌رنگ: اطمینان کمتر</span>':''}</h3>${ds}</div>`;
+  html+=exCard();
   // details
   const uv=c.uv_index??h.uv_index[s],vis=c.visibility??h.visibility[s];
   html+=`<div class="grid2">
@@ -570,7 +581,7 @@ function renderNow(){
   // aqi mini
   if(AQ&&AQ.current){const q=aqInfo();html+=`<div class="card" onclick="go('aq')" style="cursor:pointer"><h3>🍃 کیفیت هوا<span class="r">جزئیات ›</span></h3><div style="display:flex;align-items:center;gap:12px"><div class="big" style="color:${q.col}">${fa(q.v)}</div><div><b>${q.lbl}</b><div class="note">${q.std}${AQ.current.dust!=null?' · گرد و غبار '+fa(AQ.current.dust)+' µg/m³':''}</div></div></div><div class="meter"><em style="right:${q.pos}%"></em></div></div>`}
   html+=ircCard();
-  $('#t-now').innerHTML=html;heroFX();bindIRC();
+  $('#t-now').innerHTML=html;heroFX();bindIRC();animEx();
 }
 function feelNote(c){const df=c.apparent_temperature-c.temperature_2m;if(Math.abs(df)<2)return 'مشابه دمای واقعی';return df<0?(c.wind_speed_10m>15?'باد هوا را سردتر نشان می‌دهد':'سردتر از دمای واقعی'):(c.relative_humidity_2m>60?'رطوبت هوا را گرم‌تر نشان می‌دهد':'گرم‌تر از دمای واقعی')}
 function pTrend(){const h=D.hourly,s=i0(),p0=h.pressure_msl[Math.max(0,s-3)],p1=h.pressure_msl[Math.min(h.time.length-1,s+3)];const df=p1-p0;return Math.abs(df)<1?'پایدار':df>0?'رو به افزایش ↑ (هوای پایدارتر)':'رو به کاهش ↓ (احتمال ناپایداری)'}
@@ -1267,6 +1278,45 @@ function ircRainHtml(){
    <div class="note" style="margin-top:6px">ستون سوم: بارش پیش‌بینی ${['امروز','فردا','پس‌فردا'][d]} (mm) · نوار آبی: بارش سال آبی ${wyLbl(curWY())} تاکنون · خط سفید: پارسال تا همین روز · درصد: تغییر نسبت به پارسال${IRWY?' · داده آرشیو تا '+new Intl.DateTimeFormat('fa-IR-u-ca-persian',{day:'numeric',month:'long'}).format(pd(IRWY.end)):''} · روی هر شهر بزنید تا آمار ۳۰ ساله و نمودار را ببینید</div>`;
 }
 
+/* ---------- live sky band (device time) ---------- */
+function dayPhase(m,a,b){if(m<a-60||m>b+75)return['شب','🌙','شب بخیر'];if(m<a)return['سحر','🌄','سحر بخیر'];if(m<a+90)return['طلوع و صبح زود','🌅','صبح بخیر'];if(m<690)return['صبح','☀️','صبح بخیر'];if(m<870)return['ظهر','🌞','ظهر بخیر'];if(m<b-60)return['عصر','🌤️','عصر بخیر'];if(m<=b+20)return['غروب','🌇','عصر بخیر'];return['اول شب','🌆','شب بخیر']}
+function skyBand(){
+  const d=D.daily,now=new Date(),m=now.getHours()*60+now.getMinutes(),a=hm(d.sunrise[0]),b=hm(d.sunset[0]),up=m>=a&&m<=b,ph=dayPhase(m,a,b);
+  const f=up?(m-a)/(b-a):((m>b?m-b:m+1440-b)/((1440-b)+a)),ang=Math.PI*(1-f),x=(300-(150+130*Math.cos(ang))).toFixed(1),y=(70-56*Math.sin(ang)).toFixed(1);
+  const sky=up?(f<.12?['#fb923c','#fde68a']:f>.88?['#f97316','#fca5a5']:['#38bdf8','#bae6fd']):(m>b&&m<b+60?['#7c3aed','#f472b6']:m<a&&m>a-60?['#4338ca','#fb923c']:['#0b1026','#312e81']);
+  const left=up?b-m:(m>b?1440-m+a:a-m);
+  return `<div class="skyb"><svg viewBox="0 0 300 112" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="skyb1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}" stop-opacity=".55"/></linearGradient><radialGradient id="skyb2"><stop offset="0" stop-color="#fff7cc"/><stop offset=".5" stop-color="${up?'#FDB813':'#f4e7a1'}"/><stop offset="1" stop-color="${up?'#FDB813':'#f4e7a1'}" stop-opacity="0"/></radialGradient></defs>
+   <rect width="300" height="112" fill="url(#skyb1)"/>${up?'':`<g class="stars">${[[30,20],[70,12],[110,30],[160,16],[210,26],[250,10],[280,34],[55,44],[190,48]].map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="1.1" fill="#fff" style="animation-delay:${i*.3}s"/>`).join('')}</g>`}
+   <path d="M20 70 A130 56 0 0 1 280 70" fill="none" stroke="rgba(255,255,255,.45)" stroke-dasharray="3 4"/><path d="M0 74 Q75 64 150 74 T300 72 V112 H0z" fill="rgba(5,10,30,.38)"/>
+   <g class="skyorb" style="--x:${x}px;--y:${y}px;--x0:${up?280:280}px"><circle r="15" fill="url(#skyb2)" class="sunglow"/><circle r="${up?7:6}" fill="${up?'#FDB813':'#f4e7a1'}"/></g></svg>
+   <div class="skyt"><b>${ph[1]} ${ph[2]}</b><small>الان ${ph[0]} است · ${up?'تا غروب':'تا طلوع'} ${fa(Math.floor(left/60))} ساعت و ${fa(left%60)} دقیقه</small></div></div>`;
+}
+
+/* ---------- aerobic exercise index ---------- */
+function exScoreAt(T,FL,H,W,G,P,PP,UV,AQ,DU,code){
+  let s=100,why=[];const pen=(v,r)=>{if(v>0){s-=v;why.push([v,r])}};
+  const fl=FL??T;pen(fl>32?Math.min(45,(fl-32)*6):fl<0?Math.min(40,-fl*3.5):fl>27?(fl-27)*2.5:fl<8?(8-fl)*1.5:0,fl>27?'گرما':'سرما');
+  if(T>24&&H>65)pen(Math.min(20,(H-65)*.6),'شرجی');pen(G>45?25:W>28?12:0,'باد');pen(code>=95?60:P>2?45:P>.2?25:PP>60?12:0,code>=95?'رعد و برق':'بارش');
+  pen(UV>=8?12:UV>=6?6:0,'UV');if(AQ!=null)pen(AQ>200?70:AQ>150?50:AQ>100?28:AQ>75?12:AQ>50?5:0,'آلودگی');if(DU!=null)pen(DU>300?60:DU>150?35:DU>80?15:0,'گرد و غبار');
+  why.sort((a,b)=>b[0]-a[0]);return[Math.max(0,Math.round(s)),why.map(x=>x[1])]}
+function exAt(k){const h=D.hourly;let aq=null,du=null;if(AQ&&AQ.hourly){const i=AQ.hourly.time.indexOf(h.time[k]);if(i>=0){aq=AQ.hourly.us_aqi[i];du=AQ.hourly.dust?AQ.hourly.dust[i]:null}}
+  return exScoreAt(h.temperature_2m[k],h.apparent_temperature[k],h.relative_humidity_2m[k],h.wind_speed_10m[k],h.wind_gusts_10m[k],h.precipitation[k],h.precipitation_probability[k],h.uv_index[k],aq,du,h.weather_code[k])}
+const exLv=s=>s>=80?['عالی','#4ade80','هوا برای دویدن، دوچرخه و پیاده‌روی تند ایده‌آل است']:s>=60?['خوب','#a3e635','مناسب ورزش هوازی؛ شدت را متعادل نگه دارید']:s>=40?['متوسط','#facc15','ورزش سبک یا کوتاه‌تر؛ افراد حساس داخل سالن']:s>=20?['نامناسب','#fb923c','ورزش هوازی بیرون توصیه نمی‌شود']:['خطرناک','#ef4444','فقط ورزش داخل سالن'];
+function exCard(){
+  const h=D.hourly,s0=i0(),c=D.current;let aq=AQ&&AQ.current?AQ.current.us_aqi:null,du=AQ&&AQ.current?AQ.current.dust:null;
+  const [sc,why]=exScoreAt(c.temperature_2m,c.apparent_temperature,c.relative_humidity_2m,c.wind_speed_10m,c.wind_gusts_10m,c.precipitation,h.precipitation_probability[s0],c.uv_index??h.uv_index[s0],aq,du,c.weather_code),L=exLv(sc);
+  const hrs=[];for(let k=s0;k<Math.min(s0+24,h.time.length);k++)hrs.push([k,exAt(k)[0]]);
+  let best=null;for(let i=0;i<hrs.length-1;i++){const v=(hrs[i][1]+hrs[i+1][1])/2;const hh=+h.time[hrs[i][0]].slice(11,13);if(hh>=5&&hh<=21&&(!best||v>best[1]))best=[i,v]}
+  const R=46,C=2*Math.PI*R,run=sc>=40;
+  return `<div class="card exc"><h3>🏃 سلامت هوا برای ورزش هوازی<span class="r">دویدن، دوچرخه، پیاده‌روی تند</span></h3>
+   <div class="exw"><div class="exg"><svg viewBox="0 0 110 110"><circle cx="55" cy="55" r="${R}" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="9"/><circle cx="55" cy="55" r="${R}" fill="none" stroke="${L[1]}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${C.toFixed(1)}" transform="rotate(-90 55 55)" class="exarc" style="--off:${(C*(1-sc/100)).toFixed(1)};filter:drop-shadow(0 0 6px ${L[1]})"/></svg>
+     <div class="exn"><b class="excount" data-to="${sc}">۰</b><small>از ۱۰۰</small></div></div>
+    <div class="exr"><div class="exrun ${run?'go':'stop'}">${run?'🏃':'🏠'}</div><b style="color:${L[1]};font-size:20px">${L[0]}</b><div class="note">${L[2]}</div>${why.length?`<div class="note">عامل اصلی: ${why.slice(0,2).join('، ')}</div>`:''}</div></div>
+   <div class="sec" style="margin-top:6px">۲۴ ساعت آینده ${best?`· <b style="color:var(--txt)">بهترین زمان: ساعت ${fa(+h.time[hrs[best[0]][0]].slice(11,13))} تا ${fa(+h.time[hrs[best[0]][0]].slice(11,13)+2)}</b>`:''}</div>
+   <div class="exh">${hrs.map(([k,v],i)=>`<div title="${fa(+h.time[k].slice(11,13))}:۰۰ — ${fa(v)}"><i style="height:${Math.max(6,v*.55).toFixed(0)}px;background:${exLv(v)[1]};animation-delay:${i*25}ms" class="${best&&(i===best[0]||i===best[0]+1)?'bst':''}"></i>${i%3===0?`<small>${fa(+h.time[k].slice(11,13))}</small>`:'<small></small>'}</div>`).join('')}</div></div>`;
+}
+function animEx(){const el=$('.excount');if(!el)return;const to=+el.dataset.to,t0=performance.now();const st=t=>{const p=Math.min(1,(t-t0)/1200),e=1-Math.pow(1-p,3);el.textContent=fa(Math.round(to*e));if(p<1)requestAnimationFrame(st)};requestAnimationFrame(st)}
+
 /* ---------- onboarding / feedback / offline ---------- */
 function techInfo(){const c=city();return [`نسخه: ${VERSION}`,`شهر: ${c.name} (${(+c.lat).toFixed(2)}, ${(+c.lon).toFixed(2)})`,`تب: ${curTab}`,`منبع: ${S.src||'best'} · تم: ${S.theme} · واحد: ${S.t}/${S.w}`,`آنلاین: ${navigator.onLine?'بله':'خیر'} · نصب‌شده: ${matchMedia('(display-mode: standalone)').matches?'بله':'خیر'}`,`صفحه: ${screen.width}×${screen.height} @${devicePixelRatio}`,`مرورگر: ${navigator.userAgent}`,`آخرین داده: ${D&&D._t?new Date(D._t).toISOString():'-'}`].join('\n')}
 function onboard(){
@@ -1660,7 +1710,7 @@ $('#refBtn').onclick=()=>{load(true);if(curTab==='md'){Object.keys(MDATA).forEac
 
 /* ---------- boot ---------- */
 $('#verTxt').textContent='نسخه '+VERSION;$('#ver2').textContent=VERSION;
-document.addEventListener('visibilitychange',()=>{if(document.hidden){if(HFX){HFX.stop();HFX=null}}else{if(curTab==='now')heroFX();if(D&&Date.now()-D._t>15*60e3)load(true)}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){if(HFX){HFX.stop();HFX=null}}else{if(curTab==='now'){if(D)renderNow();else heroFX()}if(D&&Date.now()-D._t>15*60e3)load(true)}});
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 if(S.home&&cities.find(c=>c.id===S.home)){curId=S.home;LS.set('cur',curId)}
 applyTheme();load(false);if(FIRST_RUN)setTimeout(onboard,400);updOnline();
