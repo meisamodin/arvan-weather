@@ -355,6 +355,7 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
   <div class="sec">منبع پیش‌بینی</div>
   <select class="inp" id="srcSel"><option value="best">✨ بهترین ترکیب خودکار (پیشنهادی)</option><option value="blend">🤝 میانگین ۵ مدل جهانی (ECMWF، GFS، ICON، GEM، UKMO)</option><option value="ecmwf_ifs025">ECMWF IFS — اروپا</option><option value="gfs_seamless">GFS — آمریکا</option><option value="icon_seamless">ICON — آلمان</option><option value="gem_seamless">GEM — کانادا</option><option value="ukmo_seamless">UKMO — بریتانیا</option><option value="meteofrance_seamless">ARPEGE — فرانسه</option><option value="jma_seamless">JMA — ژاپن</option><option value="ecmwf_aifs025_single">ECMWF AIFS — هوش مصنوعی</option></select>
   <small style="color:var(--dim);display:block;margin-top:4px">میانگین چند مدل معمولاً خطای کمتری از هر مدل تنها دارد. بعضی مدل‌ها فقط ۷ تا ۱۰ روز پیش‌بینی دارند.</small>
+  <details class="hp" style="border:0;padding:4px 0"><summary style="font-size:13px;color:var(--sub)">🔑 کلید API اختصاصی Open-Meteo (اختیاری)</summary><div>با اشتراک پولی Open-Meteo محدودیت درخواست برداشته می‌شود و استفاده تجاری مجاز است. کلید فقط روی همین دستگاه ذخیره می‌شود.<input class="inp" id="omKey" placeholder="apikey" autocomplete="off" style="margin-top:6px;direction:ltr"></div></details>
   <div class="sec">ظاهر</div>
   <div style="margin:8px 0"><div style="margin-bottom:6px">پوسته</div><div class="seg" data-k="theme" style="flex-wrap:wrap"><button data-v="dyn">🌈 پویا</button><button data-v="dark">🌙 تیره</button><button data-v="oled">⚫ مشکی</button><button data-v="light">☀️ روشن</button><button data-v="sys">📱 سیستم</button></div><small style="color:var(--dim)">«پویا» رنگ برنامه را با وضعیت هوا و شب و روز عوض می‌کند.</small></div>
   <div class="setl"><span>اندازه متن</span><div class="seg" data-k="fs"><button data-v="90">کوچک</button><button data-v="100">عادی</button><button data-v="112">بزرگ</button><button data-v="125">خیلی بزرگ</button></div></div>
@@ -396,7 +397,7 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 
 <script>
 'use strict';
-const VERSION='1.13.0';
+const VERSION='1.14.0';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -456,7 +457,64 @@ const BG={clear:[['#2f7fd6','#79c2f2'],['#0b1530','#22346b']],partly:[['#3b7ac0'
 function setBG(code,day){if(typeof resTheme==='function'&&resTheme()!=='dyn')return;const g=BG[kind(code)][day?0:1];document.documentElement.style.setProperty('--bg1',g[0]);document.documentElement.style.setProperty('--bg2',g[1]);$('meta[name=theme-color]').content=g[0]}
 
 /* ---------- network ---------- */
-async function getJSON(url,ms=15000){const ac=new AbortController();const t=setTimeout(()=>ac.abort(),ms);try{const r=await fetch(url,{signal:ac.signal});if(!r.ok){let m='';try{m=(await r.json()).reason}catch(e){}throw new Error(m||('HTTP '+r.status))}return await r.json()}finally{clearTimeout(t)}}
+async function getJSON(url,ms=15000){url=await omGate(url);const ac=new AbortController();const t=setTimeout(()=>ac.abort(),ms);try{const r=await fetch(url,{signal:ac.signal});if(!r.ok){let m='';try{m=(await r.json()).reason}catch(e){}if(r.status===429&&/open-meteo/.test(url)){omOn429(m);const e=omLimitErr();throw e}throw new Error(m||('HTTP '+r.status))}return await r.json()}catch(e){if(e.name==='AbortError')throw new Error('زمان پاسخ‌گویی سرور تمام شد');throw e}finally{clearTimeout(t)}}
+/* ---------- Open-Meteo quota guard + MET Norway fallback ---------- */
+const OM={used:[],cool:0,why:'',warned:0};
+const OM_HOSTS={'api.open-meteo.com':'customer-api.open-meteo.com','archive-api.open-meteo.com':'customer-archive-api.open-meteo.com','air-quality-api.open-meteo.com':'customer-air-quality-api.open-meteo.com','marine-api.open-meteo.com':'customer-marine-api.open-meteo.com'};
+function omWeight(U){const P=U.searchParams,n=(P.get('latitude')||'0').split(',').length,vars=['hourly','daily','current','minutely_15'].reduce((s,k)=>s+((P.get(k)||'').split(',').filter(Boolean).length),0);
+  let days=(+(P.get('forecast_days')||7))+(+(P.get('past_days')||0));const sd=P.get('start_date'),ed=P.get('end_date'),sh=P.get('start_hour'),eh=P.get('end_hour');if(sd&&ed)days=(new Date(ed)-new Date(sd))/864e5+1;else if(sh&&eh)days=(new Date(eh)-new Date(sh))/864e5;
+  const mods=(P.get('models')||'x').split(',').length;return n*Math.max(1,vars/10)*Math.max(1,days/14)*mods}
+const omSum=ms=>{const t=Date.now();return OM.used.filter(u=>t-u[0]<ms).reduce((s,u)=>s+u[1],0)};
+function omLimitErr(){const m=Math.max(1,Math.ceil((OM.cool-Date.now())/6e4));const e=new Error(`سقف رایگان درخواست‌ها پر شده (${OM.why}). حدود ${fa(m)} دقیقه دیگر دوباره تلاش می‌شود.`);e.limit=1;return e}
+async function omGate(url){
+  let U;try{U=new URL(url)}catch(e){return url}if(!OM_HOSTS[U.hostname])return url;
+  if(S.omKey){U.hostname=OM_HOSTS[U.hostname];U.searchParams.set('apikey',S.omKey);return U.toString()}
+  if(Date.now()<OM.cool)throw omLimitErr();
+  const w=omWeight(U);OM.used=OM.used.filter(u=>Date.now()-u[0]<36e5);
+  if(omSum(36e5)+w>4300){OM.cool=Date.now()+15*6e4;OM.why='ساعتی';throw omLimitErr()}
+  for(let i=0;i<40&&omSum(6e4)>0&&omSum(6e4)+w>480;i++)await new Promise(r=>setTimeout(r,2500));
+  OM.used.push([Date.now(),w]);return url;
+}
+function omOn429(m){const s=String(m||'');if(/Daily/i.test(s)){const t=new Date();t.setUTCHours(24,5,0,0);OM.cool=+t;OM.why='روزانه'}else if(/Hourly/i.test(s)){OM.cool=Date.now()+(60-new Date().getMinutes())*6e4+3e4;OM.why='ساعتی'}else{OM.cool=Date.now()+65e3;OM.why='دقیقه‌ای'}
+  try{localStorage.setItem('aw.omcool',JSON.stringify([OM.cool,OM.why]))}catch(e){}
+  if(Date.now()-OM.warned>6e4){OM.warned=Date.now();toast('سقف درخواست رایگان پر شد؛ داده‌های ذخیره‌شده/جایگزین نمایش داده می‌شود')}}
+try{const c=JSON.parse(localStorage.getItem('aw.omcool')||'null');if(c&&c[0]>Date.now()){OM.cool=c[0];OM.why=c[1]}}catch(e){}
+
+/* MET Norway (yr.no) fallback for the main forecast */
+const MET_WC={clearsky:0,fair:1,partlycloudy:2,cloudy:3,fog:45,lightrain:61,rain:63,heavyrain:65,lightrainshowers:80,rainshowers:81,heavyrainshowers:82,lightsleet:66,sleet:66,heavysleet:67,lightsleetshowers:66,sleetshowers:66,heavysleetshowers:67,lightsnow:71,snow:73,heavysnow:75,lightsnowshowers:85,snowshowers:85,heavysnowshowers:86};
+const metWC=s=>{if(!s)return 3;s=s.replace(/_(day|night|polartwilight)$/,'');if(/thunder/.test(s))return /heavy/.test(s)?96:95;return MET_WC[s]??3};
+function sunTimes(lat,lon,date,off){const rad=Math.PI/180,d=Math.floor((Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),date.getUTCDate())-Date.UTC(2000,0,1))/864e5);
+  const lw=-lon,n=d-.0009-lw/360,J=Math.round(n)+.0009+lw/360,M=(357.5291+.98560028*J)%360,C=1.9148*Math.sin(M*rad)+.02*Math.sin(2*M*rad)+.0003*Math.sin(3*M*rad),L=(M+102.9372+C+180)%360,Jt=2451545+J+.0053*Math.sin(M*rad)-.0069*Math.sin(2*L*rad),dec=Math.asin(Math.sin(L*rad)*Math.sin(23.44*rad)),
+  w=Math.acos((Math.sin(-.833*rad)-Math.sin(lat*rad)*Math.sin(dec))/(Math.cos(lat*rad)*Math.cos(dec)))/rad/360,toD=j=>new Date((j-2440587.5)*864e5+off*1e3);return[toD(Jt-w),toD(Jt+w)]}
+const lstr=d=>d.toISOString().slice(0,16);
+function appT(t,rh,ws){const e=rh/100*6.105*Math.exp(17.27*t/(237.7+t));return +(t+.33*e-.7*ws/3.6-4).toFixed(1)}
+async function metForecast(c){
+  const j=await getJSON(`https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=${(+c.lat).toFixed(4)}&lon=${(+c.lon).toFixed(4)}`,20000);
+  const off=(D&&D.utc_offset_seconds!=null&&D._cid===c.id)?D.utc_offset_seconds:(LS.get('cache.'+c.id,null)?.d?.utc_offset_seconds??12600);
+  const ts=j.properties.timeseries,H={time:[]},K=['temperature_2m','apparent_temperature','relative_humidity_2m','dew_point_2m','precipitation_probability','precipitation','weather_code','cloud_cover','visibility','wind_speed_10m','wind_direction_10m','wind_gusts_10m','uv_index','is_day','pressure_msl'];K.forEach(k=>H[k]=[]);
+  const loc=t=>new Date(new Date(t).getTime()+off*1e3),days={};
+  ts.forEach((e,i)=>{const d=e.data.instant.details,n1=e.data.next_1_hours,n6=e.data.next_6_hours,lt=loc(e.time),k=lstr(lt).slice(0,10);
+    const step=n1?1:6,nx=n1||n6;const t=d.air_temperature,rh=d.relative_humidity,ws=(d.wind_speed||0)*3.6;
+    const sun=sunTimes(c.lat,c.lon,lt,off),isDay=lt>=sun[0]&&lt<=sun[1]?1:0;
+    for(let s=0;s<step;s++){const tt=new Date(lt.getTime()+s*36e5);if(i+1<ts.length&&tt>=loc(ts[i+1].time))break;
+      H.time.push(lstr(tt));H.temperature_2m.push(t);H.apparent_temperature.push(appT(t,rh,ws));H.relative_humidity_2m.push(rh);H.dew_point_2m.push(d.dew_point_temperature??null);
+      H.precipitation_probability.push(nx&&nx.details.probability_of_precipitation!=null?Math.round(nx.details.probability_of_precipitation):null);H.precipitation.push(nx?+((nx.details.precipitation_amount||0)/step).toFixed(2):0);
+      H.weather_code.push(metWC(nx&&nx.summary.symbol_code));H.cloud_cover.push(d.cloud_area_fraction!=null?Math.round(d.cloud_area_fraction):null);H.visibility.push(null);H.wind_speed_10m.push(+ws.toFixed(1));H.wind_direction_10m.push(d.wind_from_direction);
+      H.wind_gusts_10m.push(d.wind_speed_of_gust!=null?+(d.wind_speed_of_gust*3.6).toFixed(1):+(ws*1.5).toFixed(1));H.uv_index.push(d.ultraviolet_index_clear_sky??0);const ss=sunTimes(c.lat,c.lon,tt,off);H.is_day.push(tt>=ss[0]&&tt<=ss[1]?1:0);H.pressure_msl.push(d.air_pressure_at_sea_level)}
+    const o=days[k]||(days[k]={tx:-99,tn:99,ax:-99,an:99,p:0,pp:0,ph:0,u:0,w:0,g:0,wd:[],codes:[]});
+    const tx=n6&&n6.details.air_temperature_max!=null&&!n1?n6.details.air_temperature_max:t,tn=n6&&n6.details.air_temperature_min!=null&&!n1?n6.details.air_temperature_min:t;
+    o.tx=Math.max(o.tx,tx);o.tn=Math.min(o.tn,tn);o.ax=Math.max(o.ax,appT(tx,rh,ws));o.an=Math.min(o.an,appT(tn,rh,ws));o.p+=nx?nx.details.precipitation_amount||0:0;o.pp=Math.max(o.pp,nx&&nx.details.probability_of_precipitation||0);if(nx&&(nx.details.precipitation_amount||0)>0)o.ph+=step;o.u=Math.max(o.u,d.ultraviolet_index_clear_sky||0);o.w=Math.max(o.w,ws);o.g=Math.max(o.g,(d.wind_speed_of_gust||d.wind_speed*1.5||0)*3.6);o.wd.push(d.wind_from_direction);if(nx)o.codes.push(metWC(nx.summary.symbol_code))});
+  const Dd={time:[],weather_code:[],temperature_2m_max:[],temperature_2m_min:[],apparent_temperature_max:[],apparent_temperature_min:[],sunrise:[],sunset:[],daylight_duration:[],uv_index_max:[],precipitation_sum:[],precipitation_probability_max:[],precipitation_hours:[],wind_speed_10m_max:[],wind_gusts_10m_max:[],wind_direction_10m_dominant:[]};
+  Object.keys(days).sort().forEach(k=>{const o=days[k],dt=new Date(k+'T12:00:00Z'),st=sunTimes(c.lat,c.lon,dt,off);const sev=o.codes.reduce((a,b)=>b>a?b:a,0);
+    Dd.time.push(k);Dd.weather_code.push(sev);Dd.temperature_2m_max.push(+o.tx.toFixed(1));Dd.temperature_2m_min.push(+o.tn.toFixed(1));Dd.apparent_temperature_max.push(o.ax);Dd.apparent_temperature_min.push(o.an);Dd.sunrise.push(lstr(st[0]));Dd.sunset.push(lstr(st[1]));Dd.daylight_duration.push((st[1]-st[0])/1e3);
+    Dd.uv_index_max.push(o.u);Dd.precipitation_sum.push(+o.p.toFixed(1));Dd.precipitation_probability_max.push(Math.round(o.pp));Dd.precipitation_hours.push(o.ph);Dd.wind_speed_10m_max.push(+o.w.toFixed(1));Dd.wind_gusts_10m_max.push(+o.g.toFixed(1));Dd.wind_direction_10m_dominant.push(o.wd[Math.floor(o.wd.length/2)]||0)});
+  if(Dd.time.length&&!ts.length)throw new Error('met empty');
+  const nowL=lstr(loc(new Date().toISOString())).slice(0,13);let ci=H.time.findIndex(t=>t.slice(0,13)===nowL);if(ci<0)ci=0;
+  const cur={time:H.time[ci]};['temperature_2m','apparent_temperature','relative_humidity_2m','is_day','precipitation','weather_code','cloud_cover','pressure_msl','wind_speed_10m','wind_direction_10m','wind_gusts_10m','dew_point_2m','visibility','uv_index'].forEach(k=>cur[k]=H[k][ci]);cur.visibility=null;
+  if(Dd.time.length>1&&Dd.time[0]<H.time[ci].slice(0,10)){for(const k in Dd)Dd[k]=Dd[k].slice(1)}
+  return {latitude:c.lat,longitude:c.lon,utc_offset_seconds:off,timezone:D&&D.timezone||'Asia/Tehran',current:cur,hourly:H,daily:Dd,src:'met',_n:1};
+}
+
 const HV='temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,precipitation_probability,precipitation,weather_code,cloud_cover,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,is_day,pressure_msl';
 const DV='weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,sunrise,sunset,daylight_duration,uv_index_max,precipitation_sum,precipitation_probability_max,precipitation_hours,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant';
 const CV='temperature_2m,apparent_temperature,relative_humidity_2m,is_day,precipitation,weather_code,cloud_cover,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m,visibility,uv_index';
@@ -474,8 +532,9 @@ async function load(force){
   if(!force&&cache&&Date.now()-cache.t<10*60e3)return;
   if(loading)return; loading=true; $('#refBtn').classList.add('spin');
   try{
-    const [d,a,bl]=await Promise.all([getJSON(FC_URL(c)),getJSON(AQ_URL(c)).catch(()=>null),S.src==='blend'?getJSON(BL_URL(c),25000).catch(()=>null):null]);
-    if(bl&&d&&d.hourly)blend(d,bl);d&&(d.src=S.src||'best');
+    let [d,a,bl]=await Promise.all([getJSON(FC_URL(c)).catch(e=>({_err:e})),getJSON(AQ_URL(c)).catch(()=>null),S.src==='blend'?getJSON(BL_URL(c),25000).catch(()=>null):null]);
+    if(d&&d._err){const err=d._err;try{d=await metForecast(c);toast('منبع پشتیبان (هواشناسی نروژ) استفاده شد')}catch(e2){throw err}}
+    else{if(bl&&d&&d.hourly)blend(d,bl);d&&(d.src=S.src||'best')}d._cid=c.id;
     if(c.id!==curId)return;
     if(!d||!d.current||!d.daily)throw new Error('پاسخ نامعتبر از سرور');
     norm(d);D=d;AQ=a||AQ;D._t=Date.now();LS.set('cache.'+c.id,{t:D._t,d,a:AQ});
@@ -553,7 +612,7 @@ function renderNow(){
   for(const a of alerts())html+=`<div class="alert ${a.lv}"><span class="ai">${a.ic}</span><div><b>${esc(a.t)}</b><span>${esc(a.m)}</span></div></div>`;
   html+=`<section class="hero">${skyBand()}<canvas id="heroFx"></canvas><div class="ic">${icon(c.weather_code,c.is_day)}</div><div class="tmp">${tS(c.temperature_2m)}</div><div class="desc">${WC[c.weather_code]||''}</div>
    <div class="sub">احساس واقعی ${tS(c.apparent_temperature)} · بیشینه ${tS(d.temperature_2m_max[0])} · کمینه ${tS(d.temperature_2m_min[0])}</div><div class="sum">${summary()}</div>
-   <div class="stale">به‌روزرسانی: ${ago(D._t)} · ${D.src==='blend'?'🤝 میانگین '+fa(D.blend||5)+' مدل':D.src&&D.src!=='best'&&MM[D.src]?'مدل '+MM[D.src][2]:'بهترین ترکیب مدل‌ها'}</div><div class="tools"><button class="chip" onclick="shareWeather()">📤 اشتراک</button><button class="chip" onclick="storyCard()">🖼️ کارت استوری</button><button class="chip" onclick="openGlance()">⛶ تمام‌صفحه</button><a class="chip" href="#" onclick="go('rd');return false" style="text-decoration:none;color:inherit">📡 رادار</a></div></section>`;
+   <div class="stale">به‌روزرسانی: ${ago(D._t)} · ${D.src==='met'?'🇳🇴 منبع پشتیبان: هواشناسی نروژ (MET Norway)':D.src==='blend'?'🤝 میانگین '+fa(D.blend||5)+' مدل':D.src&&D.src!=='best'&&MM[D.src]?'مدل '+MM[D.src][2]:'بهترین ترکیب مدل‌ها'}</div><div class="tools"><button class="chip" onclick="shareWeather()">📤 اشتراک</button><button class="chip" onclick="storyCard()">🖼️ کارت استوری</button><button class="chip" onclick="openGlance()">⛶ تمام‌صفحه</button><a class="chip" href="#" onclick="go('rd');return false" style="text-decoration:none;color:inherit">📡 رادار</a></div></section>`;
   html+=nowcastCard();
   // hourly 24
   let hs='';for(let k=s;k<Math.min(s+25,h.time.length);k++){const pr=h.precipitation_probability[k];hs+=`<div class="hr ${k===s?'now':''}"><div class="t">${k===s?'اکنون':fa(+h.time[k].slice(11,13))+':۰۰'}</div>${icon(h.weather_code[k],h.is_day[k])}<div class="v">${tS(h.temperature_2m[k])}</div><div class="p">${pr>=10?'💧'+fa(pr)+'٪':''}</div></div>`}
@@ -575,7 +634,7 @@ function renderNow(){
    <div class="card"><h3>🌡️ احساس واقعی</h3><div class="big">${tS(c.apparent_temperature)}</div><div class="note">${feelNote(c)}</div></div>
    <div class="card"><h3>🌧️ بارش</h3><div class="big">${fa(d.precipitation_sum[0],1)}<small> میلی‌متر</small></div><div class="note">امروز · ${fa(d.precipitation_hours[0])} ساعت بارش · فردا ${fa(d.precipitation_sum[1],1)} mm</div></div>
    <div class="card"><h3>⏲️ فشار هوا</h3><div class="big" style="font-size:21px">${pS(c.pressure_msl)}</div><div class="note">${pTrend()}</div></div>
-   <div class="card"><h3>👁️ دید افقی</h3><div class="big">${fa(vis/1000,vis<10000?1:0)}<small> کیلومتر</small></div><div class="note">${vis>=10000?'دید کامل':vis>=4000?'دید خوب':vis>=1000?'دید محدود':'دید بسیار کم'}</div></div>
+   <div class="card"><h3>👁️ دید افقی</h3><div class="big">${vis==null?'–':fa(vis/1000,vis<10000?1:0)}<small> کیلومتر</small></div><div class="note">${vis==null?'در این منبع موجود نیست':vis>=10000?'دید کامل':vis>=4000?'دید خوب':vis>=1000?'دید محدود':'دید بسیار کم'}</div></div>
    <div class="card"><h3>☁️ ابرناکی</h3><div class="big">${fa(c.cloud_cover)}٪</div><div class="note">${c.cloud_cover<20?'آسمان باز':c.cloud_cover<60?'ابرهای پراکنده':'آسمان پوشیده'}</div></div>
   </div>`;
   html+=activities();
@@ -942,24 +1001,17 @@ function renderTravel(){
 
 /* ---------- CLIMATE & RECORDS ---------- */
 let CLIM={};
-async function loadClim(c){
-  const ck=LS.get('clim.'+c.id,null);if(ck&&Date.now()-ck.t<30*864e5)return CLIM[c.id]=ck;if(CLIM[c.id]&&CLIM[c.id].p)return CLIM[c.id].p;
-  const y1=new Date().getFullYear()-1,p=getJSON(`https://archive-api.open-meteo.com/v1/archive?latitude=${c.lat}&longitude=${c.lon}&start_date=${y1-29}-01-01&end_date=${y1}-12-31&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`,60000).then(j=>{
-    const d=j.daily,doy={},mon=[...Array(12)].map(()=>({mx:0,mn:0,n:0,pr:0}));
-    d.time.forEach((t,i)=>{const md=t.slice(5),m=+t.slice(5,7)-1,y=+t.slice(0,4),x=d.temperature_2m_max[i],n=d.temperature_2m_min[i],pr=d.precipitation_sum[i];if(x==null||n==null)return;
-      const o=doy[md]||(doy[md]={sx:0,sn:0,c:0,hi:-99,hy:0,lo:99,ly:0});o.sx+=x;o.sn+=n;o.c++;if(x>o.hi){o.hi=x;o.hy=y}if(n<o.lo){o.lo=n;o.ly=y}
-      const M=mon[m];M.mx+=x;M.mn+=n;M.n++;M.pr+=pr||0});
-    const st={};for(const k in doy){const o=doy[k];st[k]=[+(o.sx/o.c).toFixed(1),+(o.sn/o.c).toFixed(1),o.hi,o.hy,o.lo,o.ly]}
-    const r={t:Date.now(),y0:y1-29,y1,st,mon:mon.map(M=>[+(M.mx/M.n).toFixed(1),+(M.mn/M.n).toFixed(1),+(M.pr/30).toFixed(0)])};LS.set('clim.'+c.id,r);return CLIM[c.id]=r});
-  CLIM[c.id]={p};return p;
-}
-async function fillClim(){
-  const el=$('#clim');if(!el||!D)return;const c=city();let C;try{C=await loadClim(c)}catch(e){el.innerHTML='<div class="note">دریافت آمار اقلیمی ممکن نشد.</div>';return}
+async function loadClim(c,prog){const st=await cityStats(c,prog);return{st:st.dst,mon:st.mon,y0:st.cy0,y1:st.cy1}}
+function statsCached(c){const k='st3.'+mkId(c.lat||c[1],c.lon||c[2]);if(STATS[k])return true;const o=offGet(k);return !!(o&&Date.now()-o.t<20*864e5)}
+function statsBtn(id){const el=$('#'+id);if(!el)return;el.innerHTML=`<button class="btn" style="background:var(--card2)">📊 نمایش آمار ۳۰ ساله و رکوردها<small style="display:block;font-weight:400;font-size:11px;color:var(--sub)">یک بار حدود ۳۰ ثانیه طول می‌کشد، سپس تا ۲۰ روز ذخیره می‌شود</small></button>`;el.querySelector('button').onclick=()=>{fillClim(true);fillRainStats(true)}}
+const statProg=id=>(i,n)=>{const e=$('#'+id);if(e)e.innerHTML=`<div class="sk"></div><div class="note" style="text-align:center">در حال دریافت داده‌های ۳۰ ساله… بخش ${fa(i+1)} از ${fa(n)}</div>`};
+async function fillClim(go){
+  const el=$('#clim');if(!el||!D)return;const c=city();if(!go&&!statsCached(c)){statsBtn('clim');return}let C;try{C=await loadClim(c,statProg('clim'))}catch(e){el.innerHTML=`<div class="note">${e.limit?esc(e.message):'دریافت آمار اقلیمی ممکن نشد.'}</div>`;return}
   if(c.id!==curId||!$('#clim'))return;const md=D.daily.time[0].slice(5),s=C.st[md]||C.st['02-28'];if(!s)return;
   const tx=D.daily.temperature_2m_max[0],tn=D.daily.temperature_2m_min[0],an=tx-s[0];
   const mo=+D.daily.time[0].slice(5,7)-1,mx=Math.max(...C.mon.map(m=>m[0])),mn=Math.min(...C.mon.map(m=>m[1])),pmx=Math.max(1,...C.mon.map(m=>m[2]));
   const MN=['ژانویه','فوریه','مارس','آوریل','مه','ژوئن','ژوئیه','اوت','سپتامبر','اکتبر','نوامبر','دسامبر'];
-  el.innerHTML=`<div class="anom" style="background:${an>2?'rgba(249,115,22,.22)':an<-2?'rgba(59,130,246,.22)':'var(--card2)'}"><b>${Math.abs(an)<1.5?'امروز دمایی نزدیک به میانگین دارد':'امروز '+fa(Math.round(Math.abs(dT(an))))+' درجه '+(an>0?'گرم‌تر':'سردتر')+' از میانگین'}</b><small>میانگین ${fa(30)} ساله (${fa(C.y0)}–${fa(C.y1)}) برای این روز</small></div>
+  el.innerHTML=`<div class="anom" style="background:${an>2?'rgba(249,115,22,.22)':an<-2?'rgba(59,130,246,.22)':'var(--card2)'}"><b>${Math.abs(an)<1.5?'امروز دمایی نزدیک به میانگین دارد':'امروز '+fa(Math.round(Math.abs(dT(an))))+' درجه '+(an>0?'گرم‌تر':'سردتر')+' از میانگین'}</b><small>میانگین ${fa(C.y1-C.y0)} ساله (${fa(C.y0-621)}–${fa(C.y1-621)}) برای این روز</small></div>
    <div class="sgrid"><div class="kv">میانگین بیشینه<b>${tS(s[0])}</b><small>امروز ${tS(tx)}</small></div><div class="kv">میانگین کمینه<b>${tS(s[1])}</b><small>امروز ${tS(tn)}</small></div>
    <div class="kv">🔥 بیشینه این روز (مدل)<b>${tS(s[2])}</b><small>سال ${fa(s[3])}</small></div><div class="kv">🥶 کمینه این روز (مدل)<b>${tS(s[4])}</b><small>سال ${fa(s[5])}</small></div></div>
    <div class="sec">میانگین ماهانه</div><div class="clm">${C.mon.map((m,i)=>`<div class="${i===mo?'on':''}"><span class="cb" style="height:${((m[0]-mn)/(mx-mn||1)*70+12).toFixed(0)}px;background:${rgb(tempColor(m[0]))}"></span><span class="cp" style="height:${(m[2]/pmx*26).toFixed(0)}px"></span><small>${MN[i].slice(0,3)}</small><em>${fa(Math.round(cT(m[0])))}°</em></div>`).join('')}</div>
@@ -1046,7 +1098,7 @@ async function setMorning(on){
 
 /* ---------- MODEL MAPS (pro charts, lead-hour picker) ---------- */
 const mkG=(lat0,lat1,lon0,lon1,st,z)=>{const g={lat0,lat1,lon0,lon1,st,z};g.nr=Math.round((lat1-lat0)/st)+1;g.nc=Math.round((lon1-lon0)/st)+1;return g};
-const WB_BB=mkG(20,44,36,66,1.5,5),WB_BIG=mkG(14,70,-24,84,4,3);
+const WB_BB=mkG(20,44,36,66,2,5),WB_BIG=mkG(15,70,-25,85,5,3);
 const WB_M=['ecmwf_ifs025','ecmwf_ifs','gfs_seamless','gfs_global','icon_seamless','icon_global','gem_seamless','ukmo_seamless','meteofrance_seamless','jma_seamless','cma_grapes_global','kma_seamless','bom_access_global','ecmwf_aifs025_single','gfs_graphcast025'];
 const WB_MAXD={ecmwf_ifs:10,gfs_global:16,icon_global:8,kma_seamless:12,bom_access_global:10,ecmwf_ifs025:15,gfs_seamless:16,icon_seamless:8,gem_seamless:10,ukmo_seamless:7,meteofrance_seamless:4,jma_seamless:11,cma_grapes_global:10,ecmwf_aifs025_single:15,gfs_graphcast025:10};
 const WB_LEADS=[0,6,12,18,24,36,48,60,72,84,96,120,144,168,192,216,240,264,288,312,336,360];
@@ -1196,8 +1248,8 @@ const wbKey=(m,p,G)=>m+'|'+p+'|'+G.st;
 function wbDrawAll(){$$('#mdBox canvas.wbcv').forEach(cv=>{const m=cv.dataset.m,p=cv.dataset.p,G=wbGrid(p),d=WBD[wbKey(m,p,G)];wbDraw(cv,d,m,p,d?d.bi+WB.L/6:0,G)});wbTimeLbl()}
 async function wbLoad(){
   const msg=$('#wbMsg');if(msg)msg.textContent='در حال دریافت نقشه‌های مدل…';const ms=[WB.m].concat(WB.cmp?[WB.m2]:[]),jobs=[];
-  ms.forEach(m=>wbPanels(WB.p).forEach(([p,G])=>{const k=wbKey(m,p,G);jobs.push(wbData(m,p,G).then(d=>{WBD[k]=d;if(curTab==='md')wbDrawAll()}).catch(()=>{WBD[k]=null;if(curTab==='md')wbDrawAll();return m}))}));
-  wbDrawAll();const r=await Promise.all(jobs);const bad=[...new Set(r.filter(x=>typeof x==='string'))];
+  wbDrawAll();const r=[];for(const m of ms)for(const [p,G] of wbPanels(WB.p)){const k=wbKey(m,p,G);try{WBD[k]=await wbData(m,p,G)}catch(e){WBD[k]=null;r.push(e.limit?'__lim':m)}if(curTab==='md')wbDrawAll()}
+  if(r.includes('__lim')){const mm=$('#wbMsg');if(mm)mm.textContent=omLimitErr().message;return}const bad=[...new Set(r.filter(x=>typeof x==='string'))];
   const m2=$('#wbMsg');if(m2)m2.textContent=bad.length?bad.map(b=>MM[b][2]).join('، ')+': این نقشه برای این مدل در دسترس نیست':'';wbChips();
 }
 function wbMaxLead(){const ms=[WB.m].concat(WB.cmp?[WB.m2]:[]);let mx=360;ms.forEach(m=>{mx=Math.min(mx,(WB_MAXD[m]||10)*24-24)});return mx}
@@ -1275,19 +1327,22 @@ const wyLbl=y=>fa(JY(y))+'–'+fa(JY(y)+1).slice(-2);
 let IRWY=null;
 async function loadIRWY(){
   if(IRWY)return IRWY;const ck=offGet('irwy');if(ck&&Date.now()-ck.t<864e5)return IRWY=ck;
-  const w=curWY(),end=isoD(new Date(Date.now()-6*864e5));
-  const j=await getJSON(`https://archive-api.open-meteo.com/v1/archive?latitude=${IRC.map(c=>c[1]).join(',')}&longitude=${IRC.map(c=>c[2]).join(',')}&start_date=${wyStart(w-1)}&end_date=${end}&daily=precipitation_sum&timezone=Asia%2FTehran`,60000);
-  const arr=Array.isArray(j)?j:[j],cut=new Date(end),lastCut=isoD(new Date(cut.getFullYear()-1,cut.getMonth(),cut.getDate(),12));
-  const res=arr.map(a=>{const d=a.daily;let cur=0,last=0;d.time.forEach((t,i)=>{const p=d.precipitation_sum[i]||0;if(t>=wyStart(w))cur+=p;else if(t<=lastCut)last+=p});return[+cur.toFixed(1),+last.toFixed(1)]});
+  const w=curWY(),end=isoD(new Date(Date.now()-6*864e5)),cut=new Date(end),lastEnd=isoD(new Date(cut.getFullYear()-1,cut.getMonth(),cut.getDate(),12));
+  const win=[[wyStart(w),end],[wyStart(w-1),lastEnd]],days=(cut-new Date(wyStart(w)))/864e5+1,per=Math.max(4,Math.floor(380/Math.max(1,days/14))),res=IRC.map(()=>[0,0]);
+  if(days<1){IRWY={t:Date.now(),end,res};return IRWY}
+  for(let wi=0;wi<2;wi++)for(let i=0;i<IRC.length;i+=per){const G=IRC.slice(i,i+per);
+    const j=await getJSON(`https://archive-api.open-meteo.com/v1/archive?latitude=${G.map(c=>c[1]).join(',')}&longitude=${G.map(c=>c[2]).join(',')}&start_date=${win[wi][0]}&end_date=${win[wi][1]}&daily=precipitation_sum&timezone=Asia%2FTehran`,60000);
+    (Array.isArray(j)?j:[j]).forEach((a,k)=>{res[i+k][wi]=+(a.daily.precipitation_sum.reduce((s,x)=>s+(x||0),0)).toFixed(1)})}
   IRWY={t:Date.now(),end,res};offSave('irwy',IRWY);return IRWY;
 }
 /* heavy: full 30+ year stats for one place */
 const STATS={};
-async function cityStats(c){
-  const key='st2.'+mkId(c.lat||c[1],c.lon||c[2]);if(STATS[key])return STATS[key];const ck=offGet(key);if(ck&&Date.now()-ck.t<3*864e5)return STATS[key]=ck;
-  const lat=c.lat??c[1],lon=c.lon??c[2],end=isoD(new Date(Date.now()-6*864e5));
-  const j=await getJSON(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=1991-09-23&end_date=${end}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&models=era5_land&timezone=auto`,90000).catch(()=>getJSON(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=1991-09-23&end_date=${end}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`,90000));
-  const d=j.daily,W={},cw=curWY();let mxP=[0,''],hi=[-99,''],lo=[99,''];const yT={};
+async function archDaily(lat,lon,sd,ed){const u=m=>`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${sd}&end_date=${ed}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum${m}&timezone=auto`;try{return (await getJSON(u('&models=era5_land'),90000)).daily}catch(e){if(e.limit)throw e;return (await getJSON(u(''),90000)).daily}}
+async function cityStats(c,prog){
+  const key='st3.'+mkId(c.lat||c[1],c.lon||c[2]);if(STATS[key])return STATS[key];const ck=offGet(key);if(ck&&Date.now()-ck.t<20*864e5)return STATS[key]=ck;
+  const lat=c.lat??c[1],lon=c.lon??c[2],end=isoD(new Date(Date.now()-6*864e5)),parts=[['1995-09-23','2005-09-22'],['2005-09-23','2015-09-22'],['2015-09-23',end]],d={time:[],temperature_2m_max:[],temperature_2m_min:[],precipitation_sum:[]};
+  for(let i=0;i<parts.length;i++){prog&&prog(i,parts.length);const x=await archDaily(lat,lon,parts[i][0],parts[i][1]);for(const k in d)d[k]=d[k].concat(x[k]||[])}
+  const W={},cw=curWY();let mxP=[0,''],hi=[-99,''],lo=[99,''];const yT={};
   d.time.forEach((t,i)=>{const p=d.precipitation_sum[i],x=d.temperature_2m_max[i],n=d.temperature_2m_min[i],w=wyOf(t);
     if(p!=null){const o=W[w]||(W[w]={s:0,n:0,cum:[]});o.s+=p;o.n++;o.cum.push(+o.s.toFixed(1));if(p>mxP[0])mxP=[p,t]}
     if(x!=null&&x>hi[0])hi=[x,t];if(n!=null&&n<lo[0])lo=[n,t];
@@ -1297,7 +1352,9 @@ async function cityStats(c){
   const tot=full.map(w=>[w,+W[w].s.toFixed(0)]),avg=tot.reduce((a,b)=>a+b[1],0)/(tot.length||1);
   const wet=tot.reduce((a,b)=>b[1]>a[1]?b:a,[0,-1]),dry=tot.reduce((a,b)=>b[1]<a[1]?b:a,[0,1e9]);
   const ty=Object.keys(yT).map(Number).filter(y=>yT[y].n>=360).map(y=>[y,+(yT[y].s/yT[y].n).toFixed(2)]);
-  const r={t:Date.now(),end,cw,cur:(W[cw]||{cum:[]}).cum,last:(W[cw-1]||{cum:[]}).cum,mean,tot,avg:+avg.toFixed(0),wet,dry,mxP,hi,lo,ty,y0:full[0]};
+  const doy={},mon=[...Array(12)].map(()=>({mx:0,mn:0,n:0,pr:0,y:new Set()}));d.time.forEach((t,i)=>{const x=d.temperature_2m_max[i],n=d.temperature_2m_min[i],pr=d.precipitation_sum[i],y=+t.slice(0,4);if(x==null||n==null)return;const md=t.slice(5),o=doy[md]||(doy[md]={sx:0,sn:0,c:0,hi:-99,hy:0,lo:99,ly:0});o.sx+=x;o.sn+=n;o.c++;if(x>o.hi){o.hi=x;o.hy=y}if(n<o.lo){o.lo=n;o.ly=y}const M=mon[+t.slice(5,7)-1];M.mx+=x;M.mn+=n;M.n++;M.pr+=pr||0;M.y.add(y)});
+  const dst={};for(const k in doy){const o=doy[k];dst[k]=[+(o.sx/o.c).toFixed(1),+(o.sn/o.c).toFixed(1),o.hi,o.hy,o.lo,o.ly]}
+  const r={t:Date.now(),end,cw,cur:(W[cw]||{cum:[]}).cum,last:(W[cw-1]||{cum:[]}).cum,mean,tot,avg:+avg.toFixed(0),wet,dry,mxP,hi,lo,ty,y0:full[0],dst,mon:mon.map(M=>[+(M.mx/M.n).toFixed(1),+(M.mn/M.n).toFixed(1),+(M.pr/Math.max(1,M.y.size)).toFixed(0)]),cy0:+d.time[0].slice(0,4),cy1:+d.time[d.time.length-1].slice(0,4)};
   offSave(key,r);return STATS[key]=r;
 }
 /* tiny svg charts (fit to width, RTL time axis) */
@@ -1324,7 +1381,7 @@ function statsHtml(st,name,cname){
    <div class="legend"><span><i style="background:#38bdf8"></i>امسال</span><span><i style="background:#f59e0b"></i>پارسال</span><span><i style="background:#fff"></i>میانگین ۳۰ ساله</span></div>
    <div class="sec">📊 بارش سالانه ${fa(st.tot.length)} سال گذشته</div>${barSvg(st.tot,{avg:st.avg,hl:[st.wet[0],st.dry[0]],lab:w=>fa(JY(w))})}
    <div class="legend"><span><i style="background:#38bdf8"></i>پربارش‌ترین</span><span><i style="background:#f59e0b"></i>کم‌بارش‌ترین</span><span><i style="background:rgba(96,165,250,.85)"></i>بالای میانگین</span><span><i style="background:rgba(251,191,36,.75)"></i>زیر میانگین</span></div>
-   <div class="warnbox">⚠️ این اعداد از <b>مدل بازتحلیل</b> (میانگین یک خانه ۹ کیلومتری) است، نه ایستگاه رسمی. مدل سرمای شدید شب‌ها و بارش کوهستان را <b>کمتر</b> از واقعیت نشان می‌دهد؛ برای مثال رکورد رسمی سرمای سنندج −۳۱° است. رکوردهای رسمی ۲۷ شهر بزرگ در کادر «رکوردهای رسمی ایستگاه» آمده؛ برای بقیه به <a href="https://www.irimo.ir" target="_blank" rel="noopener">سازمان هواشناسی</a> مراجعه کنید. نمودارها برای مقایسه روند و سال‌ها با هم معتبرترند.</div><div class="sec">📐 بیشینه و کمینه در داده‌های مدل (از ${fa(1370)})</div><div class="sgrid">
+   <div class="warnbox">⚠️ این اعداد از <b>مدل بازتحلیل</b> (میانگین یک خانه ۹ کیلومتری) است، نه ایستگاه رسمی. مدل سرمای شدید شب‌ها و بارش کوهستان را <b>کمتر</b> از واقعیت نشان می‌دهد؛ برای مثال رکورد رسمی سرمای سنندج −۳۱° است. رکوردهای رسمی ۲۷ شهر بزرگ در کادر «رکوردهای رسمی ایستگاه» آمده؛ برای بقیه به <a href="https://www.irimo.ir" target="_blank" rel="noopener">سازمان هواشناسی</a> مراجعه کنید. نمودارها برای مقایسه روند و سال‌ها با هم معتبرترند.</div><div class="sec">📐 بیشینه و کمینه در داده‌های مدل (از ${fa(1374)})</div><div class="sgrid">
     <div class="kv">🌧️ پربارش‌ترین سال آبی<b>${fa(st.wet[1])} mm</b><small>${wyLbl(st.wet[0])}</small></div><div class="kv">🏜️ کم‌بارش‌ترین سال آبی<b>${fa(st.dry[1])} mm</b><small>${wyLbl(st.dry[0])}</small></div>
     <div class="kv">⛈️ بیشترین بارش یک روز<b>${fa(st.mxP[0],0)} mm</b><small>${st.mxP[1]?dt(st.mxP[1]):''}</small></div><div class="kv">📅 سال‌های بالای میانگین<b>${fa(st.tot.filter(x=>x[1]>=st.avg).length)} از ${fa(st.tot.length)}</b><small>سال آبی</small></div>
     <div class="kv">🔥 گرم‌ترین روز (مدل)<b>${tS(st.hi[0])}</b><small>${st.hi[1]?dt(st.hi[1]):''}</small></div><div class="kv">🥶 سردترین روز (مدل)<b>${tS(st.lo[0])}</b><small>${st.lo[1]?dt(st.lo[1]):''}</small></div></div>
@@ -1332,14 +1389,14 @@ function statsHtml(st,name,cname){
    <div class="note" style="margin-top:8px">منبع: بازتحلیل ERA5-Land (Open-Meteo Archive)، شبکه ~۹ کیلومتری. سال آبی از ۱ مهر شروع می‌شود.</div>`;
 }
 async function openStats(c){
-  const el=document.createElement('div');el.className='sheet on';el.innerHTML=`<div class="panel"><div class="grab"></div><h2>📊 آمار ${esc(c[0])}<button data-close>بستن</button></h2><div id="stBody"><div class="sk" style="height:60px"></div><div class="sk"></div><div class="sk" style="height:150px"></div><div class="note" style="text-align:center">در حال دریافت آمار ۳۰ ساله…</div></div>
+  const el=document.createElement('div');el.className='sheet on';el.innerHTML=`<div class="panel"><div class="grab"></div><h2>📊 آمار ${esc(c[0])}<button data-close>بستن</button></h2><div id="stBody"><div class="sk" style="height:60px"></div><div class="sk"></div><div class="sk" style="height:150px"></div><div class="note" id="stProg" style="text-align:center">در حال دریافت آمار ۳۰ ساله…</div></div>
    <button class="btn" id="stAdd" style="margin-top:12px">🌤️ نمایش پیش‌بینی ${esc(c[0])}</button></div>`;
   document.body.appendChild(el);el.addEventListener('click',e=>{if(e.target===el||e.target.hasAttribute('data-close'))el.remove()});
   $('#stAdd',el).onclick=()=>{el.remove();selectCity({id:mkId(c[1],c[2]),name:c[0],admin:'',country:'ایران',lat:c[1],lon:c[2]})};
-  try{const st=await cityStats(c);const b=$('#stBody',el);if(b)b.innerHTML=statsHtml(st,'',c[0])}catch(e){const b=$('#stBody',el);if(b)b.innerHTML='<div class="note">دریافت آمار ممکن نشد. اتصال اینترنت را بررسی کنید.</div>'}
+  try{const st=await cityStats(c,(i,n)=>{const q=$('#stProg',el);if(q)q.textContent=`در حال دریافت داده‌های ۳۰ ساله… بخش ${fa(i+1)} از ${fa(n)}`});const b=$('#stBody',el);if(b)b.innerHTML=statsHtml(st,'',c[0])}catch(e){if(e.limit){const b=$('#stBody',el);if(b)b.innerHTML=`<div class="note">${esc(e.message)}</div>`;return}const b=$('#stBody',el);if(b)b.innerHTML='<div class="note">دریافت آمار ممکن نشد. اتصال اینترنت را بررسی کنید.</div>'}
 }
-async function fillRainStats(){
-  const el=$('#rainSt');if(!el||!D)return;const c=city();
+async function fillRainStats(go){
+  const el=$('#rainSt');if(!el||!D)return;const c=city();if(!go&&!statsCached(c)){el.innerHTML='<div class="note">با دکمه کارت «اقلیم و رکوردها» بارگذاری می‌شود.</div>';return}
   try{const st=await cityStats(c);if(c.id!==curId||!$('#rainSt'))return;el.innerHTML=statsHtml(st,'',c.name)}catch(e){el.innerHTML='<div class="note">دریافت آمار بارش ممکن نشد.</div>'}
 }
 function ircRainHtml(){
@@ -1630,8 +1687,8 @@ const RD_SRC={iran:'🇮🇷 بارش سراسری ایران',ksh:'🏛️ را
 const isRV=()=>R.src==='rv'||R.src==='ksh';
 const OFF_RADARS=[['ksh','رادار کرمانشاه','اداره کل هواشناسی استان کرمانشاه','https://www.kermanshahmet.ir/Contents/Ftp/radarpic/8sri.png','https://www.kermanshahmet.ir',34.31,47.07]];
 const IR_RADARS=[['IRKR','کرمانشاه',34.31,47.07],['IRTH','تهران',35.69,51.39],['IRTB','تبریز',38.08,46.29],['IR3150','اردبیل',38.25,48.29],['IRGI','گیلان',37.28,49.58],['IRKZ','مازندران',36.56,53.06],['IRAH','اهواز',31.32,48.67],['IRBS','بوشهر',28.92,50.84],['IRSH','شیراز',29.6,52.54]];
-const IRW={lat1:39.2,lat0:30,lon0:44,lon1:50.6,step:.3};IRW.nLat=Math.floor((IRW.lat1-IRW.lat0)/IRW.step+1e-6)+1;IRW.nLon=Math.floor((IRW.lon1-IRW.lon0)/IRW.step+1e-6)+1;
-const IR={lat1:40.5,lat0:24.5,lon0:43.5,lon1:64,step:.75};IR.nLat=Math.floor((IR.lat1-IR.lat0)/IR.step)+1;IR.nLon=Math.floor((IR.lon1-IR.lon0)/IR.step)+1;
+const IRW={lat1:39.2,lat0:30.2,lon0:44.2,lon1:50.5,step:.45};IRW.nLat=Math.floor((IRW.lat1-IRW.lat0)/IRW.step+1e-6)+1;IRW.nLon=Math.floor((IRW.lon1-IRW.lon0)/IRW.step+1e-6)+1;
+const IR={lat1:40,lat0:25,lon0:44,lon1:64,step:1};IR.nLat=Math.floor((IR.lat1-IR.lat0)/IR.step)+1;IR.nLon=Math.floor((IR.lon1-IR.lon0)/IR.step)+1;
 const RAIN_ST=[[.1,[150,225,255]],[.5,[0,190,255]],[1,[0,120,255]],[2,[0,200,90]],[4,[0,150,0]],[7,[255,225,0]],[12,[255,140,0]],[20,[240,0,0]],[35,[190,0,110]],[60,[255,120,255]]];
 const SNOW_ST=[[.1,[225,225,255]],[1,[175,160,255]],[3,[125,95,240]],[8,[90,40,200]]];
 const tzR=()=>(D&&D.timezone)||'Asia/Tehran';
@@ -1651,7 +1708,7 @@ async function fetchNow(G){
 }
 async function loadIran(){
   if(R.iran&&Date.now()-R.iran.t<15*60e3)return R.iran;
-  const [a,w]=await Promise.all([fetchNow(IR),fetchNow(IRW).catch(()=>null)]),now=Date.now();
+  const a=await fetchNow(IR),w=S.irw!==false?await fetchNow(IRW).catch(()=>null):null,now=Date.now();
   let ni=0;a.times.forEach((t,i)=>{if(new Date(t+':00Z').getTime()<=now)ni=i});
   const W=w&&w.times.length===a.times.length&&w.key===a.key?w:null;
   R.iran={t:Date.now(),times:a.times,now:ni,step:a.key==='hourly'?60:15,pre:a.pre,snow:a.snow,mult:a.mult,w:W,cv:{},cvw:{}};const {cv,cvw,...keep}=R.iran;offSave('iran',keep);
@@ -1794,10 +1851,10 @@ $('#gpsBtn').onclick=()=>{if(!navigator.geolocation){toast('مرورگر از م
     e=>toast(e.code===1?'دسترسی به موقعیت داده نشد':'موقعیت پیدا نشد'),{enableHighAccuracy:false,timeout:15000,maximumAge:600000})};
 
 /* ---------- settings ---------- */
-function renderSettings(){const ss=$('#srcSel');if(ss)ss.value=S.src||'best';const ms=$('#mornSw');if(ms)ms.classList.toggle('on',!!S.morning);$$('#setS .seg').forEach(sg=>$$('button',sg).forEach(b=>b.classList.toggle('on',S[sg.dataset.k]===b.dataset.v)));$('#notifSw').classList.toggle('on',!!S.notif&&('Notification' in window)&&Notification.permission==='granted')}
+function renderSettings(){const ok=$('#omKey');if(ok)ok.value=S.omKey||'';const ss=$('#srcSel');if(ss)ss.value=S.src||'best';const ms=$('#mornSw');if(ms)ms.classList.toggle('on',!!S.morning);$$('#setS .seg').forEach(sg=>$$('button',sg).forEach(b=>b.classList.toggle('on',S[sg.dataset.k]===b.dataset.v)));$('#notifSw').classList.toggle('on',!!S.notif&&('Notification' in window)&&Notification.permission==='granted')}
 $('#setBtn').onclick=()=>{renderSettings();openSheet('setS')};
 $$('#setS .seg').forEach(sg=>$$('button',sg).forEach(b=>b.onclick=()=>{S[sg.dataset.k]=b.dataset.v;saveS();renderSettings();applyTheme();renderAll()}));
-$('#mornSw').onclick=async()=>{const on=!S.morning;await setMorning(on);renderSettings()};$('#srcSel').onchange=e=>{S.src=e.target.value;saveS();cities.forEach(c=>LS.del('cache.'+c.id));toast('منبع پیش‌بینی عوض شد');load(true)};$('#fbMail').onclick=()=>{location.href='mailto:meisam.rostami2010@gmail.com?subject='+encodeURIComponent('بازخورد اروان ودر '+VERSION)+'&body='+encodeURIComponent('\n\n\n—— اطلاعات فنی ——\n'+techInfo())};$('#fbCopy').onclick=async()=>{try{await navigator.clipboard.writeText(techInfo());toast('کپی شد')}catch(e){toast('کپی ممکن نشد')}};$('#expBtn').onclick=exportData;$('#impBtn').onclick=()=>$('#impF').click();$('#impF').onchange=e=>{const f=e.target.files[0];if(f)importData(f);e.target.value=''};$('#fuBtn').onclick=forceUpdate;$('#shareAppBtn').onclick=shareApp;
+$('#mornSw').onclick=async()=>{const on=!S.morning;await setMorning(on);renderSettings()};$('#omKey').onchange=e=>{S.omKey=e.target.value.trim();saveS();OM.cool=0;toast(S.omKey?'کلید ذخیره شد':'کلید حذف شد');load(true)};$('#srcSel').onchange=e=>{S.src=e.target.value;saveS();cities.forEach(c=>LS.del('cache.'+c.id));toast('منبع پیش‌بینی عوض شد');load(true)};$('#fbMail').onclick=()=>{location.href='mailto:meisam.rostami2010@gmail.com?subject='+encodeURIComponent('بازخورد اروان ودر '+VERSION)+'&body='+encodeURIComponent('\n\n\n—— اطلاعات فنی ——\n'+techInfo())};$('#fbCopy').onclick=async()=>{try{await navigator.clipboard.writeText(techInfo());toast('کپی شد')}catch(e){toast('کپی ممکن نشد')}};$('#expBtn').onclick=exportData;$('#impBtn').onclick=()=>$('#impF').click();$('#impF').onchange=e=>{const f=e.target.files[0];if(f)importData(f);e.target.value=''};$('#fuBtn').onclick=forceUpdate;$('#shareAppBtn').onclick=shareApp;
 $('#notifSw').onclick=async()=>{if(!('Notification' in window)){toast('این دستگاه از اعلان پشتیبانی نمی‌کند');return}
   if(S.notif){S.notif=false;saveS();renderSettings();return}
   const p=await Notification.requestPermission();if(p==='granted'){S.notif=true;saveS();toast('اعلان هشدارها فعال شد');checkNotify()}else toast('اجازه اعلان داده نشد');renderSettings()};

@@ -57,9 +57,19 @@ def png(color):
 TILE = png((40, 44, 56, 255)); RADAR = png((0, 120, 200, 90))
 BIAS = {'gfs_seamless': 2.5, 'icon_seamless': -1, 'gem_seamless': 1, 'ukmo_seamless': -2, 'ecmwf_aifs025_single': 0.5}
 
+FAIL_OM = os.environ.get('FAIL_OM') == '1'
+def metmock():
+    st = datetime.now(timezone.utc).replace(tzinfo=None, minute=0, second=0, microsecond=0); T = []
+    for k in range(72):
+        t = st + timedelta(hours=k); T.append({'time': t.strftime('%Y-%m-%dT%H:%M:%SZ'), 'data': {'instant': {'details': {'air_temperature': round(15 + 6 * math.sin(k / 24 * 6.28), 1), 'relative_humidity': 55, 'dew_point_temperature': 4, 'wind_speed': 3.2, 'wind_from_direction': 240, 'wind_speed_of_gust': 6, 'cloud_area_fraction': 40, 'air_pressure_at_sea_level': 1015, 'ultraviolet_index_clear_sky': 3}}, 'next_1_hours': {'summary': {'symbol_code': 'partlycloudy_day' if k % 24 < 12 else 'lightrain'}, 'details': {'precipitation_amount': 0 if k % 24 < 12 else .4, 'probability_of_precipitation': 10 if k % 24 < 12 else 60}}}})
+    for k in range(72, 240, 6):
+        t = st + timedelta(hours=k); T.append({'time': t.strftime('%Y-%m-%dT%H:%M:%SZ'), 'data': {'instant': {'details': {'air_temperature': 12, 'relative_humidity': 60, 'wind_speed': 4, 'wind_from_direction': 250, 'air_pressure_at_sea_level': 1012, 'cloud_area_fraction': 70}}, 'next_6_hours': {'summary': {'symbol_code': 'rain'}, 'details': {'precipitation_amount': 3, 'air_temperature_max': 16, 'air_temperature_min': 8, 'probability_of_precipitation': 70}}}})
+    return {'properties': {'timeseries': T}}
 def handle(route):
     u = urllib.parse.urlparse(route.request.url); q = urllib.parse.parse_qs(u.query)
     J = lambda o: route.fulfill(status=200, content_type='application/json', body=json.dumps(o))
+    if u.hostname == 'api.met.no': return route.fulfill(status=200, content_type='application/json', body=json.dumps(metmock()))
+    if FAIL_OM and 'open-meteo' in u.hostname: return route.fulfill(status=429, content_type='application/json', body=json.dumps({'error': True, 'reason': 'Hourly API request limit exceeded. Please try again in the next hour.'}))
     if u.hostname == 'api.open-meteo.com':
         lats = q.get('latitude', ['0'])[0].split(',')
         hv = q.get('hourly', [''])[0].split(',')
