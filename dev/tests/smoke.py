@@ -70,7 +70,8 @@ def handle(route):
                 r, c = divmod(i, 28)
                 return {'minutely_15': {'time': T, 'precipitation': [round(max(0, math.sin((c - k * .15) / 3) * math.cos(r / 4)) * 1.6, 2) for k in range(33)], 'snowfall': [0.3 if r < 4 and c < 8 else 0] * 33}}
             return J([m15(i) for i in range(len(lats))])
-        if len(lats) > 1 or any('hPa' in v or '100m' in v for v in hv):
+        BASEH = set(['temperature_2m','apparent_temperature','relative_humidity_2m','dew_point_2m','precipitation_probability','precipitation','weather_code','cloud_cover','visibility','wind_speed_10m','wind_direction_10m','wind_gusts_10m','uv_index','is_day','pressure_msl',''])
+        if len(lats) > 1 or any(v not in BASEH for v in hv):
             N = 49 if 'start_hour' in q else 72
             st = datetime.now(timezone.utc).replace(tzinfo=None).replace(minute=0, second=0, microsecond=0) if 'start_hour' in q else NOW.replace(hour=0)
             tz = q.get('timezone', ['GMT'])[0]
@@ -85,7 +86,12 @@ def handle(route):
                     elif 'temperature' in v: h[v] = [round(18 - (i % 10) - (k % 24) / 4, 1) for k in range(N)]
                     elif 'cloud' in v: h[v] = [(i * 13 + k * 3) % 100 for k in range(N)]
                     else: h[v] = [round(max(0, math.sin(i / 3 + k / 6)) * 4, 1) for k in range(N)]
-                return {'elevation': 1190, 'hourly': h}
+                dv = q.get('daily', [''])[0].split(',')
+                nd = max(1, N // 24)
+                dd = {'time': [(st + timedelta(days=k)).strftime('%Y-%m-%d') for k in range(nd)]}
+                for v in dv:
+                    if v: dd[v] = [round(2 + i % 7 + k * .7, 1) if 'max' in v else round(-3 + i % 5 - k, 1) if 'min' in v else round((i + k) % 6 * 1.3, 1) for k in range(nd)]
+                return {'elevation': 1190, 'hourly': h, 'daily': dd}
             return J([one(i) for i in range(len(lats))] if len(lats) > 1 else one(0))
         if False:
             return J([{'current': {'temperature_2m': 10 + 8 * math.sin(i / 7) + i % 5, 'cloud_cover': (i * 13) % 100, 'wind_speed_10m': (i * 7) % 70, 'wind_direction_10m': (i * 30) % 360, 'precipitation': (i % 9) * .6}} for i in range(len(lats))])
@@ -101,6 +107,14 @@ def handle(route):
     if u.hostname == 'air-quality-api.open-meteo.com': return J(aqi())
     if u.hostname == 'geocoding-api.open-meteo.com': return J({'results': [{'name': 'شیراز', 'admin1': 'استان فارس', 'country': 'ایران', 'latitude': 29.61, 'longitude': 52.53}]})
     if u.hostname == 'api.rainviewer.com': return J({'host': 'https://tilecache.rainviewer.com', 'radar': {'past': [{'time': 1793446800 + i * 600, 'path': f'/v2/radar/{i}'} for i in range(12)]}})
+    if u.hostname == 'archive-api.open-meteo.com':
+        d0 = datetime(1995, 1, 1); n = 365 * 31
+        t = [(d0 + timedelta(days=k)) for k in range(n)]
+        return J({'daily': {'time': [x.strftime('%Y-%m-%d') for x in t], 'temperature_2m_max': [round(22 + 13 * math.sin((x.timetuple().tm_yday - 105) / 365 * 2 * math.pi) + (k % 7) - 3, 1) for k, x in enumerate(t)], 'temperature_2m_min': [round(10 + 11 * math.sin((x.timetuple().tm_yday - 105) / 365 * 2 * math.pi) + (k % 5) - 2, 1) for k, x in enumerate(t)], 'precipitation_sum': [round(max(0, math.cos(x.timetuple().tm_yday / 365 * 2 * math.pi)) * (k % 4), 1) for k, x in enumerate(t)]}})
+    if u.hostname == 'marine-api.open-meteo.com':
+        lats = q['latitude'][0].split(','); st = datetime.now(timezone.utc).replace(tzinfo=None, minute=0, second=0, microsecond=0)
+        T = [(st + timedelta(hours=k)).strftime('%Y-%m-%dT%H:%M') for k in range(48)]
+        return J([{'hourly': {'time': T, 'wave_height': [None if i < 4 else round(.3 + i * .15, 2)] * 48, 'wave_period': [5] * 48, 'sea_surface_temperature': [None if i < 4 else 26.5] * 48}} for i in range(len(lats))])
     if u.hostname == 'earthquake.usgs.gov':
         import time as _t
         now = int(_t.time() * 1000)
@@ -138,6 +152,9 @@ with sync_playwright() as p:
     pg.click('#mapLayers .chip[data-v=wind]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5b-map-wind.png')
     pg.click('#mapLayers .chip[data-v=eq]'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/5c-map-eq.png', full_page=True)
     pg.click('#mapLayers .chip[data-v=pres]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5d-map-pres.png')
+    pg.click('nav button[data-t=tr]'); pg.wait_for_timeout(2500); pg.click('#tpGo'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/tr1.png', full_page=True)
+    pg.click('nav button[data-t=fc]'); pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/fc2.png', full_page=True)
+    pg.click('nav button[data-t=now]'); pg.wait_for_timeout(500); pg.evaluate('openGlance()'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/glance.png'); pg.click('#glance'); pg.wait_for_timeout(300)
     pg.click('nav button[data-t=md]'); pg.wait_for_timeout(300)
     pg.click('#t-md .mchip[data-m=kma_seamless]'); pg.wait_for_timeout(200); pg.click('#t-md .mchip[data-m=knmi_seamless]'); pg.wait_for_timeout(1500)
     pg.screenshot(path=f'{OUT}/6-models.png', full_page=True)
