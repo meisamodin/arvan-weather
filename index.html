@@ -298,6 +298,10 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 .ptr{position:fixed;top:0;left:50%;transform:translate(-50%,-40px);width:36px;height:36px;border-radius:50%;background:rgba(15,26,51,.9);color:#fff;display:grid;place-items:center;font-size:20px;z-index:70;opacity:0;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.35)}.ptr.go{opacity:1!important;transform:translate(-50%,20px)!important}
 .wk{display:grid;grid-template-columns:1fr 1fr;gap:6px}.wk div{background:var(--card2);border-radius:12px;padding:7px 9px;display:grid;grid-template-columns:auto 1fr;column-gap:6px;align-items:center}.wk span{grid-row:1/3;font-size:20px}.wk small{color:var(--sub);font-size:11px}.wk b{font-size:13px}
 .dd .body .hours .hr{flex-basis:50px}
+.aqg{display:grid;gap:6px}.aqg div{display:grid;grid-template-columns:28px 1fr;column-gap:8px;background:var(--card2);border-radius:12px;padding:7px 9px}.aqg span{grid-row:1/3;font-size:22px;align-self:center}.aqg b{font-size:13px}.aqg small{color:var(--sub);font-size:12px}
+.aqd{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.aqd div{text-align:center;border:1.5px solid;border-radius:14px;padding:7px 4px;background:var(--card2)}.aqd small{display:block;font-size:11.5px;color:var(--sub)}.aqd b{display:block;font-size:22px}.aqd span{font-size:10.5px;display:block;line-height:1.4}.aqd em{display:block;font-style:normal;font-size:10px;color:#d6a46b;margin-top:2px}
+.aqr{grid-template-columns:96px 1fr 34px 62px!important}.aqbar{height:8px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}.aqbar i{display:block;height:100%;border-radius:4px}.aqr small{font-size:10.5px;color:var(--sub);text-align:left}
+.map.fs{position:fixed!important;inset:0;margin:0!important;height:100vh!important;border-radius:0!important;z-index:65}body.mapfs nav{display:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 
 </style>
@@ -319,7 +323,7 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
     <div class="card" style="padding:10px 12px"><div class="chips" id="mapLayers"></div><div class="chips nowrap scroll-x" id="mapLevels" style="margin-top:8px"></div></div>
     <div id="mapHold"><div class="map" id="map">
       <div class="ly" id="mBase"></div><div class="ly" id="mOvl" style="opacity:.75"></div><canvas id="mCan"></canvas><canvas id="mWind"></canvas><div class="ly" id="mLbl" style="opacity:.8"></div><div class="mk" id="mMk"></div><div class="pop" id="mPop"></div>
-      <div class="ctl"><button id="mZi">+</button><button id="mZo">−</button><button id="mLoc" style="font-size:15px">◎</button></div>
+      <div class="ctl"><button id="mZi">+</button><button id="mZo">−</button><button id="mLoc" style="font-size:15px">◎</button><button id="mFs" style="font-size:16px" aria-label="تمام‌صفحه">⛶</button></div>
       <div class="msg" id="mMsg"></div>
       <div class="attr">© Esri · OSM · Open-Meteo · NASA · EUMETSAT · RainViewer</div>
     </div></div>
@@ -406,7 +410,7 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 
 <script>
 'use strict';
-const VERSION='1.15.0';
+const VERSION='1.16.0';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -735,15 +739,39 @@ function renderAq(){
    <div><div class="lbl" style="color:${q.col}">${q.lbl}</div><div class="note" style="margin-top:6px">${q.adv}</div></div></div></div>`;
   const P=[['pm2_5','PM2.5','ذرات معلق ریز',15,'µg/m³'],['pm10','PM10','ذرات معلق درشت',45,'µg/m³'],['dust','گرد و غبار','Dust',50,'µg/m³'],['ozone','O₃','ازن',100,'µg/m³'],['nitrogen_dioxide','NO₂','دی‌اکسید نیتروژن',25,'µg/m³'],['sulphur_dioxide','SO₂','دی‌اکسید گوگرد',40,'µg/m³'],['carbon_monoxide','CO','مونوکسید کربن',4000,'µg/m³']];
   let pl='';P.forEach(([k,n,fn,who,u])=>{const v=c[k];if(v==null)return;const r=v/who;const col=r<=1?'#4ade80':r<=2?'#facc15':r<=4?'#fb923c':'#ef4444';pl+=`<div class="pol"><div class="nm">${n}<small>${fn}</small></div><div class="v">${fa(v,v<10?1:0)} <small style="color:var(--dim)">${u}</small></div><div class="pb"><i style="width:${Math.min(100,r/4*100)}%;background:${col}"></i></div></div>`});
+  html+=aqGroups(AQ.current.us_aqi,c.dust);
   html+=`<div class="card"><h3>🧪 آلاینده‌ها<span class="r">نسبت به رهنمود سازمان جهانی بهداشت</span></h3>${pl}</div>`;
+  html+=aqDaily();
   const hh=AQ.hourly;if(hh){const k=c.time.slice(0,13);let s=hh.time.findIndex(t=>t.slice(0,13)===k);if(s<0)s=0;const n=Math.min(72,hh.time.length-s);const key=S.aqStd==='eu'?'european_aqi':'us_aqi';const vals=hh[key].slice(s,s+n),times=hh.time.slice(s,s+n);
     const bars=vals.map(v=>v);let svgc=chart({n,step:20,h:150,series:[{v:hh.dust?hh.dust.slice(s,s+n):[],c:'#d6a46b',w:1.5,dash:1,lo:0},{v:bars,c:'#4ade80',fill:1,lo:0,labels:6,fmt:v=>fa(Math.round(v))}],xl:i=>+times[i].slice(11,13)%6===0?fa(+times[i].slice(11,13)):'',marks:dayMarks(times)});
     html+=`<div class="card"><h3>📊 پیش‌بینی کیفیت هوا<span class="r">${fa(n)} ساعت آینده</span></h3>${svgc}<div class="legend"><span><i style="background:#4ade80"></i>${S.aqStd==='eu'?'EAQI':'US AQI'}</span><span><i style="background:#d6a46b"></i>گرد و غبار</span></div></div>`}
+  html+=`<div class="card"><h3>🇮🇷 کیفیت هوای شهرهای کشور<span class="r">US AQI · الان</span></h3><div id="aqc"></div></div>`;
   const cats=S.aqStd==='eu'?EU_CAT:US_CAT;let prev=0;
   html+=`<div class="card"><h3>📘 راهنمای شاخص</h3><div class="scale">${cats.map(x=>{const r=`<div><i style="background:${x[2]}"></i>${fa(prev)}${x[0]<9999?'–'+fa(x[0]):'+'} : ${x[1]}</div>`;prev=x[0]+1;return r}).join('')}</div></div>`;
-  $('#t-aq').innerHTML=html;
+  html+=`<div class="note" style="margin:0 20px">داده‌ها از مدل CAMS اروپا (Open-Meteo) است. شاخص رسمی تهران: <a href="https://airnow.tehran.ir" target="_blank" rel="noopener">airnow.tehran.ir</a></div>`;
+  $('#t-aq').innerHTML=html;bindAQC();
   $$('#aqStd button').forEach(b=>b.onclick=()=>{S.aqStd=b.dataset.v;saveS();renderAq();renderNow()});
 }
+
+/* AQ extras */
+function aqGroups(u,du){const L=u<=50?0:u<=100?1:u<=150?2:u<=200?3:u<=300?4:5,D2=du!=null&&du>=150;
+  const G=[['🧒','کودکان و سالمندان',['آزادانه بیرون باشند','فعالیت طولانی بیرون را کم کنند','فعالیت بیرون را محدود کنند','در خانه بمانند','در خانه بمانند، تصفیه‌هوا روشن','در خانه بمانند، تصفیه‌هوا روشن']],
+   ['🫁','بیماران قلبی و تنفسی (آسم)',['مشکلی نیست','داروی همراه داشته باشید','از فعالیت بیرون پرهیز کنید','بیرون نروید؛ ماسک N95','بیرون نروید؛ علائم را جدی بگیرید','وضعیت اضطراری؛ بیرون نروید']],
+   ['🏃','ورزشکاران',['ورزش بیرون مناسب است','ورزش سنگین را کوتاه کنید','ورزش را به سالن ببرید','فقط ورزش داخل سالن','فقط ورزش داخل سالن','ورزش نکنید']],
+   ['🤰','باردار',['مشکلی نیست','زمان بیرون بودن را کم کنید','بیرون نروید یا ماسک بزنید','در خانه بمانند','در خانه بمانند','در خانه بمانند']],
+   ['🧑','سایر افراد',['از هوای پاک لذت ببرید','مشکلی نیست','فعالیت سنگین بیرون را کم کنید','فعالیت بیرون را کم کنید؛ ماسک','بیرون نروید؛ پنجره‌ها بسته','بیرون نروید']]];
+  return `<div class="card"><h3>❤️ توصیه سلامت برای هر گروه</h3><div class="aqg">${G.map(g=>`<div><span>${g[0]}</span><b>${g[1]}</b><small>${g[2][L]}${D2&&L<3?' · به‌خاطر گرد و غبار ماسک بزنید':''}</small></div>`).join('')}</div>
+   <div class="note" style="margin-top:6px">😷 ماسک مناسب ذرات معلق و گرد و غبار: N95 یا FFP2 (ماسک پارچه‌ای و جراحی اثر کمی دارد).</div></div>`}
+function aqDaily(){const hh=AQ.hourly;if(!hh)return '';const key=S.aqStd==='eu'?'european_aqi':'us_aqi',days={};hh.time.forEach((t,i)=>{const d=t.slice(0,10),v=hh[key][i],du=hh.dust?hh.dust[i]:null;if(v==null)return;const o=days[d]||(days[d]={mx:0,du:0});o.mx=Math.max(o.mx,v);if(du!=null)o.du=Math.max(o.du,du)});
+  const K=Object.keys(days).sort().filter(d=>d>=AQ.current.time.slice(0,10)).slice(0,4);if(!K.length)return '';
+  return `<div class="card"><h3>📅 پیش‌بینی روزانه کیفیت هوا<span class="r">بدترین ساعت هر روز</span></h3><div class="aqd">${K.map((d,i)=>{const c=aqCat(days[d].mx,S.aqStd);return `<div style="border-color:${c[2]}"><small>${dayName(d,i)}</small><b style="color:${c[2]}">${fa(Math.round(days[d].mx))}</b><span>${c[1]}</span>${days[d].du>=50?`<em>🟤 غبار ${fa(Math.round(days[d].du))}</em>`:''}</div>`}).join('')}</div>
+   <button class="chip" style="margin-top:8px" onclick="S.mapLayer='dust';saveS();go('map');mapLayerChanged&&mapLayerChanged()">🗺️ نقشه گرد و غبار ›</button></div>`}
+let AQC=null;
+async function loadAQC(){if(AQC&&Date.now()-AQC.t<30*60e3)return AQC;try{const j=await getJSON(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${IRC.map(c=>c[1]).join(',')}&longitude=${IRC.map(c=>c[2]).join(',')}&current=us_aqi,pm2_5,dust&timezone=Asia%2FTehran`,30000);AQC={t:Date.now(),a:Array.isArray(j)?j:[j]};offSave('aqc',AQC)}catch(e){const o=offGet('aqc');if(o)AQC=o;else throw e}return AQC}
+function aqcHtml(){if(!AQC)return '<div class="sk"></div><div class="sk"></div>';const L=IRC.map((c,i)=>{const a=AQC.a[i];return a&&a.current?{n:c[0],c,u:a.current.us_aqi,pm:a.current.pm2_5,du:a.current.dust}:null}).filter(x=>x&&x.u!=null).sort((a,b)=>b.u-a.u),mx=Math.max(150,...L.map(x=>x.u));
+  const clean=L.filter(x=>x.u<=50).length;
+  return `<div class="note" style="margin-bottom:6px">${fa(clean)} شهر از ${fa(L.length)} شهر هوای پاک دارند.</div><div class="irl">${L.map((x,i)=>{const c=aqCat(x.u,'us');return `<button class="irr aqr" data-c="${esc(x.n)}"><span class="irn">${fa(i+1)}. ${x.n}</span><span class="aqbar"><i style="width:${(x.u/mx*100).toFixed(0)}%;background:${c[2]}"></i></span><b style="color:${c[2]}">${fa(Math.round(x.u))}</b><small>${x.du>=50?'🟤 '+fa(Math.round(x.du)):'PM2.5 '+fa(Math.round(x.pm||0))}</small></button>`}).join('')}</div>`}
+function bindAQC(){const el=$('#aqc');if(!el)return;const f=()=>{const e=$('#aqc');if(!e)return;e.innerHTML=aqcHtml();$$('#aqc .aqr').forEach(b=>b.onclick=()=>{const c=IRC.find(k=>k[0]===b.dataset.c);if(c)selectCity({id:mkId(c[1],c[2]),name:c[0],admin:'',country:'ایران',lat:c[1],lon:c[2]})})};if(AQC)f();else loadAQC().then(f).catch(()=>{const e=$('#aqc');if(e)e.innerHTML='<div class="note">دریافت کیفیت هوای شهرها ممکن نشد.</div>'})}
 
 /* ---------- MODELS tab ---------- */
 const MODELS=[
@@ -1496,11 +1524,11 @@ function offGet(k){try{return JSON.parse(localStorage.getItem('aw.off.'+k)||'nul
 /* ---------- MAP (Windy-style: animated wind particles, altitude levels, 48h timeline) ---------- */
 let mapInit=false;
 const MP={mode:'map',views:{},z:6,lat:35.7,lon:51.4,frames:[],fi:0,timer:null,gtimer:null,host:'',grid:null,req:0,w:0,h:0,sx:0,sy:0,ti:0,imgs:{base:new Map(),ovl:new Map(),lbl:new Map()}};
-const LAYERS={wind:'💨 باد',temp:'🌡️ دما',rain:'💧 بارش',dust:'🟤 گرد و غبار',cloud:'☁️ ابر',gust:'🌪️ تندباد',eq:'🌍 زلزله',pres:'⏲️ فشار',hum:'💦 رطوبت',snow:'❄️ برف'};
+const LAYERS={wind:'💨 باد',temp:'🌡️ دما',rain:'💧 بارش',dust:'🟤 گرد و غبار',cloud:'☁️ ابر',gust:'🌪️ تندباد',eq:'🌍 زلزله',pres:'⏲️ فشار',hum:'💦 رطوبت',snow:'❄️ برف',feels:'🥵 احساس دما',cape:'⛈️ ناپایداری'};
 const LEVELS=[['10m','سطح زمین','۱۰ متری سطح زمین'],['100m','۱۰۰ متر','۱۰۰ متری سطح زمین'],['950hPa','۵۰۰ متر','۹۵۰ هکتوپاسکال · حدود ۵۰۰ متر'],['850hPa','۱۵۰۰ متر','۸۵۰ هکتوپاسکال · حدود ۱۵۰۰ متر'],['700hPa','۳۰۰۰ متر','۷۰۰ هکتوپاسکال · حدود ۳۰۰۰ متر'],['500hPa','۵۵۰۰ متر','۵۰۰ هکتوپاسکال · حدود ۵۵۰۰ متر'],['300hPa','۹۰۰۰ متر','۳۰۰ هکتوپاسکال · حدود ۹۰۰۰ متر'],['250hPa','۱۰٫۴ کیلومتر · جت','۲۵۰ هکتوپاسکال · حدود ۱۰٬۴۰۰ متر (جت‌استریم)'],['200hPa','۱۱٫۸ کیلومتر','۲۰۰ هکتوپاسکال · حدود ۱۱٬۸۰۰ متر']];
 const LVM=Object.fromEntries(LEVELS.map(l=>[l[0],l]));
 function lvVars(l){if(l==='10m')return{ws:'wind_speed_10m',wd:'wind_direction_10m',t:'temperature_2m',c:'cloud_cover'};if(l==='100m')return{ws:'wind_speed_100m',wd:'wind_direction_100m',t:'temperature_120m',c:'cloud_cover_low'};return{ws:'wind_speed_'+l,wd:'wind_direction_'+l,t:'temperature_'+l,c:'cloud_cover_'+l}}
-const SURF_ONLY={rain:1,gust:1,radar:1,dust:1,pres:1,hum:1,snow:1,eq:1};
+const SURF_ONLY={rain:1,gust:1,radar:1,dust:1,pres:1,hum:1,snow:1,eq:1,feels:1,cape:1};
 const curLvl=()=>SURF_ONLY[S.mapLayer]||!LVM[S.mapLevel]?'10m':S.mapLevel;
 const ws=z=>256*2**z;
 const lon2x=(lo,z)=>(lo+180)/360*ws(z), lat2y=(la,z)=>{const r=la*Math.PI/180;return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*ws(z)};
@@ -1519,8 +1547,9 @@ function mapSetup(){
     if(!ptrs.size){if(was===1&&moved<6&&down){const r=el.getBoundingClientRect();showPop(down[0]-r.left,down[1]-r.top)}last=null;gridLater()}else last=[...ptrs.values()][0]};
   el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
   el.addEventListener('wheel',e=>{e.preventDefault();mapZoom(e.deltaY<0?1:-1)},{passive:false});
+  $('#mFs').onclick=e=>{e.stopPropagation();const m=$('#map');m.classList.toggle('fs');document.body.classList.toggle('mapfs',m.classList.contains('fs'));$('#mFs').textContent=m.classList.contains('fs')?'✕':'⛶';setTimeout(mapRender,60)};
   $('#mZi').onclick=e=>{e.stopPropagation();mapZoom(1)};$('#mZo').onclick=e=>{e.stopPropagation();mapZoom(-1)};$('#mLoc').onclick=e=>{e.stopPropagation();mapCenterCity(true)};
-  ['mZi','mZo','mLoc'].forEach(id=>$('#'+id).addEventListener('pointerdown',e=>e.stopPropagation()));
+  ['mZi','mZo','mLoc','mFs'].forEach(id=>$('#'+id).addEventListener('pointerdown',e=>e.stopPropagation()));
   addEventListener('resize',()=>curTab==='map'&&mapRender());
   mapCenterCity(true);renderLevels();
 }
@@ -1549,7 +1578,7 @@ function mapRender(){
   drawGrid();clearWind();windStart();
 }
 function mapMsg(t){const m=$('#mMsg');m.textContent=t||'';m.style.display=t?'block':'none'}
-async function mapLayerChanged(){
+async function mapLayerChanged(){$$('#mapLayers .chip').forEach(x=>x.classList.toggle('on',x.dataset.v===S.mapLayer));
   clearInterval(MP.timer);MP.timer=null;hidePop();renderLevels();
   if(S.mapLayer==='radar'){
     clearInterval(MP.gtimer);MP.gtimer=null;clearWind();
@@ -1565,7 +1594,8 @@ function interp(st,v){if(v<=st[0][0])return st[0][1];for(let i=1;i<st.length;i++
 const grad=st=>st.map((s,i)=>`rgb(${s[1].join(',')}) ${(i/(st.length-1)*100).toFixed(0)}%`).join(',');
 function gridColor(v){const L=S.mapLayer;if(v==null)return [0,0,0,0];
   if(L==='wind'||L==='gust')return [...interp(WIND_ST,v),215];
-  if(L==='temp')return [...interp(TEMP_ST,v),215];
+  if(L==='temp'||L==='feels')return [...interp(TEMP_ST,v),215];
+  if(L==='cape')return v<100?[0,0,0,0]:[...interp([[100,[200,240,200]],[500,[120,210,120]],[1000,[240,230,80]],[2000,[245,150,40]],[3000,[220,40,40]]],v),205];
   if(L==='dust')return v<10?[90,90,90,30]:[...interp([[10,[250,235,190]],[50,[240,205,130]],[100,[225,160,70]],[200,[195,110,45]],[500,[140,65,30]],[1000,[90,30,20]]],v),205];
   if(L==='pres')return [...interp([[970,[120,60,180]],[990,[60,110,220]],[1005,[80,190,220]],[1013,[90,200,120]],[1020,[230,210,80]],[1030,[240,140,60]],[1045,[200,50,50]]],v),200];
   if(L==='hum')return [...interp([[0,[150,90,40]],[30,[220,190,120]],[50,[170,210,150]],[70,[80,170,220]],[90,[40,90,200]],[100,[30,50,150]]],v),195];
@@ -1579,7 +1609,7 @@ async function fetchGrid(){
   if(g&&g.lvl===lvl&&g.gz===z){const sx=cx-MP.w/2,sy=cy-MP.h/2;if(sx>=g.gx0&&sy>=g.gy0&&sx+MP.w<=g.gx0+g.dx*(g.cols-1)&&sy+MP.h<=g.gy0+g.dy*(g.rows-1))return}
   const pad=.3,cols=10,rows=Math.max(10,Math.round(10*MP.h/MP.w)),gx0=cx-MP.w*(.5+pad),gy0=cy-MP.h*(.5+pad),dx=MP.w*(1+2*pad)/(cols-1),dy=MP.h*(1+2*pad)/(rows-1);
   const lats=[],lons=[];for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){lats.push(Math.max(-85,Math.min(85,y2lat(gy0+dy*r,z))).toFixed(3));lons.push(((x2lon(gx0+dx*c,z)+540)%360-180).toFixed(3))}
-  const V=lvVars(lvl),vars=[V.ws,V.wd,V.t,V.c];if(lvl==='10m')vars.push('wind_gusts_10m','precipitation','pressure_msl','relative_humidity_2m','snow_depth');
+  const V=lvVars(lvl),vars=[V.ws,V.wd,V.t,V.c];if(lvl==='10m')vars.push('wind_gusts_10m','precipitation','pressure_msl','relative_humidity_2m','snow_depth','apparent_temperature','cape');
   const now=new Date();now.setUTCMinutes(0,0,0);const iso=d=>d.toISOString().slice(0,16),nowK=iso(now);
   const base=`https://api.open-meteo.com/v1/forecast?latitude=${lats.join(',')}&longitude=${lons.join(',')}&hourly=${vars.join(',')}&timezone=GMT`;
   const req=++MP.req;mapMsg('در حال دریافت داده‌ها…');
@@ -1593,7 +1623,7 @@ async function fetchGrid(){
     MP.ti=Math.min(MP.ti,MP.grid.n-1);gridPrep();mapMsg('');mapRender();updMapInfo();
   }catch(e){if(req===MP.req)mapMsg('دریافت داده نقشه ممکن نشد')}
 }
-function layerKey(){const V=lvVars(MP.grid.lvl);return {wind:V.ws,temp:V.t,cloud:V.c,rain:'precipitation',gust:'wind_gusts_10m',pres:'pressure_msl',hum:'relative_humidity_2m',snow:'snow_depth',dust:'dust'}[S.mapLayer]}
+function layerKey(){const V=lvVars(MP.grid.lvl);return {wind:V.ws,temp:V.t,cloud:V.c,rain:'precipitation',gust:'wind_gusts_10m',pres:'pressure_msl',hum:'relative_humidity_2m',snow:'snow_depth',dust:'dust',feels:'apparent_temperature',cape:'cape'}[S.mapLayer]}
 function gridPrep(){
   const g=MP.grid;if(!g)return;const V=lvVars(g.lvl),i=g.t0+MP.ti,N=g.pts.length;
   g.U=new Float32Array(N);g.Vv=new Float32Array(N);g.ok=new Uint8Array(N);
@@ -1612,7 +1642,7 @@ function drawGrid(){
   if(S.mapLayer==='wind'||S.mapLayer==='gust')return;
   ctx.font='600 11px Vazirmatn,Tahoma,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
   g.pts.forEach((p,i)=>{const r=Math.floor(i/g.cols),c=i%g.cols;if((r+c)%2)return;const x=x0+c*g.dx*s,y=y0+r*g.dy*s;if(x<24||y<20||x>MP.w-24||y>MP.h-30)return;const v=g.vals[i];if(v==null)return;
-    const L=S.mapLayer,t=L==='temp'?fa(Math.round(cT(v)))+'°':L==='rain'?(v>=.1?fa(v,1):''):L==='pres'?fa(Math.round(S.p==='mmhg'?v*.750062:v)):L==='snow'?(v>=.01?fa(Math.round(v*100)):''):L==='dust'?(v>=20?fa(Math.round(v)):''):fa(Math.round(v))+'٪';if(!t)return;
+    const L=S.mapLayer,t=L==='temp'||L==='feels'?fa(Math.round(cT(v)))+'°':L==='cape'?(v>=300?fa(Math.round(v/100)*100):''):L==='rain'?(v>=.1?fa(v,1):''):L==='pres'?fa(Math.round(S.p==='mmhg'?v*.750062:v)):L==='snow'?(v>=.01?fa(Math.round(v*100)):''):L==='dust'?(v>=20?fa(Math.round(v)):''):fa(Math.round(v))+'٪';if(!t)return;
     ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.5)';ctx.strokeText(t,x,y);ctx.fillStyle='#fff';ctx.fillText(t,x,y)});
 }
 /* wind particles */
@@ -1640,7 +1670,7 @@ function showPop(x,y){
   const g=MP.grid;if(isRad()||!g||!g.U)return;
   const [c,r]=gpos(x,y),v=field(x,y),val=bil(g.vals,g,c,r);let t='';
   if(v){const sp=Math.hypot(v[0],v[1]),dir=(Math.atan2(-v[0],v[1])*180/Math.PI+360)%360;
-    const main=S.mapLayer==='temp'&&val!=null?tS(val):S.mapLayer==='cloud'&&val!=null?'ابر '+fa(Math.round(val))+'٪':S.mapLayer==='rain'&&val!=null?'بارش '+fa(val,1)+' mm':S.mapLayer==='gust'&&val!=null?'تندباد '+wS(val):S.mapLayer==='dust'&&val!=null?'گرد و غبار '+fa(Math.round(val))+' µg/m³':S.mapLayer==='pres'&&val!=null?'فشار '+pS(val):S.mapLayer==='hum'&&val!=null?'رطوبت '+fa(Math.round(val))+'٪':S.mapLayer==='snow'&&val!=null?'عمق برف '+fa(Math.round(val*100))+' cm':'';
+    const main=S.mapLayer==='temp'&&val!=null?tS(val):S.mapLayer==='cloud'&&val!=null?'ابر '+fa(Math.round(val))+'٪':S.mapLayer==='rain'&&val!=null?'بارش '+fa(val,1)+' mm':S.mapLayer==='gust'&&val!=null?'تندباد '+wS(val):S.mapLayer==='dust'&&val!=null?'گرد و غبار '+fa(Math.round(val))+' µg/m³':S.mapLayer==='pres'&&val!=null?'فشار '+pS(val):S.mapLayer==='hum'&&val!=null?'رطوبت '+fa(Math.round(val))+'٪':S.mapLayer==='feels'&&val!=null?'احساس '+tS(val):S.mapLayer==='cape'&&val!=null?'CAPE '+fa(Math.round(val)):S.mapLayer==='snow'&&val!=null?'عمق برف '+fa(Math.round(val*100))+' cm':'';
     t=(main?`<b>${main}</b><br>`:'')+`💨 ${wS(sp)} · از ${dirName(dir)}`}
   else if(val!=null)t=fa(val,1);if(!t)return;
   const la=y2lat(MP.sy+y,MP.z),lo=x2lon(MP.sx+x,MP.z);
@@ -1664,7 +1694,7 @@ function updMapInfo(){
   }
   const lv=LVM[curLvl()],g=MP.grid,n=g?g.n:49;
   const wl=[0,20,40,60,90,140];
-  const L={wind:['سرعت باد',`linear-gradient(to right,${grad(WIND_ST.slice(0,12))})`,wl.map(v=>fa(Math.round(wV(v))))],gust:['تندباد',`linear-gradient(to right,${grad(WIND_ST.slice(0,12))})`,wl.map(v=>fa(Math.round(wV(v))))],temp:['دما',`linear-gradient(to right,${grad(TEMP_ST.slice(1,13))})`,[-25,-8,0,10,20,30].map(v=>fa(Math.round(cT(v)))+'°')],cloud:['ابرناکی','linear-gradient(to right,rgb(60,70,90),rgb(230,235,245))',['۰٪','۵۰٪','۱۰۰٪']],dust:['گرد و غبار (µg/m³)','linear-gradient(to right,rgb(250,235,190),rgb(240,205,130),rgb(225,160,70),rgb(195,110,45),rgb(140,65,30),rgb(90,30,20))',['۱۰','۵۰','۱۰۰','۲۰۰','۵۰۰','۱۰۰۰']],pres:['فشار سطح دریا','linear-gradient(to right,rgb(120,60,180),rgb(60,110,220),rgb(80,190,220),rgb(90,200,120),rgb(230,210,80),rgb(240,140,60),rgb(200,50,50))',['۹۷۰','۹۹۰','۱۰۱۳','۱۰۳۰','۱۰۴۵']],hum:['رطوبت نسبی','linear-gradient(to right,rgb(150,90,40),rgb(220,190,120),rgb(170,210,150),rgb(80,170,220),rgb(40,90,200),rgb(30,50,150))',['۰٪','۳۰٪','۵۰٪','۷۰٪','۱۰۰٪']],snow:['عمق برف (سانتی‌متر)','linear-gradient(to right,rgb(200,220,255),rgb(150,170,255),rgb(180,120,255),rgb(255,255,255))',['۱','۱۰','۵۰','۱۵۰']],rain:['بارش ساعتی (mm)','linear-gradient(to right,rgb(90,180,240),rgb(30,80,200),rgb(140,60,220),rgb(230,60,160),rgb(250,80,60))',['۰٫۱','۱','۳','۶','۱۲','۲۵']]}[S.mapLayer];
+  const L={feels:['احساس دما (گرما + رطوبت + باد)',`linear-gradient(to right,${grad(TEMP_ST.slice(1,13))})`,[-25,-8,0,10,20,30].map(v=>fa(Math.round(cT(v)))+'°')],cape:['ناپایداری جو (CAPE)','linear-gradient(to right,rgb(200,240,200),rgb(120,210,120),rgb(240,230,80),rgb(245,150,40),rgb(220,40,40))',['۱۰۰','۵۰۰','۱۰۰۰','۲۰۰۰','۳۰۰۰+']],wind:['سرعت باد',`linear-gradient(to right,${grad(WIND_ST.slice(0,12))})`,wl.map(v=>fa(Math.round(wV(v))))],gust:['تندباد',`linear-gradient(to right,${grad(WIND_ST.slice(0,12))})`,wl.map(v=>fa(Math.round(wV(v))))],temp:['دما',`linear-gradient(to right,${grad(TEMP_ST.slice(1,13))})`,[-25,-8,0,10,20,30].map(v=>fa(Math.round(cT(v)))+'°')],cloud:['ابرناکی','linear-gradient(to right,rgb(60,70,90),rgb(230,235,245))',['۰٪','۵۰٪','۱۰۰٪']],dust:['گرد و غبار (µg/m³)','linear-gradient(to right,rgb(250,235,190),rgb(240,205,130),rgb(225,160,70),rgb(195,110,45),rgb(140,65,30),rgb(90,30,20))',['۱۰','۵۰','۱۰۰','۲۰۰','۵۰۰','۱۰۰۰']],pres:['فشار سطح دریا','linear-gradient(to right,rgb(120,60,180),rgb(60,110,220),rgb(80,190,220),rgb(90,200,120),rgb(230,210,80),rgb(240,140,60),rgb(200,50,50))',['۹۷۰','۹۹۰','۱۰۱۳','۱۰۳۰','۱۰۴۵']],hum:['رطوبت نسبی','linear-gradient(to right,rgb(150,90,40),rgb(220,190,120),rgb(170,210,150),rgb(80,170,220),rgb(40,90,200),rgb(30,50,150))',['۰٪','۳۰٪','۵۰٪','۷۰٪','۱۰۰٪']],snow:['عمق برف (سانتی‌متر)','linear-gradient(to right,rgb(200,220,255),rgb(150,170,255),rgb(180,120,255),rgb(255,255,255))',['۱','۱۰','۵۰','۱۵۰']],rain:['بارش ساعتی (mm)','linear-gradient(to right,rgb(90,180,240),rgb(30,80,200),rgb(140,60,220),rgb(230,60,160),rgb(250,80,60))',['۰٫۱','۱','۳','۶','۱۲','۲۵']]}[S.mapLayer];
   el.innerHTML=`<div class="tl"><button class="ibtn" id="gPlay">${MP.gtimer?'⏸':'▶'}</button><input type="range" id="gSl" min="0" max="${n-1}" value="${MP.ti}" ${g?'':'disabled'}><b id="gT" style="min-width:96px;text-align:center;font-size:13px">${gTimeLbl()||'اکنون'}</b></div>
    <div style="margin-top:8px"><b>${L[0]}</b> <span class="note">· ${lv[2]}${S.mapLayer==='wind'||S.mapLayer==='gust'?' · '+WU[S.w][1]:''}</span></div>
    <div class="cbar" style="background:${L[1]}"></div><div class="cbar-l">${L[2].map(x=>`<span>${x}</span>`).join('')}</div>
@@ -1756,6 +1786,7 @@ function nasaSetup(){
   R.nasa={t:Date.now(),fr};R.fis.nasa=fr.length-1;
 }
 const LT_BB={lon0:40,lon1:66,lat0:22,lat1:42};
+function ltOverlay(ctx){if(!S.ltOv||!R.lt)return;const f=R.lt.fr.slice().reverse().find(f=>f.im.complete&&!f.im.bad&&f.im.naturalWidth);if(f)drawEq(ctx,f.im,LT_BB)}
 function ltSetup(){
   if(R.lt&&Date.now()-R.lt.t<5*60e3)return;const end=Math.floor((Date.now()-15*6e4)/3e5)*3e5,fr=[];
   const wms=(ly,t,w,h)=>`https://view.eumetsat.int/geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS=${ly}&STYLES=&SRS=EPSG:4326&BBOX=${LT_BB.lon0},${LT_BB.lat0},${LT_BB.lon1},${LT_BB.lat1}&WIDTH=${w}&HEIGHT=${h}&FORMAT=image/png&TRANSPARENT=TRUE&EXCEPTIONS=application/vnd.ogc.se_xml${t?'&TIME='+t:''}`;
@@ -1763,6 +1794,7 @@ function ltSetup(){
   const ir=new Image();ir.onload=()=>{if(isRad()&&R.src==='lt')mapRender()};ir.onerror=()=>ir.bad=1;ir.src=wms('mtg_fd:ir105_hrfi','',1040,800);
   R.lt={t:Date.now(),fr,ir};R.fis.lt=fr.length-1;
 }
+function applyRdOp(){const o=isRad()?(S.rdOp||85)/100:1;$('#mCan').style.opacity=o;$('#mOvl').style.opacity=isRad()?o*.9:.75}
 function drawEq(ctx,img,bb){
   const z=MP.z,x0=lon2x(bb.lon0,z)-MP.sx,x1=lon2x(bb.lon1,z)-MP.sx,N=60,ih=img.height;ctx.imageSmoothingEnabled=true;
   for(let k=0;k<N;k++){const a=bb.lat1-(bb.lat1-bb.lat0)*k/N,b=bb.lat1-(bb.lat1-bb.lat0)*(k+1)/N,y0=lat2y(a,z)-MP.sy,y1=lat2y(b,z)-MP.sy;if(y1<0||y0>MP.h)continue;ctx.drawImage(img,0,ih*k/N,img.width,ih/N,x0,y0,x1-x0,y1-y0+1.5)}
@@ -1774,8 +1806,8 @@ function drawStations(ctx,dotOnly){if(dotOnly){ctx.font='600 10px Vazirmatn,Taho
     ctx.beginPath();ctx.arc(x,y,5,0,7);ctx.fillStyle=on?'#7dd3fc':'#fff';ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.6)';ctx.strokeText('📡 '+r[1],x,y-12);ctx.fillStyle='#fff';ctx.fillText('📡 '+r[1],x,y-12)});
 }
 function drawRadar(ctx){
-  if(isRV()){drawStations(ctx);return}
-  if(R.src==='iran'&&R.iran){drawEq(ctx,iranFrame(R.fis.iran),{lat1:IR.lat1,lat0:IR.lat1-(IR.nLat-1)*IR.step,lon0:IR.lon0,lon1:IR.lon0+(IR.nLon-1)*IR.step});const wf=iranFrameW(R.fis.iran);if(wf)drawEq(ctx,wf,{lat1:IRW.lat1,lat0:IRW.lat1-(IRW.nLat-1)*IRW.step,lon0:IRW.lon0,lon1:IRW.lon0+(IRW.nLon-1)*IRW.step})}
+  if(isRV()){drawStations(ctx);ltOverlay(ctx);return}
+  if(R.src==='iran'&&R.iran){drawEq(ctx,iranFrame(R.fis.iran),{lat1:IR.lat1,lat0:IR.lat1-(IR.nLat-1)*IR.step,lon0:IR.lon0,lon1:IR.lon0+(IR.nLon-1)*IR.step});const wf=iranFrameW(R.fis.iran);if(wf)drawEq(ctx,wf,{lat1:IRW.lat1,lat0:IRW.lat1-(IRW.nLat-1)*IRW.step,lon0:IRW.lon0,lon1:IRW.lon0+(IRW.nLon-1)*IRW.step});ltOverlay(ctx)}
   else if(R.src==='lt'&&R.lt){const ir=R.lt.ir;if(S.ltIR!==false&&ir.complete&&!ir.bad&&ir.naturalWidth){ctx.globalAlpha=.55;drawEq(ctx,ir,LT_BB);ctx.globalAlpha=1}const f=R.lt.fr[R.fis.lt];if(f&&f.im.complete&&!f.im.bad&&f.im.naturalWidth)drawEq(ctx,f.im,LT_BB);drawStations(ctx,true)}
   else if(R.src==='nasa'&&R.nasa){const f=R.nasa.fr[R.fis.nasa];if(f&&f.im.complete&&!f.im.bad&&f.im.naturalWidth){ctx.globalAlpha=.9;drawEq(ctx,f.im,{lat1:42,lat0:22,lon0:40,lon1:66});ctx.globalAlpha=1}}
 }
@@ -1790,6 +1822,7 @@ async function radarChanged(){
   if(src==='rv'||src==='ksh'){if(!MP.frames.length){mapMsg('در حال دریافت رادار…');try{const j=await getJSON('https://api.rainviewer.com/public/weather-maps.json');MP.host=j.host;MP.frames=(j.radar&&j.radar.past)||[];R.fis.rv=MP.fi=MP.frames.length-1;mapMsg(MP.frames.length?'':'داده رادار در دسترس نیست')}catch(e){mapMsg('اتصال به سرور رادار برقرار نشد')}}if(MP.z>7)MP.z=7}
   else if(src==='iran'){if(!R.iran||Date.now()-R.iran.t>15*60e3){mapMsg('در حال دریافت بارش سراسری ایران…');updRdInfo();try{await loadIran();mapMsg('')}catch(e){const o=offGet('iran');if(o){R.iran={...o,cv:{},cvw:{}};let ni=0;o.times.forEach((t,i)=>{if(new Date(t+':00Z').getTime()<=Date.now())ni=i});R.iran.now=ni;R.fis.iran=ni;mapMsg('📴 آخرین داده ذخیره‌شده ('+ago(o.t)+')')}else mapMsg('دریافت داده بارش ممکن نشد')}}}
   else if(src==='lt'){ltSetup();if(MP.z>7)MP.z=7}
+  if(S.ltOv&&src!=='lt')ltSetup();
   else nasaSetup();
   if(src!==R.src||!isRad())return;
   mapRender();updRdInfo();
@@ -1809,22 +1842,25 @@ function rainCities(){
 function updRdInfo(){
   const el=$('#rdInfo');if(!el)return;const fr=rdFrames(),fi=Math.min(R.fis[isRV()?'rv':R.src]||0,Math.max(0,fr.length-1));
   const IRL=`<div class="note" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">رادارهای زمینی سازمان هواشناسی کشور داده عمومی ندارند؛ تصاویر آن‌ها را در <a href="http://radar.irimo.ir/" target="_blank" rel="noopener">سامانه رادار سازمان هواشناسی</a> ببینید.</div>`;
-  const info={iran:['بارش سراسری ایران (مدل‌های عددی)',`linear-gradient(to right,${grad(RAIN_ST)})`,['۰٫۱','۱','۴','۱۲','۳۵+'],`پوشش کامل کشور (حدود ۸۰ کیلومتری) و <b>شبکه ریزتر ۳۰ کیلومتری برای غرب کشور</b> (کردستان، کرمانشاه، ایلام، لرستان، همدان، آذربایجان غربی، خوزستان) · از ${fa(2)} ساعت گذشته تا ${fa(6)} ساعت آینده، هر ${fa(R.iran?R.iran.step:15)} دقیقه · رنگ‌های بنفش‌کم‌رنگ = برف. این داده تخمین مدل است، نه تصویر مستقیم رادار.`],
+  const info={iran:['بارش سراسری ایران (مدل‌های عددی)',`linear-gradient(to right,${grad(RAIN_ST)})`,['۰٫۱','۱','۴','۱۲','۳۵+'],`پوشش کامل کشور (حدود ۱۰۰ کیلومتری) و <b>شبکه ریزتر ۴۵ کیلومتری برای غرب کشور</b> (کردستان، کرمانشاه، ایلام، لرستان، همدان، آذربایجان غربی، خوزستان) · از ${fa(2)} ساعت گذشته تا ${fa(6)} ساعت آینده، هر ${fa(R.iran?R.iran.step:15)} دقیقه · رنگ‌های بنفش‌کم‌رنگ = برف. این داده تخمین مدل است، نه تصویر مستقیم رادار.`],
     ksh:['رادار زمینی (RainViewer)','linear-gradient(to right,#88ddee,#0099cc,#0077aa,#005588,#ffee00,#ffaa00,#ff4400,#c10000,#ffaaff)',['Light','Moderate','Heavy','Extreme'],'تصویر بالا مستقیم از اداره کل هواشناسی کرمانشاه است (راهنمای رنگ روی خود تصویر). نقشه پایین داده همان رادار در شبکه جهانی است و می‌توانید زوم و جابه‌جا کنید.'],
     lt:['آذرخش‌ها از ماهواره (MTG Lightning Imager)','linear-gradient(to right,#fef08a,#facc15,#f97316,#ef4444,#a21caf)',['کم','','زیاد'],'محل برخورد صاعقه‌ها در ۵ دقیقه هر فریم، از ماهواره Meteosat نسل سوم (EUMETSAT) — کل ایران و منطقه، حدود ۱۵ دقیقه تأخیر · لایه خاکستری: تصویر مادون‌قرمز ابرها (ابرهای سفید و سرد = ابرهای طوفانی بلند). اگر هیچ نقطه رنگی نیست یعنی الان رعد و برقی ثبت نشده است.'],
     nasa:['تخمین بارش ماهواره‌ای ناسا (GPM IMERG)','linear-gradient(to right,#b4f0ff,#33b7ff,#2e5bff,#00c44f,#ffe200,#ff7a00,#ff0000)',['سبک','','','','شدید'],'بارش واقعی مشاهده‌شده از ماهواره، کل ایران و منطقه، هر ۳۰ دقیقه · حدود ۷ ساعت تأخیر دارد.'],
     rv:['رادارهای هواشناسی کشور (از طریق RainViewer)','linear-gradient(to right,#88ddee,#0099cc,#0077aa,#005588,#ffee00,#ffaa00,#ff4400,#c10000,#ffaaff)',['Light','Moderate','Heavy','Extreme'],'تصویر واقعی ۹ رادار سازمان هواشناسی (کرمانشاه، تهران، تبریز، اردبیل، گیلان، مازندران، اهواز، بوشهر، شیراز) · ۲ ساعت گذشته، هر ۱۰ دقیقه · دایره‌ها برد تقریبی ۲۵۰ کیلومتری هر رادار است. اگر رادار خاموش یا قطع باشد، آن منطقه خالی می‌ماند.']}[R.src];
   const bad=(R.src==='nasa'&&R.nasa&&R.nasa.fr.every(f=>f.im.bad))||(R.src==='lt'&&R.lt&&R.lt.fr.every(f=>f.im.bad));
   const OR=OFF_RADARS.find(o=>o[0]===R.src);
-  const top=$('#rdTop');if(top){const want=OR?OR[3]:'';if(top.dataset.k!==want){top.dataset.k=want;top.innerHTML=OR?`<div class="card" style="padding:10px"><div class="ofr"><div class="ofh"><b>🏛️ ${OR[1]} — تصویر رسمی</b><small>${OR[2]} · به‌روزرسانی خودکار هر ۵ دقیقه</small></div><img id="ofImg" src="${OR[3]}?t=${Math.floor(Date.now()/3e5)}" alt="${OR[1]}" referrerpolicy="no-referrer"><div class="note" id="ofSt">در حال بارگذاری…</div><div style="display:flex;gap:8px;margin-top:6px"><button class="btn" id="ofRe">🔄 تازه کردن</button><a class="btn" href="${OR[4]}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">🌐 سایت هواشناسی</a></div></div></div><div class="sec" style="margin:4px 20px">⬇️ نقشه رادار شبکه جهانی برای همین منطقه (قابل زوم)</div>`:''}}
+  const top=$('#rdTop');if(top&&!OR){const nc=D?nowcastCard():'';if(top.dataset.k!=='nc'+nc.length){top.dataset.k='nc'+nc.length;top.innerHTML=nc}}if(top){const want=OR?OR[3]:'';if(OR&&top.dataset.k!==want){top.dataset.k=want;top.innerHTML=OR?`<div class="card" style="padding:10px"><div class="ofr"><div class="ofh"><b>🏛️ ${OR[1]} — تصویر رسمی</b><small>${OR[2]} · به‌روزرسانی خودکار هر ۵ دقیقه</small></div><img id="ofImg" src="${OR[3]}?t=${Math.floor(Date.now()/3e5)}" alt="${OR[1]}" referrerpolicy="no-referrer"><div class="note" id="ofSt">در حال بارگذاری…</div><div style="display:flex;gap:8px;margin-top:6px"><button class="btn" id="ofRe">🔄 تازه کردن</button><a class="btn" href="${OR[4]}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">🌐 سایت هواشناسی</a></div></div></div><div class="sec" style="margin:4px 20px">⬇️ نقشه رادار شبکه جهانی برای همین منطقه (قابل زوم)</div>`:''}}
   el.innerHTML=`${fr.length?`<div class="tl"><button class="ibtn" id="rPlay">${R.timer?'⏸':'▶'}</button><input type="range" id="rSl" min="0" max="${fr.length-1}" value="${fi}"><b id="rT" style="min-width:110px;text-align:center;font-size:13px">${rdLabel(fi)}</b></div>`:''}
    <div style="margin-top:8px"><b>${info[0]}</b></div><div class="cbar" style="background:${info[1]}"></div><div class="cbar-l">${info[2].map(x=>`<span>${x}</span>`).join('')}</div>
    ${R.src!=='nasa'?`<div class="sec">نمای منطقه</div><div class="chips"><button class="chip" data-rg="w">⛰️ غرب کشور</button><button class="chip" data-rg="n">🌲 شمال</button><button class="chip" data-rg="s">🌴 جنوب</button><button class="chip" data-rg="all">🇮🇷 کل ایران</button></div>`:''}
    ${isRV()?`<div class="sec">پرش به رادار</div><div class="chips">${IR_RADARS.map(r=>`<button class="chip ${R.st===r[0]?'on':''}" data-st="${r[0]}">📡 ${r[1]}</button>`).join('')}</div>`:''}
+   <div class="setl" style="margin:8px 0 2px"><span style="font-size:13px">شفافیت لایه</span><input type="range" id="rOp" min="25" max="100" value="${S.rdOp||85}" style="flex:1;accent-color:var(--acc)"></div>
+   ${R.src!=='lt'&&R.src!=='nasa'?`<div class="setl" style="margin:2px 0"><span style="font-size:13px">⚡ نمایش صاعقه‌های اخیر روی نقشه</span><button class="sw ${S.ltOv?'on':''}" id="ltOv"></button></div>`:''}
    ${R.src==='lt'?`<div class="setl" style="margin:6px 0"><span>تصویر ابرها (مادون‌قرمز)</span><button class="sw ${S.ltIR!==false?'on':''}" id="ltIR"></button></div>`:''}<div class="note">${bad?'⚠️ تصاویر ماهواره بارگذاری نشد؛ اتصال به سرور را بررسی کنید. ':''}${info[3]}</div>${IRL}`;
   $$('#rdInfo [data-rg]').forEach(b=>b.onclick=()=>{const v={w:[34.6,47.2,6],n:[36.8,51.5,6],s:[28.5,54,6],all:[32.4,53.7,5]}[b.dataset.rg];MP.lat=v[0];MP.lon=v[1];MP.z=R.src==='rv'?Math.min(7,v[2]+(b.dataset.rg==='w'?1:0)):v[2]+(b.dataset.rg==='w'?1:0);mapRender();$('#map').scrollIntoView({behavior:'smooth',block:'center'})});
   $$('#rdInfo [data-st]').forEach(b=>b.onclick=()=>{const r=IR_RADARS.find(x=>x[0]===b.dataset.st);R.st=r[0];MP.lat=r[2];MP.lon=r[3];MP.z=7;mapRender();updRdInfo();$('#map').scrollIntoView({behavior:'smooth',block:'center'})});
   const oi=$('#ofImg');if(oi&&!oi.dataset.b){oi.dataset.b=1;const st=$('#ofSt');oi.onload=()=>{st.textContent='آخرین تصویر · برای بزرگ‌نمایی روی آن بزنید'};oi.onerror=()=>{st.textContent='⚠️ تصویر بارگذاری نشد؛ ممکن است سایت هواشناسی در دسترس نباشد یا از خارج ایران مسدود باشد.'};oi.onclick=()=>{const g=$('#glance');g.style.background='#000';g.innerHTML=`<div style="height:100%;overflow:auto;display:flex;align-items:center;justify-content:center;touch-action:pinch-zoom"><img src="${oi.src}" style="max-width:none;width:160%"></div><div class="gx">برای بستن ضربه بزنید</div>`;g.classList.add('on');g.onclick=()=>g.classList.remove('on')};$('#ofRe').onclick=()=>{oi.src=oi.src.split('?')[0]+'?t='+Date.now();$('#ofSt').textContent='در حال بارگذاری…'};clearInterval(R.ofT);R.ofT=setInterval(()=>{const o=$('#ofImg');if(!o||curTab!=='rd'){clearInterval(R.ofT);return}o.src=o.src.split('?')[0]+'?t='+Date.now()},3e5)}
+  const ro=$('#rOp');if(ro)ro.oninput=e=>{S.rdOp=+e.target.value;saveS();applyRdOp()};const lo=$('#ltOv');if(lo)lo.onclick=()=>{S.ltOv=!S.ltOv;saveS();if(S.ltOv)ltSetup();mapRender();updRdInfo()};applyRdOp();
   const li=$('#ltIR');if(li)li.onclick=()=>{S.ltIR=S.ltIR===false;saveS();mapRender();updRdInfo()};
   const s=$('#rSl');if(s)s.oninput=e=>rdSet(+e.target.value);
   const p=$('#rPlay');if(p)p.onclick=()=>{if(R.timer){clearInterval(R.timer);R.timer=null}else R.timer=setInterval(()=>{if(!isRad()||curTab!=='rd'){clearInterval(R.timer);R.timer=null;return}const n=rdFrames().length;if(n)rdSet(((R.fis[isRV()?'rv':R.src]||0)+1)%n)},R.src==='iran'?450:700);p.textContent=R.timer?'⏸':'▶'};
@@ -1832,7 +1868,7 @@ function updRdInfo(){
 }
 
 /* ---------- tabs ---------- */
-function go(t){curTab=t;$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$$('.tab').forEach(s=>s.classList.toggle('on',s.id==='t-'+t));scrollTo(0,0);
+function go(t){curTab=t;{const m=$('#map');if(m&&m.classList.contains('fs')){m.classList.remove('fs');document.body.classList.remove('mapfs');const b=$('#mFs');if(b)b.textContent='⛶'}}$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$$('.tab').forEach(s=>s.classList.toggle('on',s.id==='t-'+t));scrollTo(0,0);
   if(t==='map'||t==='rd'){mapSetup();$(t==='rd'?'#rdHold':'#mapHold').appendChild($('#map'));setMode(t==='rd'?'radar':'map');
     if(t==='rd'){if(!$('#rdSrc').children.length){$('#rdSrc').innerHTML=Object.entries(RD_SRC).map(([k,v])=>`<button class="chip" data-v="${k}">${v}</button>`).join('');$$('#rdSrc .chip').forEach(b=>b.onclick=()=>{R.src=b.dataset.v;S.rdSrc=R.src;saveS();radarChanged()})}
       requestAnimationFrame(()=>{mapRender();radarChanged()})}

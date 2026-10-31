@@ -140,7 +140,10 @@ def handle(route):
             return J(forecast(7, BIAS.get(m, 0), with_current=False))
         f = forecast(); f['minutely_15'] = {'time': [(NOW + timedelta(minutes=15 * k)).strftime('%Y-%m-%dT%H:%M') for k in range(9)], 'precipitation': [0, 0, .1, .3, .5, .4, .2, 0, 0]}
         return J(f)
-    if u.hostname == 'air-quality-api.open-meteo.com': return J(aqi())
+    if u.hostname == 'air-quality-api.open-meteo.com':
+        n = len(q.get('latitude', ['0'])[0].split(','))
+        if n > 1: return J([{'current': {'us_aqi': (i * 37) % 190 + 10, 'pm2_5': 20 + i % 30, 'dust': (i * 53) % 300}, 'hourly': {'time': [], 'dust': []}} for i in range(n)])
+        return J(aqi())
     if u.hostname == 'geocoding-api.open-meteo.com': return J({'results': [{'name': 'شیراز', 'admin1': 'استان فارس', 'country': 'ایران', 'latitude': 29.61, 'longitude': 52.53}]})
     if u.hostname == 'api.rainviewer.com': return J({'host': 'https://tilecache.rainviewer.com', 'radar': {'past': [{'time': 1793446800 + i * 600, 'path': f'/v2/radar/{i}'} for i in range(12)]}})
     if u.hostname == 'archive-api.open-meteo.com' and len(q['latitude'][0].split(',')) > 1:
