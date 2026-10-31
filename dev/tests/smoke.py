@@ -63,7 +63,7 @@ def handle(route):
     if u.hostname == 'api.open-meteo.com':
         lats = q.get('latitude', ['0'])[0].split(',')
         hv = q.get('hourly', [''])[0].split(',')
-        if 'minutely_15' in q:
+        if 'minutely_15' in q and len(lats) > 1:
             st = datetime.now(timezone.utc).replace(tzinfo=None, second=0, microsecond=0); st -= timedelta(minutes=st.minute % 15 + 120)
             T = [(st + timedelta(minutes=15 * k)).strftime('%Y-%m-%dT%H:%M') for k in range(33)]
             def m15(i):
@@ -96,10 +96,15 @@ def handle(route):
             if m == 'kma_seamless':
                 return route.fulfill(status=400, content_type='application/json', body=json.dumps({'error': True, 'reason': 'Invalid model'}))
             return J(forecast(7, BIAS.get(m, 0), with_current=False))
-        return J(forecast())
+        f = forecast(); f['minutely_15'] = {'time': [(NOW + timedelta(minutes=15 * k)).strftime('%Y-%m-%dT%H:%M') for k in range(9)], 'precipitation': [0, 0, .1, .3, .5, .4, .2, 0, 0]}
+        return J(f)
     if u.hostname == 'air-quality-api.open-meteo.com': return J(aqi())
     if u.hostname == 'geocoding-api.open-meteo.com': return J({'results': [{'name': 'شیراز', 'admin1': 'استان فارس', 'country': 'ایران', 'latitude': 29.61, 'longitude': 52.53}]})
     if u.hostname == 'api.rainviewer.com': return J({'host': 'https://tilecache.rainviewer.com', 'radar': {'past': [{'time': 1793446800 + i * 600, 'path': f'/v2/radar/{i}'} for i in range(12)]}})
+    if u.hostname == 'earthquake.usgs.gov':
+        import time as _t
+        now = int(_t.time() * 1000)
+        return J({'features': [{'id': 'q%d' % i, 'properties': {'mag': m, 'time': now - h * 3600000, 'place': 'x'}, 'geometry': {'coordinates': [lo, la, dp]}} for i, (m, h, la, lo, dp) in enumerate([(4.6, 3, 34.4, 47.2, 10), (3.1, 30, 27.3, 56.4, 12), (5.2, 100, 30.1, 57.0, 8), (2.8, 5, 35.9, 51.0, 9)])]})
     if u.hostname == 'gibs.earthdata.nasa.gov':
         b = io.BytesIO(); im = Image.new('RGBA', (1040, 800), (0, 0, 0, 0)); [im.putpixel((x, y), (40, 120, 255, 200)) for x in range(400, 700) for y in range(300, 450)]; im.save(b, 'PNG'); return route.fulfill(status=200, content_type='image/png', body=b.getvalue())
     if 'tilecache.rainviewer.com' in u.hostname: return route.fulfill(status=200, content_type='image/png', body=RADAR)
@@ -131,13 +136,19 @@ with sync_playwright() as p:
     pg.click('#rdSrc .chip[data-v=rv]'); pg.wait_for_timeout(1200); pg.click('#rdInfo [data-st=IRKR]'); pg.wait_for_timeout(800); pg.screenshot(path=f'{OUT}/r3-rv.png', full_page=True)
     pg.click('nav button[data-t=map]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/r4-backmap.png')
     pg.click('#mapLayers .chip[data-v=wind]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5b-map-wind.png')
+    pg.click('#mapLayers .chip[data-v=eq]'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/5c-map-eq.png', full_page=True)
+    pg.click('#mapLayers .chip[data-v=pres]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5d-map-pres.png')
     pg.click('nav button[data-t=md]'); pg.wait_for_timeout(300)
     pg.click('#t-md .mchip[data-m=kma_seamless]'); pg.wait_for_timeout(200); pg.click('#t-md .mchip[data-m=knmi_seamless]'); pg.wait_for_timeout(1500)
     pg.screenshot(path=f'{OUT}/6-models.png', full_page=True)
     pg.click('#cityBtn'); pg.wait_for_timeout(300); pg.fill('#q', 'شیراز'); pg.wait_for_timeout(900); pg.screenshot(path=f'{OUT}/7-cities.png')
     pg.click('#qRes .row'); pg.wait_for_timeout(800)
     pg.click('#setBtn'); pg.wait_for_timeout(300); pg.click('#setS .seg[data-k=t] button[data-v=f]'); pg.wait_for_timeout(200); pg.screenshot(path=f'{OUT}/8-settings.png')
-    pg.click('#setS [data-close]'); pg.click('nav button[data-t=now]'); pg.wait_for_timeout(300); pg.screenshot(path=f'{OUT}/9-now-F.png')
+    pg.click('#setS [data-close]'); pg.click('nav button[data-t=now]'); pg.wait_for_timeout(300); pg.screenshot(path=f'{OUT}/9-now-F.png', full_page=True)
+    for th in ['light', 'dark', 'oled']:
+        pg.click('#setBtn'); pg.wait_for_timeout(200); pg.click(f'#setS .seg[data-k=theme] button[data-v={th}]'); pg.wait_for_timeout(200); pg.click('#setS [data-close]'); pg.wait_for_timeout(300); pg.screenshot(path=f'{OUT}/th-{th}.png', full_page=True)
+    pg.click('nav button[data-t=fc]'); pg.wait_for_timeout(500); pg.screenshot(path=f'{OUT}/th-light-fc.png', full_page=True)
+    pg.click('#setBtn'); pg.wait_for_timeout(200); pg.screenshot(path=f'{OUT}/8b-settings.png', full_page=True)
     b.close()
 srv.shutdown()
 print('ERRORS:', errors or 'none')
