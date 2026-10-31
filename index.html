@@ -229,7 +229,8 @@ select.inp option{color:#0f172a}
 .gc{font-size:30px;font-weight:700}.gd{color:rgba(255,255,255,.8);font-size:15px}.gi svg{width:180px;height:180px;filter:drop-shadow(0 10px 30px rgba(0,0,0,.3))}.gt{font-size:130px;font-weight:200;line-height:1}.gw{font-size:26px;font-weight:600;margin:6px 0}
 .gh{display:flex;gap:14px;margin-top:30px;background:rgba(255,255,255,.12);border-radius:20px;padding:12px 16px}.gh div{text-align:center}.gh svg{width:38px;height:38px;display:block}.gh small{font-size:12px;opacity:.8}.gx{position:absolute;bottom:calc(20px + env(safe-area-inset-bottom));font-size:12px;opacity:.6}
 .day.lc{opacity:.72}
-.wbc{padding:8px}.wbcv{width:100%;display:block;border-radius:14px;background:#1d2433}
+.wbc{padding:8px}.wbcv{width:100%;display:block;border-radius:14px;background:#1d2433;margin-top:6px;box-shadow:0 8px 22px -10px rgba(0,0,0,.6)}.wbsep{height:1px;background:var(--line);margin:10px 4px}.wbtime{display:flex;align-items:center;gap:10px}.wbtime b{font-size:14px}
+.chip.lc{min-width:46px;text-align:center;padding:5px 9px}.chip.lc[disabled]{opacity:.3;pointer-events:none}.mxd{font-size:9.5px;opacity:.6;margin-inline-start:4px}.wblg{margin-top:8px}.wblg b{font-size:12px;color:var(--sub)}
 
 /* ===== v1.6 design polish ===== */
 body::before,body::after{content:"";position:fixed;z-index:-1;border-radius:50%;filter:blur(60px);opacity:.55;pointer-events:none;animation:aw-float 18s ease-in-out infinite alternate}
@@ -395,7 +396,7 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 
 <script>
 'use strict';
-const VERSION='1.11.0';
+const VERSION='1.12.0';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1040,122 +1041,143 @@ async function setMorning(on){
   toast('مرورگر شما اعلان پس‌زمینه را پشتیبانی نمی‌کند؛ اپ را از Chrome نصب کنید');return true;
 }
 
-/* ---------- MODEL MAPS (WeatherBell-style) ---------- */
-const WB_BB={lat0:20,lat1:44,lon0:36,lon1:66,st:1.5};WB_BB.nr=Math.round((WB_BB.lat1-WB_BB.lat0)/WB_BB.st)+1;WB_BB.nc=Math.round((WB_BB.lon1-WB_BB.lon0)/WB_BB.st)+1;
+/* ---------- MODEL MAPS (pro charts, lead-hour picker) ---------- */
+const mkG=(lat0,lat1,lon0,lon1,st,z)=>{const g={lat0,lat1,lon0,lon1,st,z};g.nr=Math.round((lat1-lat0)/st)+1;g.nc=Math.round((lon1-lon0)/st)+1;return g};
+const WB_BB=mkG(20,44,36,66,1.5,5),WB_BIG=mkG(14,70,-24,84,4,3);
 const WB_M=['ecmwf_ifs025','gfs_seamless','icon_seamless','gem_seamless','ukmo_seamless','meteofrance_seamless','jma_seamless','cma_grapes_global','ecmwf_aifs025_single','gfs_graphcast025'];
+const WB_MAXD={ecmwf_ifs025:15,gfs_seamless:16,icon_seamless:8,gem_seamless:10,ukmo_seamless:7,meteofrance_seamless:4,jma_seamless:11,cma_grapes_global:10,ecmwf_aifs025_single:15,gfs_graphcast025:10};
+const WB_LEADS=[0,6,12,18,24,36,48,60,72,84,96,120,144,168,192,216,240,264,288,312,336,360];
 const WB_P={
+ combo:['🌍 ۵۰۰ + بارش (نمای حرفه‌ای)',null],
+ z500a:['ارتفاع و ناهنجاری ۵۰۰ (اروپا تا آسیا)',['geopotential_height_500hPa'],WB_BIG],
  mslp:['فشار سطح دریا و بارش ۶ ساعته',['pressure_msl','precipitation']],
- z500:['ارتفاع ۵۰۰ هکتوپاسکال و باد',['geopotential_height_500hPa','wind_speed_500hPa','wind_direction_500hPa']],
+ z500:['ارتفاع ۵۰۰ و باد (ایران)',['geopotential_height_500hPa','wind_speed_500hPa','wind_direction_500hPa']],
  t2:['دمای ۲ متری',['temperature_2m']],
- dt24:['تغییر دما در ۲۴ ساعت',['temperature_2m']],
+ t850:['دمای ۸۵۰ (۱۵۰۰ متر)',['temperature_850hPa','geopotential_height_850hPa']],
  prec:['بارش تجمعی',['precipitation']],
  snow:['برف تجمعی',['snowfall']],
- t850:['دمای ۸۵۰ هکتوپاسکال (۱۵۰۰ متر)',['temperature_850hPa','geopotential_height_850hPa']],
+ dt24:['تغییر دما در ۲۴ ساعت',['temperature_2m']],
  thick:['ضخامت ۱۰۰۰–۵۰۰ و فشار',['geopotential_height_500hPa','geopotential_height_1000hPa','pressure_msl']],
  wind:['تندباد ۱۰ متری',['wind_gusts_10m','wind_speed_10m','wind_direction_10m']],
- cape:['ناپایداری (CAPE) و رعد و برق',['cape','precipitation']]};
-const WB={m:S.wbM||'gfs_seamless',m2:S.wbM2||'ecmwf_ifs025',p:S.wbP||'mslp',ti:1,cmp:false,cache:{},timer:null,tiles:null};
-async function wbData(m,p){
-  const vars=WB_P[p][1].join(','),key=m+'|'+vars,c=WB.cache[key];if(c&&(c.p||Date.now()-c.t<60*60e3))return c.p||c;
-  const lats=[],lons=[];for(let r=0;r<WB_BB.nr;r++)for(let k=0;k<WB_BB.nc;k++){lats.push(WB_BB.lat1-r*WB_BB.st);lons.push(WB_BB.lon0+k*WB_BB.st)}
-  const base=`https://api.open-meteo.com/v1/forecast?latitude=${lats.join(',')}&longitude=${lons.join(',')}&hourly=${vars}&models=${m}&timezone=GMT&forecast_days=7`;
-  const pr=(async()=>{let j,six=true;try{j=await getJSON(base+'&temporal_resolution=hourly_6',60000)}catch(e){six=false;j=await getJSON(base,60000)}
+ cape:['ناپایداری (CAPE)',['cape','precipitation']]};
+const wbPanels=p=>p==='combo'?[['z500a',WB_BIG],['mslp',WB_BB]]:[[p,WB_P[p][2]||WB_BB]];
+const WB={m:S.wbM||'gfs_seamless',m2:S.wbM2||'ecmwf_ifs025',p:S.wbP&&WB_P[S.wbP]?S.wbP:'combo',L:24,cmp:false,cache:{},timer:null,tiles:{}};
+async function wbData(m,p,G){
+  const vars=WB_P[p][1].join(','),key=m+'|'+vars+'|'+G.st,c=WB.cache[key];if(c&&(c.p||Date.now()-c.t<60*60e3))return c.p||c;
+  const lats=[],lons=[];for(let r=0;r<G.nr;r++)for(let k=0;k<G.nc;k++){lats.push(+(G.lat1-r*G.st).toFixed(2));lons.push(+(G.lon0+k*G.st).toFixed(2))}
+  const base=`https://api.open-meteo.com/v1/forecast?latitude=${lats.join(',')}&longitude=${lons.join(',')}&hourly=${vars}&models=${m}&timezone=GMT&forecast_days=${WB_MAXD[m]||10}`;
+  const pr=(async()=>{let j,six=true;try{j=await getJSON(base+'&temporal_resolution=hourly_6',90000)}catch(e){six=false;j=await getJSON(base,90000)}
     const arr=Array.isArray(j)?j:[j];let times=arr[0].hourly.time;const V={};
     WB_P[p][1].forEach(v=>{V[v]=arr.map(a=>a.hourly[v]||[])});
     if(!six||(times.length>1&&new Date(times[1]+'Z')-new Date(times[0]+'Z')<6*36e5)){const idx=[];times.forEach((t,i)=>{if(+t.slice(11,13)%6===0)idx.push(i)});
       WB_P[p][1].forEach(v=>{const acc=v==='precipitation'||v==='snowfall';V[v]=V[v].map(a=>idx.map(i=>acc?a.slice(Math.max(0,i-5),i+1).reduce((s,x)=>s+(x||0),0):a[i]))});times=idx.map(i=>times[i])}
     if(!WB_P[p][1].some(v=>V[v].some(a=>a.some(x=>x!=null))))throw new Error('na');
-    return WB.cache[key]={t:Date.now(),times,V}})();
+    let bi=0;times.forEach((t,i)=>{if(new Date(t+':00Z')<=Date.now())bi=i});
+    return WB.cache[key]={t:Date.now(),times,V,bi}})();
   WB.cache[key]={p:pr};try{return await pr}catch(e){delete WB.cache[key];throw e}
 }
-function wbField(d,p,ti){
-  const V=d.V,N=WB_BB.nr*WB_BB.nc,g=i=>V[WB_P[p][1][0]][i];let col=[],cont=null,cint=0,arrows=null,lab=null;
-  const cum=(v)=>[...Array(N).keys()].map(i=>{let s=0;for(let k=1;k<=ti;k++)s+=V[v][i][k]||0;return s});
+function wbField(d,p,ti,G){
+  const V=d.V,N=G.nr*G.nc;let col=[],cont=null,cint=0,arrows=null,lab=null;const at=(a,k)=>a[k]==null?null:a[k];
+  const cum=v=>[...Array(N).keys()].map(i=>{let s=0;for(let k=d.bi+1;k<=ti;k++)s+=V[v][i][k]||0;return s});
   switch(p){
-   case 'mslp':col=V.precipitation.map(a=>a[ti]);cont=V.pressure_msl.map(a=>a[ti]);cint=4;lab='hl';break;
+   case 'z500a':{const z=V.geopotential_height_500hPa.map(a=>a[ti]==null?null:a[ti]/10);col=z.slice();for(let r=0;r<G.nr;r++){const row=[];for(let c=0;c<G.nc;c++){const v=z[r*G.nc+c];if(v!=null)row.push(v)}const mn=row.length?row.reduce((a,b)=>a+b,0)/row.length:0;for(let c=0;c<G.nc;c++){const i=r*G.nc+c;col[i]=z[i]==null?null:z[i]-mn}}cont=z;cint=6;lab='z';break}
+   case 'mslp':col=V.precipitation.map(a=>at(a,ti));cont=V.pressure_msl.map(a=>at(a,ti));cint=4;lab='hl';break;
    case 'z500':col=V.geopotential_height_500hPa.map(a=>a[ti]==null?null:a[ti]/10);cont=col;cint=6;arrows=[V.wind_speed_500hPa,V.wind_direction_500hPa];break;
-   case 't2':col=V.temperature_2m.map(a=>a[ti]);cont=col;cint=5;break;
+   case 't2':col=V.temperature_2m.map(a=>at(a,ti));cont=col;cint=5;break;
    case 'dt24':col=V.temperature_2m.map(a=>ti>=4&&a[ti]!=null&&a[ti-4]!=null?a[ti]-a[ti-4]:null);cont=col;cint=3;break;
    case 'prec':col=cum('precipitation');break;
    case 'snow':col=cum('snowfall');break;
-   case 't850':col=V.temperature_850hPa.map(a=>a[ti]);cont=V.geopotential_height_850hPa.map(a=>a[ti]==null?null:a[ti]/10);cint=3;break;
-   case 'thick':col=V.geopotential_height_500hPa.map((a,i)=>a[ti]!=null&&V.geopotential_height_1000hPa[i][ti]!=null?(a[ti]-V.geopotential_height_1000hPa[i][ti])/10:null);cont=V.pressure_msl.map(a=>a[ti]);cint=4;lab='hl';break;
-   case 'wind':col=V.wind_gusts_10m.map(a=>a[ti]);arrows=[V.wind_speed_10m,V.wind_direction_10m];break;
-   case 'cape':col=V.cape.map(a=>a[ti]);cont=null;break;}
+   case 't850':col=V.temperature_850hPa.map(a=>at(a,ti));cont=V.geopotential_height_850hPa.map(a=>a[ti]==null?null:a[ti]/10);cint=3;break;
+   case 'thick':col=V.geopotential_height_500hPa.map((a,i)=>a[ti]!=null&&V.geopotential_height_1000hPa[i][ti]!=null?(a[ti]-V.geopotential_height_1000hPa[i][ti])/10:null);cont=V.pressure_msl.map(a=>at(a,ti));cint=4;lab='hl';break;
+   case 'wind':col=V.wind_gusts_10m.map(a=>at(a,ti));arrows=[V.wind_speed_10m,V.wind_direction_10m];break;
+   case 'cape':col=V.cape.map(a=>at(a,ti));break;}
   return {col,cont,cint,arrows:arrows?arrows[0].map((a,i)=>[a[ti],arrows[1][i][ti]]):null,lab}
 }
 const WB_PAL={
- mslp:[[.1,[170,230,170]],[1,[90,200,90]],[3,[30,150,60]],[6,[250,230,60]],[10,[245,150,40]],[20,[220,40,40]],[40,[180,40,180]]],
+ z500a:[[-30,[75,20,110]],[-22,[110,60,190]],[-15,[70,110,215]],[-9,[60,170,220]],[-4,[120,205,170]],[0,[225,230,205]],[4,[250,215,140]],[9,[245,165,70]],[15,[225,95,40]],[22,[185,40,35]],[30,[120,15,25]]],
+ mslp:[[.2,[160,225,160]],[1,[70,190,90]],[2.5,[20,140,70]],[5,[40,120,220]],[8,[250,225,60]],[12,[245,140,40]],[20,[220,40,40]],[35,[170,40,170]]],
  prec:[[.5,[180,230,250]],[2,[110,190,245]],[5,[60,140,230]],[10,[40,180,90]],[20,[240,220,60]],[40,[240,140,40]],[70,[220,40,40]],[120,[170,40,170]]],
  snow:[[.5,[220,230,255]],[3,[170,190,250]],[10,[120,140,240]],[20,[150,90,230]],[40,[210,80,200]],[80,[255,255,255]]],
  z500:[[528,[110,40,160]],[540,[60,90,200]],[552,[60,170,220]],[564,[90,200,120]],[576,[240,210,70]],[588,[240,120,40]],[594,[190,40,40]]],
  thick:[[516,[110,40,160]],[528,[60,90,200]],[540,[60,170,220]],[552,[90,200,120]],[564,[240,210,70]],[576,[240,120,40]],[588,[190,40,40]]],
  dt24:[[-15,[40,60,200]],[-8,[80,140,240]],[-3,[170,210,250]],[0,[245,245,245]],[3,[250,200,160]],[8,[240,120,60]],[15,[190,30,30]]],
  cape:[[100,[200,240,200]],[500,[120,210,120]],[1000,[240,230,80]],[2000,[245,150,40]],[3000,[220,40,40]],[4500,[180,40,180]]]};
-function wbColor(p,v){if(v==null)return null;if(p==='t2'||p==='t850')return interp(TEMP_ST,v);if(p==='wind')return interp(WIND_ST,v);const P=WB_PAL[p];if(!P)return null;if((p==='mslp'||p==='prec'||p==='snow'||p==='cape')&&v<P[0][0])return null;return interp(P,v)}
-function wbLegend(p){const P=p==='t2'||p==='t850'?TEMP_ST.slice(1,13):p==='wind'?WIND_ST.slice(0,12):WB_PAL[p];const u={mslp:'mm/6h',prec:'mm',snow:'cm',z500:'dam',thick:'dam',dt24:'°C',cape:'J/kg',t2:'°C',t850:'°C',wind:'km/h'}[p];
-  return `<div class="cbar" style="background:linear-gradient(to right,${grad(P)})"></div><div class="cbar-l"><span>${fa(P[0][0])}</span><span>${fa(P[Math.floor(P.length/2)][0])}</span><span>${fa(P[P.length-1][0])} ${u}</span></div>`}
-/* marching squares */
-function contours(vals,lev){const nr=WB_BB.nr,nc=WB_BB.nc,seg=[];const v=(r,c)=>vals[r*nc+c];
+const WB_SPARSE={mslp:1,prec:1,snow:1,cape:1};
+function wbColor(p,v){if(v==null)return null;if(p==='t2'||p==='t850')return interp(TEMP_ST,v);if(p==='wind')return interp(WIND_ST,v);const P=WB_PAL[p];if(!P)return null;if(WB_SPARSE[p]&&v<P[0][0])return null;return interp(P,v)}
+const WB_U={mslp:'mm/6h',prec:'mm',snow:'cm',z500:'dam',z500a:'dam',thick:'dam',dt24:'°C',cape:'J/kg',t2:'°C',t850:'°C',wind:'km/h'};
+function wbLegend(p){const P=p==='t2'||p==='t850'?TEMP_ST.slice(1,13):p==='wind'?WIND_ST.slice(0,12):WB_PAL[p];
+  return `<div class="cbar" style="background:linear-gradient(to right,${grad(P)})"></div><div class="cbar-l"><span>${fa(P[0][0])}</span><span>${fa(P[Math.floor(P.length/2)][0])}</span><span>${fa(P[P.length-1][0])} ${WB_U[p]}</span></div>`}
+function upGrid(vals,G,f){const nr=(G.nr-1)*f+1,nc=(G.nc-1)*f+1,o=new Array(nr*nc),g={cols:G.nc,rows:G.nr};for(let r=0;r<nr;r++)for(let c=0;c<nc;c++)o[r*nc+c]=bil(vals,g,c/f,r/f);return{v:o,G:{...G,nr,nc,st:G.st/f}}}
+function contours(vals,lev,G){const nr=G.nr,nc=G.nc,seg=[];const v=(r,c)=>vals[r*nc+c];
   for(let r=0;r<nr-1;r++)for(let c=0;c<nc-1;c++){const a=v(r,c),b=v(r,c+1),d=v(r+1,c+1),e=v(r+1,c);if(a==null||b==null||d==null||e==null)continue;
     const idx=(a>lev?8:0)|(b>lev?4:0)|(d>lev?2:0)|(e>lev?1:0);if(idx===0||idx===15)continue;
     const T=[r,c+(lev-a)/(b-a)],R=[r+(lev-b)/(d-b),c+1],B=[r+1,c+(lev-e)/(d-e)],L=[r+(lev-a)/(e-a),c];
     const m={1:[[L,B]],2:[[B,R]],3:[[L,R]],4:[[T,R]],5:[[L,T],[B,R]],6:[[T,B]],7:[[L,T]],8:[[L,T]],9:[[T,B]],10:[[T,R],[L,B]],11:[[T,R]],12:[[L,R]],13:[[B,R]],14:[[L,B]]}[idx];m.forEach(s=>seg.push(s))}
   return seg}
-function wbTiles(){
-  if(WB.tiles)return WB.tiles;const z=5,x0=Math.floor(lon2x(WB_BB.lon0,z)/256),x1=Math.floor(lon2x(WB_BB.lon1,z)/256),y0=Math.floor(lat2y(WB_BB.lat1,z)/256),y1=Math.floor(lat2y(WB_BB.lat0,z)/256),L=[];
-  for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++)['World_Dark_Gray_Base','World_Dark_Gray_Reference'].forEach((ly,li)=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>{if(curTab==='md'&&(S.mdView||'map')==='map')wbDrawAll()};im.src=`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${ly}/MapServer/tile/${z}/${y}/${x}`;L.push({x,y,im,li})});
-  return WB.tiles={z,L}}
-function wbDraw(cv,d,m,p,ti){
-  const W=cv.clientWidth,z=5,X0=lon2x(WB_BB.lon0,z),Y0=lat2y(WB_BB.lat1,z),k=W/(lon2x(WB_BB.lon1,z)-X0),H=Math.round((lat2y(WB_BB.lat0,z)-Y0)*k);cv.style.height=H+'px';
+function wbTiles(G){
+  const z=G.z,key=z+'|'+G.lon0;if(WB.tiles[key])return WB.tiles[key];const x0=Math.floor(lon2x(G.lon0,z)/256),x1=Math.floor(lon2x(G.lon1,z)/256),y0=Math.floor(lat2y(G.lat1,z)/256),y1=Math.floor(lat2y(G.lat0,z)/256),L=[],n=2**z;
+  for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++)['World_Dark_Gray_Base','World_Dark_Gray_Reference'].forEach((ly,li)=>{const im=new Image();im.onload=()=>{if(curTab==='md'&&(S.mdView||'map')==='map')wbDrawAll()};im.src=`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${ly}/MapServer/tile/${z}/${y}/${((x%n)+n)%n}`;L.push({x,y,im,li})});
+  return WB.tiles[key]={z,L}}
+function wbDraw(cv,d,m,p,ti,G){
+  const W=cv.clientWidth||340,z=G.z,X0=lon2x(G.lon0,z),Y0=lat2y(G.lat1,z),k=W/(lon2x(G.lon1,z)-X0),H=Math.round((lat2y(G.lat0,z)-Y0)*k);cv.style.height=H+'px';
   const dpr=Math.min(2,devicePixelRatio||1);cv.width=W*dpr;cv.height=H*dpr;const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.fillStyle='#1d2433';x.fillRect(0,0,W,H);
-  const PX=lo=>(lon2x(lo,z)-X0)*k,PY=la=>(lat2y(la,z)-Y0)*k,G=(r,c)=>[PX(WB_BB.lon0+c*WB_BB.st),PY(WB_BB.lat1-r*WB_BB.st)];
-  const T=wbTiles();T.L.filter(t=>t.li===0).forEach(t=>{if(t.im.complete&&t.im.naturalWidth)x.drawImage(t.im,(t.x*256-X0)*k,(t.y*256-Y0)*k,256*k+.5,256*k+.5)});
-  if(!d){return}
-  const F=wbField(d,p,ti),nr=WB_BB.nr,nc=WB_BB.nc,f=6,iw=(nc-1)*f+1,ih=(nr-1)*f+1,oc=document.createElement('canvas');oc.width=iw;oc.height=ih;const ox=oc.getContext('2d'),im=ox.createImageData(iw,ih),gg={cols:nc,rows:nr};
-  for(let yy=0;yy<ih;yy++)for(let xx=0;xx<iw;xx++){const v=bil(F.col,gg,xx/f,yy/f),c=wbColor(p,v);if(c)im.data.set([...c,p==='mslp'||p==='prec'||p==='snow'||p==='cape'?210:185],(yy*iw+xx)*4)}
-  ox.putImageData(im,0,0);x.imageSmoothingEnabled=true;const NS=48;for(let s=0;s<NS;s++){const la1=WB_BB.lat1-(WB_BB.lat1-WB_BB.lat0)*s/NS,la2=WB_BB.lat1-(WB_BB.lat1-WB_BB.lat0)*(s+1)/NS,y1=PY(la1),y2=PY(la2);x.drawImage(oc,0,ih*s/NS,iw,ih/NS,0,y1,W,y2-y1+1)}
-  T.L.filter(t=>t.li===1).forEach(t=>{if(t.im.complete&&t.im.naturalWidth){x.globalAlpha=.85;x.drawImage(t.im,(t.x*256-X0)*k,(t.y*256-Y0)*k,256*k+.5,256*k+.5);x.globalAlpha=1}});
-  const pt=q=>{const la=WB_BB.lat1-q[0]*WB_BB.st,lo=WB_BB.lon0+q[1]*WB_BB.st;return [PX(lo),PY(la)]};
-  if(F.cont){const vals=F.cont.filter(v=>v!=null);if(vals.length){const lo=Math.ceil(Math.min(...vals)/F.cint)*F.cint,hi=Math.max(...vals);x.font='600 9.5px Vazirmatn,Tahoma,sans-serif';x.textAlign='center';x.textBaseline='middle';
-    for(let lev=lo;lev<=hi;lev+=F.cint){const sg=contours(F.cont,lev);if(!sg.length)continue;const dash=p==='dt24'&&lev<0;x.setLineDash(dash?[4,3]:[]);x.strokeStyle=p==='dt24'&&lev===0?'rgba(0,0,0,.6)':'rgba(255,255,255,.85)';x.lineWidth=p==='z500'&&lev===576?2:1.2;x.beginPath();sg.forEach(s=>{const a=pt(s[0]),b=pt(s[1]);x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1])});x.stroke();x.setLineDash([]);
-      for(let i=0;i<sg.length;i+=Math.max(14,Math.floor(sg.length/3))){const a=pt(sg[i][0]);const t=fa(lev);x.lineWidth=3;x.strokeStyle='rgba(0,0,0,.65)';x.strokeText(t,a[0],a[1]);x.fillStyle='#fff';x.fillText(t,a[0],a[1])}}}}
-  if(F.lab==='hl'&&F.cont){x.font='800 15px Tahoma,sans-serif';x.textAlign='center';for(let r=2;r<nr-2;r++)for(let c=2;c<nc-2;c++){const v=F.cont[r*nc+c];if(v==null)continue;let mx=true,mn=true;for(let dr=-2;dr<=2;dr++)for(let dc=-2;dc<=2;dc++){if(!dr&&!dc)continue;const w=F.cont[(r+dr)*nc+c+dc];if(w==null)continue;if(w>=v)mx=false;if(w<=v)mn=false}
-    if(mx||mn){const [px,py]=G(r,c);x.lineWidth=3;x.strokeStyle='rgba(0,0,0,.7)';x.strokeText(mx?'H':'L',px,py-6);x.fillStyle=mx?'#60a5fa':'#f87171';x.fillText(mx?'H':'L',px,py-6);x.font='600 9px Tahoma';x.fillStyle='#fff';x.strokeText(Math.round(v),px,py+8);x.fillText(Math.round(v),px,py+8);x.font='800 15px Tahoma,sans-serif'}}}
-  if(F.arrows){x.strokeStyle='rgba(255,255,255,.9)';x.lineWidth=1.3;for(let r=0;r<nr;r+=2)for(let c=0;c<nc;c+=2){const a=F.arrows[r*nc+c];if(!a||a[0]==null||a[1]==null)continue;const [px,py]=G(r,c),L=Math.min(22,4+a[0]/(p==='z500'?7:3.5)),ang=(a[1]+180)*Math.PI/180,dx=Math.sin(ang)*L,dy=-Math.cos(ang)*L;
+  const PX=lo=>(lon2x(lo,z)-X0)*k,PY=la=>(lat2y(la,z)-Y0)*k;
+  const T=wbTiles(G);T.L.filter(t=>t.li===0).forEach(t=>{if(t.im.complete&&t.im.naturalWidth)x.drawImage(t.im,(t.x*256-X0)*k,(t.y*256-Y0)*k,256*k+.5,256*k+.5)});
+  const hdr=(t1,t2)=>{x.fillStyle='rgba(10,16,32,.82)';x.fillRect(0,0,W,24);x.fillStyle='#fff';x.font='700 11.5px Vazirmatn,Tahoma,sans-serif';x.textAlign='right';x.direction='rtl';x.fillText(t1,W-7,13);x.textAlign='left';x.direction='ltr';x.font='600 10px Vazirmatn,Tahoma';x.fillStyle='#fde68a';x.fillText(t2,7,13)};
+  if(!d||ti>=d.times.length){hdr(`${MM[m]?MM[m][2]:m} · ${WB_P[p][0]}`,'');x.fillStyle='rgba(255,255,255,.75)';x.font='600 13px Vazirmatn,Tahoma';x.textAlign='center';x.direction='rtl';x.fillText(d?'این مدل برای این ساعت پیش‌بینی ندارد':'در حال دریافت…',W/2,H/2);return}
+  const F=wbField(d,p,ti,G);if(!F.col.some(v=>v!=null)){hdr(`${MM[m][2]} · ${WB_P[p][0]}`,'');x.fillStyle='rgba(255,255,255,.75)';x.font='600 13px Vazirmatn,Tahoma';x.textAlign='center';x.direction='rtl';x.fillText('این مدل برای این ساعت پیش‌بینی ندارد',W/2,H/2);return}
+  const nr=G.nr,nc=G.nc,f=G===WB_BIG?10:6,iw=(nc-1)*f+1,ih=(nr-1)*f+1,oc=document.createElement('canvas');oc.width=iw;oc.height=ih;const ox=oc.getContext('2d'),im=ox.createImageData(iw,ih),gg={cols:nc,rows:nr},alpha=p==='z500a'?215:WB_SPARSE[p]?215:190;
+  for(let yy=0;yy<ih;yy++)for(let xx=0;xx<iw;xx++){const v=bil(F.col,gg,xx/f,yy/f),c=wbColor(p,v);if(c)im.data.set([...c,alpha],(yy*iw+xx)*4)}
+  ox.putImageData(im,0,0);x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';const NS=60;for(let s=0;s<NS;s++){const la1=G.lat1-(G.lat1-G.lat0)*s/NS,la2=G.lat1-(G.lat1-G.lat0)*(s+1)/NS,y1=PY(la1),y2=PY(la2);x.drawImage(oc,0,ih*s/NS,iw,ih/NS,0,y1,W,y2-y1+1)}
+  T.L.filter(t=>t.li===1).forEach(t=>{if(t.im.complete&&t.im.naturalWidth){x.globalAlpha=.9;x.drawImage(t.im,(t.x*256-X0)*k,(t.y*256-Y0)*k,256*k+.5,256*k+.5);x.globalAlpha=1}});
+  if(F.cont){const U=upGrid(F.cont,G,G===WB_BIG?3:2),vals=U.v.filter(v=>v!=null);const pt=q=>[PX(U.G.lon0+q[1]*U.G.st),PY(U.G.lat1-q[0]*U.G.st)];
+    if(vals.length){const lo=Math.ceil(Math.min(...vals)/F.cint)*F.cint,hi=Math.max(...vals);x.font='700 9.5px Vazirmatn,Tahoma,sans-serif';x.textAlign='center';x.textBaseline='middle';x.direction='ltr';
+    for(let lev=lo;lev<=hi;lev+=F.cint){const sg=contours(U.v,lev,U.G);if(!sg.length)continue;const neg=p==='dt24'&&lev<0;x.setLineDash(neg?[4,3]:[]);
+      x.strokeStyle=p==='z500a'?'rgba(20,24,40,.75)':'rgba(255,255,255,.88)';x.lineWidth=(p==='z500a'||p==='z500')&&lev===576?2.2:p==='z500a'?1:1.2;x.beginPath();sg.forEach(s=>{const a=pt(s[0]),b=pt(s[1]);x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1])});x.stroke();x.setLineDash([]);
+      if(p==='z500a'&&lev%12)continue;for(let i=Math.floor(sg.length/3);i<sg.length;i+=Math.max(60,Math.floor(sg.length/2))){const a=pt(sg[i][0]);if(a[1]<30||a[1]>H-20)continue;const t=fa(lev);x.lineWidth=3;x.strokeStyle=p==='z500a'?'rgba(255,255,255,.85)':'rgba(0,0,0,.65)';x.strokeText(t,a[0],a[1]);x.fillStyle=p==='z500a'?'#111827':'#fff';x.fillText(t,a[0],a[1])}}}}
+  const G2=(r,c)=>[PX(G.lon0+c*G.st),PY(G.lat1-r*G.st)];
+  if((F.lab==='hl'||F.lab==='z')&&F.cont){x.textAlign='center';x.direction='ltr';const R=F.lab==='z'?1:2;for(let r=R;r<nr-R;r++)for(let c=R;c<nc-R;c++){const v=F.cont[r*nc+c];if(v==null)continue;let mx=true,mn=true;for(let dr=-R;dr<=R;dr++)for(let dc=-R;dc<=R;dc++){if(!dr&&!dc)continue;const w=F.cont[(r+dr)*nc+c+dc];if(w==null)continue;if(w>=v)mx=false;if(w<=v)mn=false}
+    if(mx||mn){const [px,py]=G2(r,c);if(py<34)continue;x.font='900 17px Tahoma,sans-serif';x.lineWidth=3.5;x.strokeStyle='rgba(0,0,0,.75)';x.strokeText(mx?'H':'L',px,py-6);x.fillStyle=mx?'#60a5fa':'#f87171';x.fillText(mx?'H':'L',px,py-6);x.font='700 9px Tahoma';x.fillStyle='#fff';x.lineWidth=3;x.strokeText(Math.round(v),px,py+9);x.fillText(Math.round(v),px,py+9)}}}
+  if(F.arrows){x.strokeStyle='rgba(255,255,255,.9)';x.lineWidth=1.3;for(let r=0;r<nr;r+=2)for(let c=0;c<nc;c+=2){const a=F.arrows[r*nc+c];if(!a||a[0]==null||a[1]==null)continue;const [px,py]=G2(r,c),L=Math.min(22,4+a[0]/(p==='z500'?7:3.5)),ang=(a[1]+180)*Math.PI/180,dx=Math.sin(ang)*L,dy=-Math.cos(ang)*L;
     x.beginPath();x.moveTo(px-dx/2,py-dy/2);x.lineTo(px+dx/2,py+dy/2);const hx=px+dx/2,hy=py+dy/2,a1=Math.atan2(dy,dx);x.lineTo(hx-5*Math.cos(a1-.5),hy-5*Math.sin(a1-.5));x.moveTo(hx,hy);x.lineTo(hx-5*Math.cos(a1+.5),hy-5*Math.sin(a1+.5));x.stroke()}}
-  POPULAR.slice(0,10).forEach(q=>{const px=PX(q[2]),py=PY(q[1]);x.fillStyle='#fff';x.beginPath();x.arc(px,py,2,0,7);x.fill()});
-  const vt=new Date(d.times[ti]+':00Z');x.fillStyle='rgba(10,16,32,.78)';x.fillRect(0,0,W,22);x.fillRect(0,H-18,W,18);x.fillStyle='#fff';x.font='700 11px Vazirmatn,Tahoma,sans-serif';x.textAlign='right';x.direction='rtl';
-  x.fillText(`${MM[m]?MM[m][2]:m} · ${WB_P[p][0]}`,W-6,12);x.textAlign='left';x.direction='ltr';x.font='600 10px Tahoma';x.fillText(`+${ti*6}h · ${d.times[ti].replace('T',' ')} UTC`,6,12);
-  x.font='600 9.5px Vazirmatn,Tahoma';x.globalAlpha=.8;x.fillText('Arvan Weather · Open-Meteo',6,H-7);x.globalAlpha=1;
+  if(G!==WB_BIG)POPULAR.slice(0,10).forEach(q=>{const px=PX(q[2]),py=PY(q[1]);x.fillStyle='#fff';x.beginPath();x.arc(px,py,2,0,7);x.fill()});
+  const vt=new Date(d.times[ti]+':00Z'),lead=(ti-d.bi)*6;
+  hdr(`${MM[m]?MM[m][2]:m} · ${WB_P[p][0]}`,`+${lead}h · ${fmtRT(vt,{weekday:'short',day:'numeric',month:'short',hour:'2-digit'})}`);
+  x.fillStyle='rgba(10,16,32,.7)';x.fillRect(0,H-16,W,16);x.fillStyle='rgba(255,255,255,.8)';x.font='600 9.5px Vazirmatn,Tahoma';x.textAlign='left';x.direction='ltr';x.fillText('Arvan Weather · Open-Meteo · '+(MM[m]?MM[m][2]:m),6,H-6);
 }
-let WBD={a:null,b:null};
-function wbDrawAll(){const a=$('#wbA'),b=$('#wbB');if(a)wbDraw(a,WBD.a,WB.m,WB.p,Math.min(WB.ti,WBD.a?WBD.a.times.length-1:0));if(b&&WB.cmp)wbDraw(b,WBD.b,WB.m2,WB.p,Math.min(WB.ti,WBD.b?WBD.b.times.length-1:0))}
+let WBD={};
+const wbKey=(m,p,G)=>m+'|'+p+'|'+G.st;
+function wbDrawAll(){$$('#mdBox canvas.wbcv').forEach(cv=>{const m=cv.dataset.m,p=cv.dataset.p,G=p==='z500a'?WB_BIG:(WB_P[p][2]||WB_BB),d=WBD[wbKey(m,p,G)];wbDraw(cv,d,m,p,d?d.bi+WB.L/6:0,G)});wbTimeLbl()}
 async function wbLoad(){
-  const msg=$('#wbMsg');if(msg)msg.textContent='در حال دریافت نقشه مدل…';WBD={a:null,b:null};wbDrawAll();
-  const [ra,rb]=await Promise.allSettled([wbData(WB.m,WB.p),WB.cmp?wbData(WB.m2,WB.p):Promise.resolve(null)]);
-  if(curTab!=='md'||(S.mdView||'map')!=='map')return;WBD.a=ra.status==='fulfilled'?ra.value:null;WBD.b=rb.status==='fulfilled'?rb.value:null;
-  const n=Math.max(WBD.a?WBD.a.times.length:0,WBD.b?WBD.b.times.length:0);const s=$('#wbSl');if(s){s.max=Math.max(0,n-1);WB.ti=Math.min(WB.ti,Math.max(0,n-1));s.value=WB.ti}
-  if(msg)msg.textContent=!WBD.a?(MM[WB.m][2]+': این پارامتر برای این مدل در دسترس نیست یا دریافت نشد'):(WB.cmp&&!WBD.b?MM[WB.m2][2]+': داده ندارد':'');wbTimeLbl();wbDrawAll();
+  const msg=$('#wbMsg');if(msg)msg.textContent='در حال دریافت نقشه‌های مدل…';const ms=[WB.m].concat(WB.cmp?[WB.m2]:[]),jobs=[];
+  ms.forEach(m=>wbPanels(WB.p).forEach(([p,G])=>{const k=wbKey(m,p,G);jobs.push(wbData(m,p,G).then(d=>{WBD[k]=d;if(curTab==='md')wbDrawAll()}).catch(()=>{WBD[k]=null;if(curTab==='md')wbDrawAll();return m}))}));
+  wbDrawAll();const r=await Promise.all(jobs);const bad=[...new Set(r.filter(x=>typeof x==='string'))];
+  const m2=$('#wbMsg');if(m2)m2.textContent=bad.length?bad.map(b=>MM[b][2]).join('، ')+': این نقشه برای این مدل در دسترس نیست':'';wbChips();
 }
-function wbTimeLbl(){const d=WBD.a||WBD.b,el=$('#wbT');if(!el||!d||!d.times[WB.ti])return;el.textContent=fmtRT(new Date(d.times[WB.ti]+':00Z'),{weekday:'short',hour:'2-digit',minute:'2-digit'})+' · +'+fa(WB.ti*6)+'h'}
+function wbMaxLead(){const ms=[WB.m].concat(WB.cmp?[WB.m2]:[]);let mx=360;ms.forEach(m=>{mx=Math.min(mx,(WB_MAXD[m]||10)*24-24)});return mx}
+function wbChips(){const el=$('#wbL');if(!el)return;const mx=wbMaxLead();el.innerHTML=WB_LEADS.map(L=>`<button class="chip lc ${L===WB.L?'on':''}" data-l="${L}" ${L>mx?'disabled':''}>${L===0?'اکنون':'+'+fa(L)}</button>`).join('');
+  $$('#wbL .chip').forEach(b=>b.onclick=()=>{WB.L=+b.dataset.l;$$('#wbL .chip').forEach(x=>x.classList.toggle('on',x===b));wbDrawAll()});
+  const on=$('#wbL .chip.on');if(on)on.scrollIntoView({block:'nearest',inline:'center'})}
+function wbTimeLbl(){const el=$('#wbT');if(!el)return;const d=Object.values(WBD).find(Boolean);if(!d)return;const ti=d.bi+WB.L/6;if(!d.times[ti]){el.textContent='+'+fa(WB.L)+' ساعت';return}el.textContent=(WB.L?'+'+fa(WB.L)+' ساعت · ':'اکنون · ')+fmtRT(new Date(d.times[ti]+':00Z'),{weekday:'long',hour:'2-digit',minute:'2-digit'})}
 function renderWB(el){
-  const mc=(id,sel)=>`<button class="chip mchip ${sel?'on':''}" data-wm="${id}"><i style="background:${MM[id][4]}"></i>${MM[id][2]}</button>`;
-  el.innerHTML=`<div class="card"><h3>🗺️ نقشه‌های مدل<span class="r">ایران و خاورمیانه · هر ۶ ساعت تا ۷ روز</span></h3>
-   <div class="mgrp">مدل</div><div class="chips">${WB_M.map(id=>mc(id,id===WB.m)).join('')}</div>
-   <div class="mgrp">پارامتر</div><div class="chips">${Object.entries(WB_P).map(([k,v])=>`<button class="chip ${k===WB.p?'on':''}" data-wp="${k}">${v[0]}</button>`).join('')}</div>
+  if(WB.L>wbMaxLead())WB.L=wbMaxLead();
+  const mc=(id,sel,attr)=>`<button class="chip mchip ${sel?'on':''}" data-${attr}="${id}"><i style="background:${MM[id][4]}"></i>${MM[id][2]}<small class="mxd">${fa((WB_MAXD[id]||10)*24-24)}h</small></button>`;
+  const ms=[WB.m].concat(WB.cmp?[WB.m2]:[]),cvs=ms.map(m=>wbPanels(WB.p).map(([p])=>`<canvas class="wbcv" data-m="${m}" data-p="${p}"></canvas>`).join('')).join('<div class="wbsep"></div>');
+  el.innerHTML=`<div class="card"><h3>🗺️ نقشه‌های مدل<span class="r">هر ۶ ساعت · تا ${fa(wbMaxLead())} ساعت آینده</span></h3>
+   <div class="mgrp">مدل</div><div class="chips">${WB_M.map(id=>mc(id,id===WB.m,'wm')).join('')}</div>
+   <div class="mgrp">نقشه</div><div class="chips">${Object.entries(WB_P).map(([k,v])=>`<button class="chip ${k===WB.p?'on':''}" data-wp="${k}">${v[0]}</button>`).join('')}</div>
    <div class="setl" style="margin-top:10px"><span>مقایسه با مدل دوم</span><button class="sw ${WB.cmp?'on':''}" id="wbCmp"></button></div>
-   ${WB.cmp?`<div class="chips nowrap scroll-x">${WB_M.filter(i=>i!==WB.m).map(id=>`<button class="chip mchip ${id===WB.m2?'on':''}" data-wm2="${id}"><i style="background:${MM[id][4]}"></i>${MM[id][2]}</button>`).join('')}</div>`:''}</div>
-   <div class="card wbc"><canvas id="wbA" class="wbcv"></canvas>${WB.cmp?'<canvas id="wbB" class="wbcv" style="margin-top:8px"></canvas>':''}<div class="note" id="wbMsg" style="text-align:center"></div>
-    <div class="tl" style="margin-top:8px"><button class="ibtn" id="wbPlay">${WB.timer?'⏸':'▶'}</button><input type="range" id="wbSl" min="0" max="27" value="${WB.ti}"><b id="wbT" style="min-width:110px;text-align:center;font-size:12.5px"></b></div>
-    ${wbLegend(WB.p)}<div class="note" style="margin-top:6px">${{mslp:'خطوط سفید: فشار سطح دریا هر ۴ هکتوپاسکال · H پرفشار، L کم‌فشار · رنگ: بارش ۶ ساعته',z500:'خطوط: ارتفاع ۵۰۰ هکتوپاسکال (دکامتر) — ناوه‌ها و پشته‌ها · پیکان: باد ترازهای میانی',t2:'دمای ۲ متری با خطوط هم‌دما هر ۵ درجه',dt24:'تغییر دما نسبت به ۲۴ ساعت قبل؛ آبی سردتر، قرمز گرم‌تر — ورود سامانه سرد را نشان می‌دهد',prec:'بارش تجمعی از ابتدای اجرا تا زمان انتخابی',snow:'برف تجمعی (سانتی‌متر) از ابتدای اجرا',t850:'دمای حدود ۱۵۰۰ متری؛ زیر ۰ و −۵ درجه معمولاً یعنی برف در ارتفاعات · خطوط: ارتفاع ۸۵۰',thick:'ضخامت ۱۰۰۰–۵۰۰ (دکامتر)؛ مرز ۵۴۰ تقریباً خط باران/برف · خطوط: فشار',wind:'رنگ: تندباد · پیکان: جهت باد ۱۰ متری',cape:'انرژی ناپایداری؛ بالای ۱۰۰۰ احتمال رعد و برق و تگرگ، بالای ۲۵۰۰ توفان‌های شدید'}[WB.p]}</div></div>`;
+   ${WB.cmp?`<div class="chips">${WB_M.filter(i=>i!==WB.m).map(id=>mc(id,id===WB.m2,'wm2')).join('')}</div>`:''}</div>
+   <div class="card wbc"><div class="wbtime"><button class="ibtn" id="wbPlay">${WB.timer?'⏸':'▶'}</button><b id="wbT"></b></div><div class="chips nowrap scroll-x" id="wbL" style="margin:8px 0"></div>
+    ${cvs}<div class="note" id="wbMsg" style="text-align:center"></div>
+    ${wbPanels(WB.p).map(([p])=>`<div class="wblg"><b>${WB_P[p][0]}</b>${wbLegend(p)}</div>`).join('')}
+    <div class="note" style="margin-top:6px">${WB.p==='combo'?'<b>بالا:</b> ارتفاع ۵۰۰ هکتوپاسکال (خطوط، دکامتر) و ناهنجاری آن؛ آبی/بنفش = ناوه و هوای سرد (سامانه بارشی)، نارنجی/قرمز = پشته و هوای گرم و پایدار. <b>پایین:</b> فشار سطح دریا (خطوط سفید، H پرفشار، L کم‌فشار) و بارش ۶ ساعته روی ایران.':{mslp:'خطوط سفید: فشار سطح دریا هر ۴ هکتوپاسکال · H پرفشار، L کم‌فشار · رنگ: بارش ۶ ساعته',z500a:'ارتفاع ۵۰۰ هکتوپاسکال و ناهنجاری آن نسبت به میانگین همان عرض جغرافیایی',z500:'خطوط: ارتفاع ۵۰۰ (دکامتر) · پیکان: باد ترازهای میانی',t2:'دمای ۲ متری با خطوط هم‌دما',dt24:'تغییر دما نسبت به ۲۴ ساعت قبل',prec:'بارش تجمعی از اکنون تا ساعت انتخابی',snow:'برف تجمعی (سانتی‌متر) از اکنون تا ساعت انتخابی',t850:'دمای حدود ۱۵۰۰ متری؛ زیر صفر یعنی احتمال برف در ارتفاعات',thick:'ضخامت ۱۰۰۰–۵۰۰؛ مرز ۵۴۰ تقریباً خط باران و برف',wind:'رنگ: تندباد · پیکان: جهت باد',cape:'بالای ۱۰۰۰ احتمال رعد و برق و تگرگ'}[WB.p]} · هر مدل بازه پیش‌بینی خودش را دارد (عدد کنار نام مدل).</div></div>`;
   $$('#t-md [data-wm]').forEach(b=>b.onclick=()=>{WB.m=S.wbM=b.dataset.wm;if(WB.m2===WB.m)WB.m2=WB_M.find(i=>i!==WB.m);saveS();renderModels()});
   $$('#t-md [data-wm2]').forEach(b=>b.onclick=()=>{WB.m2=S.wbM2=b.dataset.wm2;saveS();renderModels()});
   $$('#t-md [data-wp]').forEach(b=>b.onclick=()=>{WB.p=S.wbP=b.dataset.wp;saveS();renderModels()});
   $('#wbCmp').onclick=()=>{WB.cmp=!WB.cmp;renderModels()};
-  $('#wbSl').oninput=e=>{WB.ti=+e.target.value;wbTimeLbl();wbDrawAll()};
-  $('#wbPlay').onclick=()=>{if(WB.timer){clearInterval(WB.timer);WB.timer=null}else WB.timer=setInterval(()=>{if(curTab!=='md'||(S.mdView||'map')!=='map'){clearInterval(WB.timer);WB.timer=null;return}const s=$('#wbSl');const n=+s.max+1;WB.ti=(WB.ti+1)%n;s.value=WB.ti;wbTimeLbl();wbDrawAll()},800);$('#wbPlay').textContent=WB.timer?'⏸':'▶'};
-  wbLoad();
+  $('#wbPlay').onclick=()=>{if(WB.timer){clearInterval(WB.timer);WB.timer=null}else WB.timer=setInterval(()=>{if(curTab!=='md'||(S.mdView||'map')!=='map'){clearInterval(WB.timer);WB.timer=null;return}const mx=wbMaxLead(),L=WB_LEADS.filter(v=>v<=mx),i=L.indexOf(WB.L);WB.L=L[(i+1)%L.length];wbChips();wbDrawAll()},900);$('#wbPlay').textContent=WB.timer?'⏸':'▶'};
+  wbChips();wbLoad();
 }
 
 /* ---------- country cities min/max ---------- */

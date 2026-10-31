@@ -78,11 +78,11 @@ def handle(route):
             if tz == 'auto': st = NOW.replace(hour=0)
             LA = [float(x) for x in lats]; LO = [float(x) for x in q.get('longitude', ['0'])[0].split(',')]
             STEP = 6 if 'temporal_resolution' in q else 1
-            if STEP == 6: N = 28
+            if STEP == 6: N = int(q.get('forecast_days', ['7'])[0]) * 4
             def real(v, la, lo, k):
                 kk = k * STEP / 6.0; e = math.exp
                 if v == 'pressure_msl': return round(1016 + 9 * e(-((la - 39) ** 2 + (lo - 60) ** 2) / 40) - 14 * e(-((la - 33.5) ** 2 + (lo - 44 - kk * .45) ** 2) / 22), 1)
-                if v == 'geopotential_height_500hPa': return round(5900 - 9.5 * (la - 20) ** 1.25 - 160 * e(-((lo - 44 - kk * .45) ** 2) / 35) * (la - 20) / 24, 0)
+                if v == 'geopotential_height_500hPa': return round(5900 - 9.5 * max(0, la - 14) ** 1.25 - 220 * e(-((lo - 44 - kk * 1.2) ** 2) / 60 - ((la - 45) ** 2) / 150) + 160 * e(-((lo - 10 - kk * .8) ** 2) / 80 - ((la - 50) ** 2) / 120) - 200 * e(-((lo + 15) ** 2) / 70 - ((la - 58) ** 2) / 60), 0)
                 if v == 'geopotential_height_1000hPa': return round((real('pressure_msl', la, lo, k) - 1013) * 8 + 110, 0)
                 if v == 'geopotential_height_850hPa': return round(1500 + (real('pressure_msl', la, lo, k) - 1013) * 9, 0)
                 if v == 'temperature_2m': return round(31 - .95 * (la - 20) - 7 * e(-((lo - 45 - kk * .45) ** 2) / 30) * (la - 20) / 24 + 3 * math.sin(k * STEP / 24 * 6.28), 1)
@@ -164,6 +164,7 @@ def handle(route):
     if u.hostname == 'gibs.earthdata.nasa.gov':
         b = io.BytesIO(); im = Image.new('RGBA', (1040, 800), (0, 0, 0, 0)); [im.putpixel((x, y), (40, 120, 255, 200)) for x in range(400, 700) for y in range(300, 450)]; im.save(b, 'PNG'); return route.fulfill(status=200, content_type='image/png', body=b.getvalue())
     if 'tilecache.rainviewer.com' in u.hostname: return route.fulfill(status=200, content_type='image/png', body=RADAR)
+    if 'Reference' in route.request.url: return route.fulfill(status=200, content_type='image/png', body=png((0, 0, 0, 0)))
     if 'cartocdn' in u.hostname or 'arcgisonline' in u.hostname: return route.fulfill(status=200, content_type='image/png', body=TILE)
     if u.hostname == 'cdn.jsdelivr.net': return route.fulfill(status=200, content_type='text/css', body='')
     return route.continue_()
@@ -204,7 +205,7 @@ with sync_playwright() as p:
     pg.click('nav button[data-t=now]'); pg.wait_for_timeout(500); pg.evaluate('openGlance()'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/glance.png'); pg.click('#glance'); pg.wait_for_timeout(300)
     pg.click('nav button[data-t=md]'); pg.wait_for_timeout(300)
     pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/wb1.png', full_page=True)
-    pg.click('#t-md [data-wp=z500]'); pg.wait_for_timeout(2500); pg.click('#wbCmp'); pg.wait_for_timeout(3000); pg.screenshot(path=f'{OUT}/wb2.png', full_page=True)
+    pg.click('#wbL .chip[data-l="72"]'); pg.wait_for_timeout(800); pg.screenshot(path=f'{OUT}/wb1b.png', full_page=True); pg.click('#t-md [data-wp=z500]'); pg.wait_for_timeout(2500); pg.click('#wbCmp'); pg.wait_for_timeout(3000); pg.screenshot(path=f'{OUT}/wb2.png', full_page=True)
     pg.click('#mdV button[data-v=city]'); pg.wait_for_timeout(500)
     pg.click('#t-md .mchip[data-m=kma_seamless]'); pg.wait_for_timeout(200); pg.click('#t-md .mchip[data-m=knmi_seamless]'); pg.wait_for_timeout(1500)
     pg.screenshot(path=f'{OUT}/6-models.png', full_page=True)
