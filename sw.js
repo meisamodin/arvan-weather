@@ -1,5 +1,5 @@
 // اروان ودر — service worker
-const V = 'aw-v1.2.1';
+const V = 'aw-v1.2.2';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'privacy.html', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png'];
 
 self.addEventListener('install', e => {

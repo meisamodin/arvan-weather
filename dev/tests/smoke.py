@@ -103,7 +103,7 @@ def handle(route):
     if u.hostname == 'gibs.earthdata.nasa.gov':
         b = io.BytesIO(); im = Image.new('RGBA', (1040, 800), (0, 0, 0, 0)); [im.putpixel((x, y), (40, 120, 255, 200)) for x in range(400, 700) for y in range(300, 450)]; im.save(b, 'PNG'); return route.fulfill(status=200, content_type='image/png', body=b.getvalue())
     if 'tilecache.rainviewer.com' in u.hostname: return route.fulfill(status=200, content_type='image/png', body=RADAR)
-    if 'cartocdn' in u.hostname: return route.fulfill(status=200, content_type='image/png', body=TILE)
+    if 'cartocdn' in u.hostname or 'arcgisonline' in u.hostname: return route.fulfill(status=200, content_type='image/png', body=TILE)
     if u.hostname == 'cdn.jsdelivr.net': return route.fulfill(status=200, content_type='text/css', body='')
     return route.continue_()
 
