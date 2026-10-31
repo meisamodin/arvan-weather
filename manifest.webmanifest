@@ -1,19 +1,70 @@
 {
   "name": "اروان ودر — هواشناسی حرفه‌ای",
   "short_name": "اروان ودر",
-  "description": "پیش‌بینی ساعتی و ۱۰ روزه، کیفیت هوا و گرد و غبار، رادار باران و مقایسه مدل‌های جهانی هواشناسی",
+  "description": "پیش‌بینی ۱۶ روزه، رادار سراسری ایران و رعد و برق، نقشه باد متحرک، کیفیت هوا و گرد و غبار، جاده‌ها و نقشه‌های ۱۵ مدل جهانی",
   "lang": "fa",
   "dir": "rtl",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/arvan-weather/",
+  "scope": "/arvan-weather/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "background_color": "#0b1530",
   "theme_color": "#0b1530",
-  "categories": ["weather", "utilities"],
+  "categories": [
+    "weather",
+    "utilities"
+  ],
   "icons": [
-    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
-    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
-    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "/arvan-weather/",
+  "shortcuts": [
+    {
+      "name": "رادار",
+      "url": "/arvan-weather/?tab=rd",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "نقشه باد",
+      "url": "/arvan-weather/?tab=map",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "مدل‌ها",
+      "url": "/arvan-weather/?tab=md",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
   ]
 }

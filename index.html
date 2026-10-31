@@ -289,6 +289,15 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 .exr{flex:1;min-width:0}.exrun{font-size:32px;display:inline-block;margin-bottom:2px}.exrun.go{animation:aw-run .45s ease-in-out infinite alternate}@keyframes aw-run{from{transform:translate(0,0) rotate(-4deg)}to{transform:translate(-12px,-4px) rotate(4deg)}}
 .exrun.stop{animation:aw-bob 3s ease-in-out infinite}
 .exh{display:flex;gap:2px;align-items:flex-end;height:68px;direction:rtl;margin-top:4px}.exh div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}.exh i{display:block;width:100%;border-radius:3px 3px 1px 1px;transform-origin:bottom;animation:aw-grow .6s both}.exh i.bst{box-shadow:0 0 0 2px #fff,0 0 12px #fff}.exh small{font-size:9px;color:var(--dim);height:12px}
+.almore{margin:0 16px}.almore summary{cursor:pointer;font-size:13px;color:var(--sub);padding:4px 2px;list-style:none}.almore .alert{margin:8px 0}
+.qk{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:10px 0 0}.qk span{font-size:12.5px;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:3px 10px;backdrop-filter:blur(6px)}
+.hr .hm{font-size:10px;color:#7dd3fc;min-height:13px}.hr .hw{font-size:10.5px;color:var(--sub);display:flex;align-items:center;justify-content:center;gap:2px}.hr .hw svg{width:9px;height:9px}
+.hsun{background:linear-gradient(180deg,rgba(253,184,19,.22),rgba(253,184,19,.04));border-radius:16px}.hsun .sev{font-size:26px;height:38px;display:grid;place-items:center}
+.hday{flex:0 0 auto;writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;color:var(--acc);padding:0 2px;border-inline-start:1px dashed var(--line);display:flex;align-items:center;justify-content:center}
+.dclk{cursor:pointer;border-radius:12px;transition:background .2s}.dclk:active{background:var(--card2)}
+.ptr{position:fixed;top:0;left:50%;transform:translate(-50%,-40px);width:36px;height:36px;border-radius:50%;background:rgba(15,26,51,.9);color:#fff;display:grid;place-items:center;font-size:20px;z-index:70;opacity:0;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.35)}.ptr.go{opacity:1!important;transform:translate(-50%,20px)!important}
+.wk{display:grid;grid-template-columns:1fr 1fr;gap:6px}.wk div{background:var(--card2);border-radius:12px;padding:7px 9px;display:grid;grid-template-columns:auto 1fr;column-gap:6px;align-items:center}.wk span{grid-row:1/3;font-size:20px}.wk small{color:var(--sub);font-size:11px}.wk b{font-size:13px}
+.dd .body .hours .hr{flex-basis:50px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 
 </style>
@@ -397,7 +406,7 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 
 <script>
 'use strict';
-const VERSION='1.14.0';
+const VERSION='1.15.0';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -609,22 +618,25 @@ function moonSvg(age){const r=22,c=26;const lit=Math.cos(2*Math.PI*age);const rx
 function renderNow(){
   const c=D.current,d=D.daily,h=D.hourly,s=i0();
   let html='';
-  for(const a of alerts())html+=`<div class="alert ${a.lv}"><span class="ai">${a.ic}</span><div><b>${esc(a.t)}</b><span>${esc(a.m)}</span></div></div>`;
+  {const AL=alerts(),one=a=>`<div class="alert ${a.lv}"><span class="ai">${a.ic}</span><div><b>${esc(a.t)}</b><span>${esc(a.m)}</span></div></div>`;html+=AL.slice(0,2).map(one).join('');if(AL.length>2)html+=`<details class="almore"><summary>⚠️ ${fa(AL.length-2)} هشدار دیگر</summary>${AL.slice(2).map(one).join('')}</details>`}
   html+=`<section class="hero">${skyBand()}<canvas id="heroFx"></canvas><div class="ic">${icon(c.weather_code,c.is_day)}</div><div class="tmp">${tS(c.temperature_2m)}</div><div class="desc">${WC[c.weather_code]||''}</div>
-   <div class="sub">احساس واقعی ${tS(c.apparent_temperature)} · بیشینه ${tS(d.temperature_2m_max[0])} · کمینه ${tS(d.temperature_2m_min[0])}</div><div class="sum">${summary()}</div>
+   <div class="sub">احساس واقعی ${tS(c.apparent_temperature)} · بیشینه ${tS(d.temperature_2m_max[0])} · کمینه ${tS(d.temperature_2m_min[0])}</div><div class="qk"><span>💧 ${fa(c.relative_humidity_2m)}٪</span><span>💨 ${fa(Math.round(wV(c.wind_speed_10m)))} ${WU[S.w][1]}</span><span>☔ ${fa(d.precipitation_probability_max[0]||0)}٪</span><span>☀️ UV ${fa(Math.round(d.uv_index_max[0]||0))}</span></div><div class="sum">${summary()}</div>
    <div class="stale">به‌روزرسانی: ${ago(D._t)} · ${D.src==='met'?'🇳🇴 منبع پشتیبان: هواشناسی نروژ (MET Norway)':D.src==='blend'?'🤝 میانگین '+fa(D.blend||5)+' مدل':D.src&&D.src!=='best'&&MM[D.src]?'مدل '+MM[D.src][2]:'بهترین ترکیب مدل‌ها'}</div><div class="tools"><button class="chip" onclick="shareWeather()">📤 اشتراک</button><button class="chip" onclick="storyCard()">🖼️ کارت استوری</button><button class="chip" onclick="openGlance()">⛶ تمام‌صفحه</button><a class="chip" href="#" onclick="go('rd');return false" style="text-decoration:none;color:inherit">📡 رادار</a></div></section>`;
   html+=nowcastCard();
   // hourly 24
-  let hs='';for(let k=s;k<Math.min(s+25,h.time.length);k++){const pr=h.precipitation_probability[k];hs+=`<div class="hr ${k===s?'now':''}"><div class="t">${k===s?'اکنون':fa(+h.time[k].slice(11,13))+':۰۰'}</div>${icon(h.weather_code[k],h.is_day[k])}<div class="v">${tS(h.temperature_2m[k])}</div><div class="p">${pr>=10?'💧'+fa(pr)+'٪':''}</div></div>`}
+  let hs='';const sev=[];d.time.forEach((t,i)=>{if(d.sunrise[i])sev.push([d.sunrise[i],'🌅','طلوع']);if(d.sunset[i])sev.push([d.sunset[i],'🌇','غروب'])});
+  for(let k=s;k<Math.min(s+25,h.time.length);k++){const pr=h.precipitation_probability[k],mm=h.precipitation[k],hh=+h.time[k].slice(11,13);
+    if(hh===0&&k!==s)hs+=`<div class="hday">${dayName(h.time[k],d.time.indexOf(h.time[k].slice(0,10)))}</div>`;
+    hs+=`<div class="hr ${k===s?'now':''}"><div class="t">${k===s?'اکنون':fa(hh)+':۰۰'}</div>${icon(h.weather_code[k],h.is_day[k])}<div class="v">${tS(h.temperature_2m[k])}</div><div class="p">${pr>=10?'💧'+fa(pr)+'٪':''}</div><div class="hm">${mm>=.1?fa(mm,1)+'mm':''}</div><div class="hw"><svg viewBox="0 0 10 10" style="transform:rotate(${(h.wind_direction_10m[k]||0)+180}deg)"><path d="M5 1l3 7-3-2-3 2z" fill="currentColor"/></svg>${fa(Math.round(wV(h.wind_speed_10m[k])))}</div></div>`;
+    sev.forEach(e=>{if(e[0].slice(0,13)===h.time[k].slice(0,13)&&k>s-1)hs+=`<div class="hr hsun"><div class="t">${hhmm(e[0])}</div><div class="sev">${e[1]}</div><div class="v" style="font-size:12px">${e[2]}</div></div>`})}
   html+=`<div class="card"><h3>⏱️ پیش‌بینی ساعتی<span class="r">${fa(24)} ساعت آینده</span></h3><div class="scroll-x"><div class="hours">${hs}</div></div></div>`;
   // 10 day
   const gmin=Math.min(...d.temperature_2m_min),gmax=Math.max(...d.temperature_2m_max),rg=(gmax-gmin)||1;let ds='';
   d.time.forEach((t,i)=>{const lo=d.temperature_2m_min[i],hi=d.temperature_2m_max[i],r1=(lo-gmin)/rg*100,r2=(gmax-hi)/rg*100,pr=d.precipitation_probability_max[i];
     let dot='';if(i===0){dot=`<em style="right:${((c.temperature_2m-gmin)/rg*100).toFixed(1)}%"></em>`}
-    ds+=`<div class="day${i>=10?' lc':''}"><div class="n">${dayName(t,i)}<small>${fmtJ(t,{day:'numeric',month:'short'})}</small></div>${icon(d.weather_code[i],1)}<div class="p">${pr>=10?'💧'+fa(pr)+'٪':''}</div><div class="lo">${tS(lo)}</div><div class="bar"><i style="right:${r1.toFixed(1)}%;left:${r2.toFixed(1)}%;background:linear-gradient(to left,${rgb(tempColor(lo))},${rgb(tempColor(hi))})"></i>${dot}</div><div class="hi">${tS(hi)}</div></div>`});
+    ds+=`<div class="day dclk${i>=10?' lc':''}" onclick="S.fcOpen=${i};go('fc')"><div class="n">${dayName(t,i)}<small>${fmtJ(t,{day:'numeric',month:'short'})}</small></div>${icon(d.weather_code[i],1)}<div class="p">${pr>=10?'💧'+fa(pr)+'٪':''}</div><div class="lo">${tS(lo)}</div><div class="bar"><i style="right:${r1.toFixed(1)}%;left:${r2.toFixed(1)}%;background:linear-gradient(to left,${rgb(tempColor(lo))},${rgb(tempColor(hi))})"></i>${dot}</div><div class="hi">${tS(hi)}</div></div>`});
   const _ex=1;
   html+=`<div class="card"><h3>📅 پیش‌بینی ${fa(d.time.length)} روزه${d.time.length>10?'<span class="r">روزهای کم‌رنگ: اطمینان کمتر</span>':''}</h3>${ds}</div>`;
-  html+=exCard();
   // details
   const uv=c.uv_index??h.uv_index[s],vis=c.visibility??h.visibility[s];
   html+=`<div class="grid2">
@@ -637,10 +649,11 @@ function renderNow(){
    <div class="card"><h3>👁️ دید افقی</h3><div class="big">${vis==null?'–':fa(vis/1000,vis<10000?1:0)}<small> کیلومتر</small></div><div class="note">${vis==null?'در این منبع موجود نیست':vis>=10000?'دید کامل':vis>=4000?'دید خوب':vis>=1000?'دید محدود':'دید بسیار کم'}</div></div>
    <div class="card"><h3>☁️ ابرناکی</h3><div class="big">${fa(c.cloud_cover)}٪</div><div class="note">${c.cloud_cover<20?'آسمان باز':c.cloud_cover<60?'ابرهای پراکنده':'آسمان پوشیده'}</div></div>
   </div>`;
-  html+=activities();
-  html+=sunCard();
   // aqi mini
   if(AQ&&AQ.current){const q=aqInfo();html+=`<div class="card" onclick="go('aq')" style="cursor:pointer"><h3>🍃 کیفیت هوا<span class="r">جزئیات ›</span></h3><div style="display:flex;align-items:center;gap:12px"><div class="big" style="color:${q.col}">${fa(q.v)}</div><div><b>${q.lbl}</b><div class="note">${q.std}${AQ.current.dust!=null?' · گرد و غبار '+fa(AQ.current.dust)+' µg/m³':''}</div></div></div><div class="meter"><em style="right:${q.pos}%"></em></div></div>`}
+  html+=exCard();
+  html+=activities();
+  html+=sunCard();
   html+=ircCard();
   $('#t-now').innerHTML=html;heroFX();bindIRC();animEx();
 }
@@ -667,10 +680,16 @@ function chart({n,step=44,h=170,series,xl,marks=[],valLabel}){
 function dayMarks(times){const m=[];times.forEach((t,i)=>{if(i>0&&t.slice(11,13)==='00'){const di=D.daily.time.indexOf(t.slice(0,10));m.push({i,t:di>=0?dayName(t,di):fmtJ(t,{weekday:'short'})})}});return m}
 
 /* ---------- FORECAST tab ---------- */
-const FCV={temp:'دما',rain:'بارش',wind:'باد',hum:'رطوبت',uv:'UV',pres:'فشار'};
+const FCV={temp:'دما',rain:'بارش',wind:'باد',hum:'رطوبت و ابر',dew:'نقطه شبنم',uv:'UV',pres:'فشار',vis:'دید افقی'};
+function weekSum(){const d=D.daily,n=Math.min(7,d.time.length),ix=[...Array(n).keys()],dn=i=>dayName(d.time[i],i);
+  const hot=ix.reduce((a,b)=>d.temperature_2m_max[b]>d.temperature_2m_max[a]?b:a),cold=ix.reduce((a,b)=>d.temperature_2m_min[b]<d.temperature_2m_min[a]?b:a),wet=ix.filter(i=>(d.precipitation_sum[i]||0)>=1||(d.precipitation_probability_max[i]||0)>=50),wind=ix.reduce((a,b)=>d.wind_gusts_10m_max[b]>d.wind_gusts_10m_max[a]?b:a),tot=ix.reduce((s,i)=>s+(d.precipitation_sum[i]||0),0),sn=ix.filter(i=>isSnow(d.weather_code[i]));
+  const tr=d.temperature_2m_max[n-1]-d.temperature_2m_max[0];
+  const it=[['🔥','گرم‌ترین روز',`${dn(hot)} · ${tS(d.temperature_2m_max[hot])}`],['🥶','سردترین شب',`${dn(cold)} · ${tS(d.temperature_2m_min[cold])}`],['🌧️','روزهای بارانی',wet.length?wet.map(dn).join('، '):'ندارد'],['💧','مجموع بارش هفته',fa(tot,tot<10?1:0)+' mm'],['🌬️','بادی‌ترین روز',`${dn(wind)} · ${wS(d.wind_gusts_10m_max[wind])}`],['📈','روند دما',Math.abs(tr)<2?'تقریباً ثابت':(tr>0?'گرم‌شونده':'سردشونده')+' ('+fa(Math.abs(Math.round(dT(tr))))+'°)']];if(sn.length)it.splice(3,0,['❄️','روزهای برفی',sn.map(dn).join('، ')]);
+  return `<div class="card"><h3>🗒️ خلاصه ۷ روز آینده</h3><div class="wk">${it.map(x=>`<div><span>${x[0]}</span><small>${x[1]}</small><b>${x[2]}</b></div>`).join('')}</div></div>`}
+function dayStrip(i){const h=D.hourly,day=D.daily.time[i];let o='';h.time.forEach((t,k)=>{if(t.slice(0,10)!==day||+t.slice(11,13)%3)return;const pr=h.precipitation_probability[k];o+=`<div class="hr"><div class="t">${fa(+t.slice(11,13))}</div>${icon(h.weather_code[k],h.is_day[k])}<div class="v">${tS(h.temperature_2m[k])}</div><div class="p">${pr>=10?fa(pr)+'٪':''}</div></div>`});return o?`<div class="scroll-x" style="grid-column:1/-1"><div class="hours">${o}</div></div>`:''}
 function renderFc(){
   const h=D.hourly,d=D.daily,s=i0(),n=Math.min(S.fcRange,h.time.length-s),sl=a=>a.slice(s,s+n),times=sl(h.time);
-  const step=S.fcRange>48?20:44,lab=S.fcRange>48?(i=>+times[i].slice(11,13)%6===0?fa(+times[i].slice(11,13)):''):(i=>i%2===0?fa(+times[i].slice(11,13)):'');const lstep=S.fcRange>48?6:2;
+  const step=S.fcRange>168?12:S.fcRange>48?20:44,lab=S.fcRange>168?(i=>+times[i].slice(11,13)===12?fmtJ(times[i],{weekday:'short'}):''):S.fcRange>48?(i=>+times[i].slice(11,13)%6===0?fa(+times[i].slice(11,13)):''):(i=>i%2===0?fa(+times[i].slice(11,13)):'');const lstep=S.fcRange>168?12:S.fcRange>48?6:2;
   let se,leg='';
   switch(S.fcVar){
     case 'temp':se=[{v:sl(h.precipitation_probability),type:'bar',c:'#38bdf8',lo:0,hi:100,bl:[10,v=>fa(v)+'٪',S.fcRange>48?3:1]},{v:sl(h.apparent_temperature).map(cT),c:'#c4b5fd',w:1.5,dash:1},{v:sl(h.temperature_2m).map(cT),c:'#fbbf24',fill:1,labels:lstep,fmt:v=>fa(Math.round(v))+'°'}];leg='<span><i style="background:#fbbf24"></i>دما</span><span><i style="background:#c4b5fd"></i>احساس واقعی</span><span><i style="background:#60a5fa"></i>احتمال بارش</span>';break;
@@ -678,25 +697,29 @@ function renderFc(){
     case 'wind':se=[{v:sl(h.wind_gusts_10m).map(wV),c:'#f87171',w:1.5,dash:1,lo:0},{v:sl(h.wind_speed_10m).map(wV),c:'#34d399',fill:1,lo:0,labels:lstep,fmt:v=>fa(Math.round(v))}];leg=`<span><i style="background:#34d399"></i>سرعت باد (${WU[S.w][1]})</span><span><i style="background:#f87171"></i>تندباد</span>`;break;
     case 'hum':se=[{v:sl(h.cloud_cover),type:'bar',c:'#94a3b8',lo:0,hi:100},{v:sl(h.relative_humidity_2m),c:'#22d3ee',fill:1,lo:0,hi:100,labels:lstep,fmt:v=>fa(v)+'٪'}];leg='<span><i style="background:#22d3ee"></i>رطوبت نسبی</span><span><i style="background:#cbd5e1"></i>ابرناکی</span>';break;
     case 'uv':se=[{v:sl(h.uv_index),c:'#f472b6',fill:1,lo:0,hi:Math.max(11,...sl(h.uv_index)),labels:lstep,fmt:v=>v>0.4?fa(v,0):''}];leg='<span><i style="background:#f472b6"></i>شاخص UV</span>';break;
+    case 'dew':se=[{v:sl(h.temperature_2m).map(cT),c:'#fbbf24',w:1.5,dash:1},{v:sl(h.dew_point_2m).map(cT),c:'#2dd4bf',fill:1,labels:lstep,fmt:v=>fa(Math.round(v))+'°'}];leg='<span><i style="background:#2dd4bf"></i>نقطه شبنم</span><span><i style="background:#fbbf24"></i>دما</span>';break;
+    case 'vis':se=[{v:sl(h.visibility).map(v=>v==null?null:Math.min(30,v/1000)),c:'#93c5fd',fill:1,lo:0,labels:lstep,fmt:v=>fa(v,v<10?1:0)}];leg='<span><i style="background:#93c5fd"></i>دید افقی (کیلومتر)</span>';break;
     case 'pres':se=[{v:sl(h.pressure_msl).map(p=>S.p==='mmhg'?p*.750062:p),c:'#a3e635',fill:1,labels:lstep*2,fmt:v=>fa(Math.round(v))}];leg=`<span><i style="background:#a3e635"></i>فشار سطح دریا (${S.p==='mmhg'?'mmHg':'hPa'})</span>`;break;
   }
-  let html=`<div class="card"><h3>📈 نمودار ساعتی<span class="r"><span class="seg" style="display:inline-flex" id="fcR"><button data-v="48" class="${S.fcRange==48?'on':''}">۴۸ ساعت</button><button data-v="240" class="${S.fcRange>48?'on':''}">۱۰ روز</button></span></span></h3>
-   <div class="chips nowrap scroll-x" id="fcV" style="margin-bottom:10px">${Object.entries(FCV).map(([k,v])=>`<button class="chip ${S.fcVar===k?'on':''}" data-v="${k}">${v}</button>`).join('')}</div>
-   ${chart({n,step,series:se,xl:lab,marks:dayMarks(times)})}<div class="legend">${leg}</div></div>`;
   let dd='';
-  d.time.forEach((t,i)=>{dd+=`<div class="dd ${i===0?'open':''}"><button class="hd">${icon(d.weather_code[i],1)}<span class="t"><b>${dayName(t,i)}</b> <span style="color:var(--sub);font-size:13px">${fmtJ(t,{day:'numeric',month:'long'})}</span><small>${WC[d.weather_code[i]]||''}</small></span><b>${tS(d.temperature_2m_max[i])}</b><span style="color:var(--sub)">/ ${tS(d.temperature_2m_min[i])}</span></button>
+  const op=S.fcOpen??0;delete S.fcOpen;d.time.forEach((t,i)=>{dd+=`<div class="dd ${i===op?'open':''}" ${i===op&&op>0?'id="ddOpen"':''}><button class="hd">${icon(d.weather_code[i],1)}<span class="t"><b>${dayName(t,i)}</b> <span style="color:var(--sub);font-size:13px">${fmtJ(t,{day:'numeric',month:'long'})}</span><small>${WC[d.weather_code[i]]||''}</small></span><b>${tS(d.temperature_2m_max[i])}</b><span style="color:var(--sub)">/ ${tS(d.temperature_2m_min[i])}</span></button>
     <div class="body"><div class="kv">احساس واقعی<b>${tS(d.apparent_temperature_max[i])} / ${tS(d.apparent_temperature_min[i])}</b></div><div class="kv">احتمال بارش<b>${fa(d.precipitation_probability_max[i])}٪</b></div><div class="kv">مقدار بارش<b>${fa(d.precipitation_sum[i],1)} mm</b></div>
     <div class="kv">باد<b>${fa(Math.round(wV(d.wind_speed_10m_max[i])))} ${dirName(d.wind_direction_10m_dominant[i])}</b></div><div class="kv">تندباد<b>${fa(Math.round(wV(d.wind_gusts_10m_max[i])))}</b></div><div class="kv">UV بیشینه<b>${fa(d.uv_index_max[i],0)} ${uvTxt(d.uv_index_max[i])}</b></div>
-    <div class="kv">طلوع<b>${hhmm(d.sunrise[i])}</b></div><div class="kv">غروب<b>${hhmm(d.sunset[i])}</b></div><div class="kv">ساعات بارش<b>${fa(d.precipitation_hours[i])}</b></div></div></div>`});
-  html+=`<div class="card"><h3>🗓️ جزئیات روزانه<span class="r">برای جزئیات روی هر روز بزنید</span></h3>${dd}</div>`;
+    <div class="kv">طلوع<b>${hhmm(d.sunrise[i])}</b></div><div class="kv">غروب<b>${hhmm(d.sunset[i])}</b></div><div class="kv">ساعات بارش<b>${fa(d.precipitation_hours[i])}</b></div>${dayStrip(i)}</div></div>`});
+  let html=weekSum()+`<div class="card"><h3>🗓️ جزئیات روزانه<span class="r">برای جزئیات روی هر روز بزنید</span></h3>${dd}<div class="chips" style="margin-top:8px"><button class="chip" onclick="S.mdView='city';go('md')">📈 مقایسه مدل‌ها برای این شهر ›</button></div></div>`;
+  html+=`<div class="card"><h3>📈 نمودار ساعتی<span class="r"><span class="seg" style="display:inline-flex" id="fcR"><button data-v="48" class="${S.fcRange==48?'on':''}">۴۸ ساعت</button><button data-v="168" class="${S.fcRange==168?'on':''}">۷ روز</button><button data-v="400" class="${S.fcRange>168?'on':''}">همه</button></span></span></h3>
+   <div class="chips nowrap scroll-x" id="fcV" style="margin-bottom:10px">${Object.entries(FCV).map(([k,v])=>`<button class="chip ${S.fcVar===k?'on':''}" data-v="${k}">${v}</button>`).join('')}</div>
+   ${chart({n,step,series:se,xl:lab,marks:dayMarks(times)})}<div class="legend">${leg}</div></div>`;
+
+  html+=`<div class="card"><h3>🎈 باد در ارتفاعات<span class="r" style="cursor:pointer;color:var(--acc)" onclick="go('map')">نقشه متحرک ›</span></h3><div id="prof"><div class="sk"></div><div class="sk"></div><div class="sk"></div></div></div>`;
   html+=`<div class="card"><h3>📊 اقلیم و رکوردها<span class="r">۳۰ سال اخیر</span></h3><div id="clim"><div class="sk"></div><div class="sk"></div></div></div>`;
   html+=`<div class="card"><h3>💧 بارش سال آبی و آمار ۳۵ ساله<span class="r">داده مدل</span></h3><div id="rainSt"><div class="sk" style="height:60px"></div><div class="sk" style="height:150px"></div></div></div>`;
-  html+=`<div class="card"><h3>🎈 باد در ارتفاعات<span class="r" style="cursor:pointer;color:var(--acc)" onclick="go('map')">نقشه متحرک ›</span></h3><div id="prof"><div class="sk"></div><div class="sk"></div><div class="sk"></div></div></div>`;
   html+=`<div class="card"><h3>🌾 کشاورزی و باغ<span class="r">۷ روز آینده</span></h3><div id="agri"><div class="sk"></div><div class="sk"></div></div></div>`;
   $('#t-fc').innerHTML=html;fillProf();fillClim();fillRainStats();fillAgri();
   $$('#fcV .chip').forEach(b=>b.onclick=()=>{S.fcVar=b.dataset.v;saveS();renderFc()});
   $$('#fcR button').forEach(b=>b.onclick=()=>{S.fcRange=+b.dataset.v;saveS();renderFc()});
   $$('#t-fc .dd .hd').forEach(b=>b.onclick=()=>b.parentElement.classList.toggle('open'));
+  const dop=$('#ddOpen');if(dop)setTimeout(()=>dop.scrollIntoView({behavior:'smooth',block:'center'}),350);
 }
 
 /* ---------- AQI tab ---------- */
@@ -1815,7 +1838,7 @@ function go(t){curTab=t;$$('nav button').forEach(b=>b.classList.toggle('on',b.da
       requestAnimationFrame(()=>{mapRender();radarChanged()})}
     else requestAnimationFrame(()=>{if(MP.grid&&MP.grid.lvl!==curLvl())MP.grid=null;if(MP.grid)gridPrep();mapRender();gridLater(0);updMapInfo()})}
   else{clearInterval(MP.timer);MP.timer=null;clearInterval(MP.gtimer);MP.gtimer=null;clearInterval(R.timer);R.timer=null;hidePop()}
-  if(t==='md')renderModels();if(t==='tr')renderTravel();if(t!=='now'&&HFX){HFX.stop();HFX=null}if(t==='now')heroFX();}
+  if(t==='fc'&&D&&S.fcOpen!=null)renderFc();if(t==='md')renderModels();if(t==='tr')renderTravel();if(t!=='now'&&HFX){HFX.stop();HFX=null}if(t==='now')heroFX();}
 $$('nav button').forEach(b=>b.onclick=()=>go(b.dataset.t));
 
 /* ---------- cities ---------- */
@@ -1861,12 +1884,18 @@ $('#notifSw').onclick=async()=>{if(!('Notification' in window)){toast('این د
 $('#clearBtn').onclick=()=>{if(!confirm('همه شهرها، تنظیمات و داده‌های ذخیره‌شده پاک شوند؟'))return;Object.keys(localStorage).filter(k=>k.startsWith('aw.')).forEach(k=>localStorage.removeItem(k));location.reload()};
 $('#refBtn').onclick=()=>{load(true);if(curTab==='md'){Object.keys(MDATA).forEach(k=>delete MDATA[k]);renderModels()}};
 
+/* ---------- pull to refresh ---------- */
+{let y0=null,pull=0;const ind=document.createElement('div');ind.className='ptr';ind.textContent='⟳';document.body.appendChild(ind);
+ addEventListener('touchstart',e=>{y0=(scrollY<=0&&!document.querySelector('.sheet.on')&&!e.target.closest('.map,.wbcv,.scroll-x'))?e.touches[0].clientY:null;pull=0},{passive:true});
+ addEventListener('touchmove',e=>{if(y0==null)return;pull=Math.max(0,e.touches[0].clientY-y0);ind.style.transform=`translate(-50%,${Math.min(90,pull*.5)-40}px) rotate(${pull*2}deg)`;ind.style.opacity=Math.min(1,pull/120)},{passive:true});
+ addEventListener('touchend',()=>{if(y0!=null&&pull>140){ind.classList.add('go');load(true);if(curTab==='md'){Object.keys(WB.cache).forEach(k=>delete WB.cache[k]);renderModels()}setTimeout(()=>ind.classList.remove('go'),1200)}ind.style.transform='';ind.style.opacity=0;y0=null})}
+
 /* ---------- boot ---------- */
 $('#verTxt').textContent='نسخه '+VERSION;$('#ver2').textContent=VERSION;
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(HFX){HFX.stop();HFX=null}}else{if(curTab==='now'){if(D)renderNow();else heroFX()}if(D&&Date.now()-D._t>15*60e3)load(true)}});
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 if(S.home&&cities.find(c=>c.id===S.home)){curId=S.home;LS.set('cur',curId)}
-applyTheme();load(false);if(FIRST_RUN)setTimeout(onboard,400);updOnline();
+applyTheme();load(false);try{const qt=new URLSearchParams(location.search).get('tab');if(['fc','rd','tr','aq','map','md'].includes(qt))setTimeout(()=>go(qt),300)}catch(e){}if(FIRST_RUN)setTimeout(onboard,400);updOnline();
 </script>
 </body>
 </html>
