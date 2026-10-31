@@ -76,8 +76,31 @@ def handle(route):
             st = datetime.now(timezone.utc).replace(tzinfo=None).replace(minute=0, second=0, microsecond=0) if 'start_hour' in q else NOW.replace(hour=0)
             tz = q.get('timezone', ['GMT'])[0]
             if tz == 'auto': st = NOW.replace(hour=0)
+            LA = [float(x) for x in lats]; LO = [float(x) for x in q.get('longitude', ['0'])[0].split(',')]
+            STEP = 6 if 'temporal_resolution' in q else 1
+            if STEP == 6: N = 28
+            def real(v, la, lo, k):
+                kk = k * STEP / 6.0; e = math.exp
+                if v == 'pressure_msl': return round(1016 + 9 * e(-((la - 39) ** 2 + (lo - 60) ** 2) / 40) - 14 * e(-((la - 33.5) ** 2 + (lo - 44 - kk * .45) ** 2) / 22), 1)
+                if v == 'geopotential_height_500hPa': return round(5900 - 9.5 * (la - 20) ** 1.25 - 160 * e(-((lo - 44 - kk * .45) ** 2) / 35) * (la - 20) / 24, 0)
+                if v == 'geopotential_height_1000hPa': return round((real('pressure_msl', la, lo, k) - 1013) * 8 + 110, 0)
+                if v == 'geopotential_height_850hPa': return round(1500 + (real('pressure_msl', la, lo, k) - 1013) * 9, 0)
+                if v == 'temperature_2m': return round(31 - .95 * (la - 20) - 7 * e(-((lo - 45 - kk * .45) ** 2) / 30) * (la - 20) / 24 + 3 * math.sin(k * STEP / 24 * 6.28), 1)
+                if v == 'temperature_850hPa': return round(19 - (la - 20) - 9 * e(-((lo - 45 - kk * .45) ** 2) / 30), 1)
+                if v == 'precipitation': return round(max(0, 4.5 * e(-((la - 34) ** 2 + (lo - 47 - kk * .45) ** 2) / 7) - .2), 2)
+                if v == 'snowfall': return round(real('precipitation', la, lo, k) * .9 if la > 35.5 else 0, 2)
+                if v == 'wind_speed_500hPa': return round(70 + 80 * e(-((la - 31) ** 2) / 12), 0)
+                if v == 'wind_direction_500hPa': return round(255 + 25 * math.sin((lo - 44 - kk * .45) / 5), 0)
+                if v == 'wind_gusts_10m': return round(18 + 55 * e(-((la - 33.5) ** 2 + (lo - 45 - kk * .45) ** 2) / 10), 0)
+                if v == 'wind_speed_10m': return round(real('wind_gusts_10m', la, lo, k) * .6, 0)
+                if v == 'wind_direction_10m': return round(230 + 40 * math.sin(lo / 4), 0)
+                if v == 'cape': return round(1800 * e(-((la - 29) ** 2 + (lo - 50) ** 2) / 18), 0)
+                return None
             def one(i):
-                h = {'time': [(st + timedelta(hours=k)).strftime('%Y-%m-%dT%H:%M') for k in range(N)]}
+                h = {'time': [(st + timedelta(hours=k * STEP)).strftime('%Y-%m-%dT%H:%M') for k in range(N)]}
+                if 'models' in q:
+                    for v in hv: h[v] = [real(v, LA[i], LO[i], k) for k in range(N)]
+                    return {'elevation': 1190, 'hourly': h}
                 for v in hv:
                     lvl = 1 + (2 if 'hPa' in v and int(v.split('_')[-1][:-3]) < 400 else 0)
                     if 'direction' in v: h[v] = [(230 + i * 9 + k * 2) % 360 for k in range(N)]
@@ -156,6 +179,9 @@ with sync_playwright() as p:
     pg.click('nav button[data-t=fc]'); pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/fc2.png', full_page=True)
     pg.click('nav button[data-t=now]'); pg.wait_for_timeout(500); pg.evaluate('openGlance()'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/glance.png'); pg.click('#glance'); pg.wait_for_timeout(300)
     pg.click('nav button[data-t=md]'); pg.wait_for_timeout(300)
+    pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/wb1.png', full_page=True)
+    pg.click('#t-md [data-wp=z500]'); pg.wait_for_timeout(2500); pg.click('#wbCmp'); pg.wait_for_timeout(3000); pg.screenshot(path=f'{OUT}/wb2.png', full_page=True)
+    pg.click('#mdV button[data-v=city]'); pg.wait_for_timeout(500)
     pg.click('#t-md .mchip[data-m=kma_seamless]'); pg.wait_for_timeout(200); pg.click('#t-md .mchip[data-m=knmi_seamless]'); pg.wait_for_timeout(1500)
     pg.screenshot(path=f'{OUT}/6-models.png', full_page=True)
     pg.click('#cityBtn'); pg.wait_for_timeout(300); pg.fill('#q', 'شیراز'); pg.wait_for_timeout(900); pg.screenshot(path=f'{OUT}/7-cities.png')

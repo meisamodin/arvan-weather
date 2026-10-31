@@ -229,6 +229,41 @@ select.inp option{color:#0f172a}
 .gc{font-size:30px;font-weight:700}.gd{color:rgba(255,255,255,.8);font-size:15px}.gi svg{width:180px;height:180px;filter:drop-shadow(0 10px 30px rgba(0,0,0,.3))}.gt{font-size:130px;font-weight:200;line-height:1}.gw{font-size:26px;font-weight:600;margin:6px 0}
 .gh{display:flex;gap:14px;margin-top:30px;background:rgba(255,255,255,.12);border-radius:20px;padding:12px 16px}.gh div{text-align:center}.gh svg{width:38px;height:38px;display:block}.gh small{font-size:12px;opacity:.8}.gx{position:absolute;bottom:calc(20px + env(safe-area-inset-bottom));font-size:12px;opacity:.6}
 .day.lc{opacity:.72}
+.wbc{padding:8px}.wbcv{width:100%;display:block;border-radius:14px;background:#1d2433}
+
+/* ===== v1.6 design polish ===== */
+body::before,body::after{content:"";position:fixed;z-index:-1;border-radius:50%;filter:blur(60px);opacity:.55;pointer-events:none;animation:aw-float 18s ease-in-out infinite alternate}
+body::before{width:60vmax;height:60vmax;top:-20vmax;right:-15vmax;background:radial-gradient(circle,rgba(255,255,255,.35),transparent 65%)}
+body::after{width:55vmax;height:55vmax;bottom:-25vmax;left:-20vmax;background:radial-gradient(circle,rgba(125,211,252,.35),transparent 65%);animation-duration:24s}
+@keyframes aw-float{to{transform:translate(-6vmax,5vmax) scale(1.12)}}
+:root[data-theme=oled] body::before,:root[data-theme=oled] body::after{display:none}
+:root[data-theme=light] body::before{background:radial-gradient(circle,rgba(147,197,253,.55),transparent 65%)}:root[data-theme=light] body::after{background:radial-gradient(circle,rgba(253,230,138,.5),transparent 65%)}
+.card{background:linear-gradient(150deg,rgba(255,255,255,.17),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.2);box-shadow:0 10px 30px -12px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.15);border-radius:24px}
+:root[data-theme=light] .card{background:linear-gradient(150deg,rgba(255,255,255,.95),rgba(255,255,255,.72));border-color:rgba(15,23,42,.06);box-shadow:0 10px 30px -14px rgba(30,64,175,.25)}
+:root[data-theme=oled] .card{background:rgba(255,255,255,.06);box-shadow:none}
+.tab.on>.card,.tab.on>.grid2>.card,.tab.on>.alert,.tab.on>section{animation:aw-in .55s cubic-bezier(.2,.8,.2,1) both}
+.tab.on>*:nth-child(2){animation-delay:.04s}.tab.on>*:nth-child(3){animation-delay:.08s}.tab.on>*:nth-child(4){animation-delay:.12s}.tab.on>*:nth-child(5){animation-delay:.16s}.tab.on>*:nth-child(6){animation-delay:.2s}.tab.on>*:nth-child(n+7){animation-delay:.24s}
+@keyframes aw-in{from{opacity:0;transform:translateY(14px) scale(.985)}}
+.card h3{font-size:13.5px;color:var(--txt);opacity:.9;letter-spacing:.1px}
+.hero .tmp{background:linear-gradient(180deg,#fff 30%,rgba(255,255,255,.65));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 6px 24px rgba(255,255,255,.25));font-weight:200}
+:root[data-theme=light] .hero .tmp{background:linear-gradient(180deg,#0f172a 30%,#334155);-webkit-background-clip:text;background-clip:text;filter:none}
+.hero .ic{animation:aw-bob 5s ease-in-out infinite}@keyframes aw-bob{50%{transform:translateY(-6px)}}
+.hero .desc{font-size:22px}.hero .sum{backdrop-filter:blur(8px)}
+nav{left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));padding:6px;border-radius:24px;border:1px solid rgba(255,255,255,.14);box-shadow:0 12px 40px -8px rgba(0,0,0,.45)}
+.wrap{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+nav button{position:relative;transition:color .2s}nav button.on::before{content:"";position:absolute;inset:0 4px;border-radius:16px;background:linear-gradient(160deg,rgba(125,211,252,.28),rgba(125,211,252,.08));box-shadow:inset 0 0 0 1px rgba(125,211,252,.35)}
+nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(-1px) scale(1.12);filter:drop-shadow(0 0 6px rgba(125,211,252,.7))}
+:root[data-theme=light] nav button.on::before{background:linear-gradient(160deg,rgba(37,99,235,.18),rgba(37,99,235,.05));box-shadow:inset 0 0 0 1px rgba(37,99,235,.25)}
+.chip{transition:transform .15s,background .2s}.chip:active,.btn:active,.ibtn:active,.row:active{transform:scale(.96)}
+.chip.on{background:linear-gradient(135deg,#fff,#e0f2fe);box-shadow:0 4px 14px -4px rgba(125,211,252,.6)}
+:root[data-theme=light] .chip.on{background:linear-gradient(135deg,#1e3a8a,#2563eb);box-shadow:0 4px 14px -4px rgba(37,99,235,.6)}
+.hr.now{background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,.08));border-color:rgba(255,255,255,.35);box-shadow:0 6px 18px -8px rgba(0,0,0,.35)}
+.ibtn{transition:transform .15s;background:linear-gradient(150deg,rgba(255,255,255,.2),rgba(255,255,255,.07))}
+.grid2 .card .big{font-size:28px}
+.alert{backdrop-filter:blur(10px);box-shadow:0 8px 24px -12px rgba(0,0,0,.4)}
+.bar i{box-shadow:0 0 10px -2px currentColor}
+.panel{background:linear-gradient(180deg,#14223f,var(--sheet))}:root[data-theme=light] .panel{background:#fff}:root[data-theme=oled] .panel{background:#0a0a0a}
+.toast{backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.15)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 
 </style>
@@ -292,6 +327,9 @@ select.inp option{color:#0f172a}
   <div class="setl"><span>دما</span><div class="seg" data-k="t"><button data-v="c">°C سلسیوس</button><button data-v="f">°F فارنهایت</button></div></div>
   <div class="setl"><span>باد</span><div class="seg" data-k="w"><button data-v="kmh">km/h</button><button data-v="ms">m/s</button><button data-v="mph">mph</button><button data-v="kn">گره</button></div></div>
   <div class="setl"><span>فشار</span><div class="seg" data-k="p"><button data-v="hpa">هکتوپاسکال</button><button data-v="mmhg">mmHg</button></div></div>
+  <div class="sec">منبع پیش‌بینی</div>
+  <select class="inp" id="srcSel"><option value="best">✨ بهترین ترکیب خودکار (پیشنهادی)</option><option value="blend">🤝 میانگین ۵ مدل جهانی (ECMWF، GFS، ICON، GEM، UKMO)</option><option value="ecmwf_ifs025">ECMWF IFS — اروپا</option><option value="gfs_seamless">GFS — آمریکا</option><option value="icon_seamless">ICON — آلمان</option><option value="gem_seamless">GEM — کانادا</option><option value="ukmo_seamless">UKMO — بریتانیا</option><option value="meteofrance_seamless">ARPEGE — فرانسه</option><option value="jma_seamless">JMA — ژاپن</option><option value="ecmwf_aifs025_single">ECMWF AIFS — هوش مصنوعی</option></select>
+  <small style="color:var(--dim);display:block;margin-top:4px">میانگین چند مدل معمولاً خطای کمتری از هر مدل تنها دارد. بعضی مدل‌ها فقط ۷ تا ۱۰ روز پیش‌بینی دارند.</small>
   <div class="sec">ظاهر</div>
   <div style="margin:8px 0"><div style="margin-bottom:6px">پوسته</div><div class="seg" data-k="theme" style="flex-wrap:wrap"><button data-v="dyn">🌈 پویا</button><button data-v="dark">🌙 تیره</button><button data-v="oled">⚫ مشکی</button><button data-v="light">☀️ روشن</button><button data-v="sys">📱 سیستم</button></div><small style="color:var(--dim)">«پویا» رنگ برنامه را با وضعیت هوا و شب و روز عوض می‌کند.</small></div>
   <div class="setl"><span>اندازه متن</span><div class="seg" data-k="fs"><button data-v="90">کوچک</button><button data-v="100">عادی</button><button data-v="112">بزرگ</button><button data-v="125">خیلی بزرگ</button></div></div>
@@ -330,7 +368,7 @@ select.inp option{color:#0f172a}
 
 <script>
 'use strict';
-const VERSION='1.4.0';
+const VERSION='1.6.0';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -352,7 +390,7 @@ let D=null, AQ=null, loading=false, curTab='now';
 const cT=c=>S.t==='f'?c*9/5+32:c;
 const tS=c=>c==null?'–':fa(Math.round(cT(c)))+'°';
 const dT=dc=>S.t==='f'?dc*9/5:dc;
-const WU={kmh:[1,'کیلومتر/ساعت'],ms:[1/3.6,'متر/ثانیه'],mph:[1/1.609,'مایل/ساعت'],kn:[1/1.852,'گره']};
+const WU={kmh:[1,'km/h'],ms:[1/3.6,'m/s'],mph:[1/1.609,'mph'],kn:[1/1.852,'گره']};
 const wV=k=>k*WU[S.w][0], wS=k=>fa(Math.round(wV(k)))+' '+WU[S.w][1];
 const pS=h=>'<bdi>'+(S.p==='mmhg'?fa(Math.round(h*0.750062))+' <small>mmHg</small>':fa(Math.round(h))+' <small>hPa</small>')+'</bdi>';
 const DIRS=['شمال','شمال‌شرق','شرق','جنوب‌شرق','جنوب','جنوب‌غرب','غرب','شمال‌غرب'];
@@ -393,7 +431,11 @@ async function getJSON(url,ms=15000){const ac=new AbortController();const t=setT
 const HV='temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,precipitation_probability,precipitation,weather_code,cloud_cover,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,is_day,pressure_msl';
 const DV='weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,sunrise,sunset,daylight_duration,uv_index_max,precipitation_sum,precipitation_probability_max,precipitation_hours,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant';
 const CV='temperature_2m,apparent_temperature,relative_humidity_2m,is_day,precipitation,weather_code,cloud_cover,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,dew_point_2m,visibility,uv_index';
-const FC_URL=c=>`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=${CV}&hourly=${HV}&daily=${DV}&timezone=auto&forecast_days=16&past_days=1&minutely_15=precipitation&forecast_minutely_15=9`;
+const FC_URL=c=>`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=${CV}&hourly=${HV}&daily=${DV}&timezone=auto&forecast_days=16&past_days=1&minutely_15=precipitation&forecast_minutely_15=9${S.src&&S.src!=='best'&&S.src!=='blend'?'&models='+S.src:''}`;
+const BLEND=['ecmwf_ifs025','gfs_seamless','icon_seamless','gem_seamless','ukmo_seamless'];
+const BL_URL=c=>`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&hourly=${HV}&daily=${DV}&timezone=auto&forecast_days=16&past_days=1&models=${BLEND.join(',')}`;
+const NOAVG={time:1,weather_code:1,is_day:1,wind_direction_10m:1,sunrise:1,sunset:1,daylight_duration:1,wind_direction_10m_dominant:1};
+function blend(d,b){let n=0;for(const sec of ['hourly','daily']){if(!d[sec]||!b[sec])continue;for(const k in d[sec]){if(NOAVG[k])continue;const arrs=BLEND.map(m=>b[sec][k+'_'+m]).filter(Boolean);if(!arrs.length)continue;n=Math.max(n,arrs.length);d[sec][k]=d[sec][k].map((v,i)=>{const xs=arrs.map(a=>a[i]).filter(x=>x!=null);return xs.length?xs.reduce((p,q)=>p+q,0)/xs.length:v})}}d.blend=n;return d}
 const AQ_URL=c=>`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${c.lat}&longitude=${c.lon}&current=us_aqi,european_aqi,pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,dust,aerosol_optical_depth&hourly=us_aqi,european_aqi,pm2_5,pm10,dust&timezone=auto&forecast_days=4`;
 
 async function load(force){
@@ -403,7 +445,8 @@ async function load(force){
   if(!force&&cache&&Date.now()-cache.t<10*60e3)return;
   if(loading)return; loading=true; $('#refBtn').classList.add('spin');
   try{
-    const [d,a]=await Promise.all([getJSON(FC_URL(c)),getJSON(AQ_URL(c)).catch(()=>null)]);
+    const [d,a,bl]=await Promise.all([getJSON(FC_URL(c)),getJSON(AQ_URL(c)).catch(()=>null),S.src==='blend'?getJSON(BL_URL(c),25000).catch(()=>null):null]);
+    if(bl&&d&&d.hourly)blend(d,bl);d&&(d.src=S.src||'best');
     if(c.id!==curId)return;
     if(!d||!d.current||!d.daily)throw new Error('پاسخ نامعتبر از سرور');
     norm(d);D=d;AQ=a||AQ;D._t=Date.now();LS.set('cache.'+c.id,{t:D._t,d,a:AQ});
@@ -420,7 +463,7 @@ function renderLoading(){$('#t-now').innerHTML='<div class="card"><div class="sk
 function renderHeader(){
   const c=city(); $('#cityName').textContent=(c.gps?'📍 ':'')+c.name;
   const today=D?D.current.time:new Date().toISOString();
-  $('#cityDate').textContent=fmtJ(today,{weekday:'long',day:'numeric',month:'long',year:'numeric'})+(D?' · ساعت محلی '+hhmm(D.current.time):'');
+  $('#cityDate').textContent=fmtJ(today,{weekday:'long'})+' '+fmtJ(today,{day:'numeric',month:'long'})+' '+fmtJ(today,{year:'numeric'}).replace(/[^۰-۹0-9]/g,'')+(D?' · '+hhmm(D.current.time):'');
 }
 function renderAll(){if(!D)return;renderHeader();setBG(D.current.weather_code,D.current.is_day);renderNow();renderFc();renderAq();if(mapInit)mapCenterCity(false);if(curTab==='md')renderModels();if(curTab==='map')updMapInfo()}
 const i0=()=>{const k=D.current.time.slice(0,13);const i=D.hourly.time.findIndex(t=>t.slice(0,13)===k);return i<0?0:i};
@@ -483,7 +526,7 @@ function renderNow(){
   for(const a of alerts())html+=`<div class="alert ${a.lv}"><span class="ai">${a.ic}</span><div><b>${esc(a.t)}</b><span>${esc(a.m)}</span></div></div>`;
   html+=`<section class="hero"><canvas id="heroFx"></canvas><div class="ic">${icon(c.weather_code,c.is_day)}</div><div class="tmp">${tS(c.temperature_2m)}</div><div class="desc">${WC[c.weather_code]||''}</div>
    <div class="sub">احساس واقعی ${tS(c.apparent_temperature)} · بیشینه ${tS(d.temperature_2m_max[0])} · کمینه ${tS(d.temperature_2m_min[0])}</div><div class="sum">${summary()}</div>
-   <div class="stale">به‌روزرسانی: ${ago(D._t)}</div><div class="tools"><button class="chip" onclick="shareWeather()">📤 اشتراک</button><button class="chip" onclick="storyCard()">🖼️ کارت استوری</button><button class="chip" onclick="openGlance()">⛶ تمام‌صفحه</button><a class="chip" href="#" onclick="go('rd');return false" style="text-decoration:none;color:inherit">📡 رادار</a></div></section>`;
+   <div class="stale">به‌روزرسانی: ${ago(D._t)} · ${D.src==='blend'?'🤝 میانگین '+fa(D.blend||5)+' مدل':D.src&&D.src!=='best'&&MM[D.src]?'مدل '+MM[D.src][2]:'بهترین ترکیب مدل‌ها'}</div><div class="tools"><button class="chip" onclick="shareWeather()">📤 اشتراک</button><button class="chip" onclick="storyCard()">🖼️ کارت استوری</button><button class="chip" onclick="openGlance()">⛶ تمام‌صفحه</button><a class="chip" href="#" onclick="go('rd');return false" style="text-decoration:none;color:inherit">📡 رادار</a></div></section>`;
   html+=nowcastCard();
   // hourly 24
   let hs='';for(let k=s;k<Math.min(s+25,h.time.length);k++){const pr=h.precipitation_probability[k];hs+=`<div class="hr ${k===s?'now':''}"><div class="t">${k===s?'اکنون':fa(+h.time[k].slice(11,13))+':۰۰'}</div>${icon(h.weather_code[k],h.is_day[k])}<div class="v">${tS(h.temperature_2m[k])}</div><div class="p">${pr>=10?'💧'+fa(pr)+'٪':''}</div></div>`}
@@ -619,14 +662,18 @@ async function fetchModel(c,id){
   MDATA[key]={st:'ld',p};return p;
 }
 async function renderModels(){
-  const c=city(),el=$('#t-md');
+  const c=city(),root=$('#t-md'),mdv=S.mdView||'map';
+  root.innerHTML=`<div class="card" style="padding:8px"><div class="seg" id="mdV"><button data-v="map" class="${mdv==='map'?'on':''}">🗺️ نقشه‌های مدل</button><button data-v="city" class="${mdv==='city'?'on':''}">📍 مقایسه برای ${esc(c.name)}</button></div></div><div id="mdBox"></div>`;
+  $$('#mdV button').forEach(b=>b.onclick=()=>{S.mdView=b.dataset.v;saveS();renderModels()});
+  if(mdv==='map'){renderWB($('#mdBox'));return}
+  const el=$('#mdBox');
   const sel=S.models.filter(m=>MM[m]);
   const grp=(g,t)=>`<div class="mgrp">${t}</div><div class="chips">${MODELS.filter(m=>m[0]===g).map(m=>`<button class="chip mchip ${sel.includes(m[1])?'on':''}" data-m="${m[1]}" title="${esc(m[3])}"><i style="background:${m[4]}"></i>${m[2]}</button>`).join('')}</div>`;
   const chooser=`<div class="card"><h3>🧭 انتخاب مدل‌ها<span class="r"><button id="mAll" style="color:var(--acc)">همه</button> · <button id="mNone" style="color:var(--acc)">هیچ</button></span></h3>${grp('g','مدل‌های جهانی')}${grp('ai','مدل‌های هوش مصنوعی')}${grp('r','مدل‌های منطقه‌ای (فقط در محدوده خودشان)')}</div>`;
   if(!sel.length){el.innerHTML=chooser+'<div class="card empty">حداقل یک مدل انتخاب کنید.</div>';bindModelChips();return}
   el.innerHTML=chooser+`<div class="card"><div class="sk"></div><div class="sk" style="height:120px"></div><div class="note" style="text-align:center">در حال دریافت پیش‌بینی ${fa(sel.length)} مدل…</div></div>`;bindModelChips();
   const res=await Promise.all(sel.map(m=>fetchModel(c,m)));
-  if(curTab!=='md'||c.id!==curId||sel.join()!==S.models.filter(m=>MM[m]).join())return;
+  if(curTab!=='md'||(S.mdView||'map')!=='city'||c.id!==curId||sel.join()!==S.models.filter(m=>MM[m]).join())return;
   const ok=[],bad=[];sel.forEach((m,i)=>res[i].st==='ok'?ok.push([m,res[i].d]):bad.push([m,res[i]]));
   let html=chooser;
   if(!ok.length){el.innerHTML=html+'<div class="card empty">هیچ‌کدام از مدل‌های انتخابی برای این مکان داده ندارند یا اتصال برقرار نشد.</div>';bindModelChips();return}
@@ -654,7 +701,7 @@ async function renderModels(){
   $$('#mVar .chip').forEach(b=>b.onclick=()=>{S.mVar=b.dataset.v;saveS();renderModels()});
 }
 function bindModelChips(){
-  $$('#t-md .mchip').forEach(b=>b.onclick=()=>{const m=b.dataset.m;S.models=S.models.includes(m)?S.models.filter(x=>x!==m):[...S.models,m];saveS();renderModels()});
+  $$('#t-md .mchip[data-m]').forEach(b=>b.onclick=()=>{const m=b.dataset.m;S.models=S.models.includes(m)?S.models.filter(x=>x!==m):[...S.models,m];saveS();renderModels()});
   const a=$('#mAll'),n=$('#mNone');if(a)a.onclick=()=>{S.models=MODELS.map(m=>m[1]);saveS();renderModels()};if(n)n.onclick=()=>{S.models=[];saveS();renderModels()};
 }
 
@@ -669,6 +716,7 @@ try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',()=>S.
 function norm(d){if(!d||d._n||!d.daily||!d.current)return d;const dt=d.current.time.slice(0,10);
   const di=d.daily.time.indexOf(dt);if(di>0){const Y={};for(const k in d.daily)Y[k]=d.daily[k][di-1];d.yday=Y;for(const k in d.daily)d.daily[k]=d.daily[k].slice(di)}
   const hi=d.hourly.time.findIndex(t=>t.slice(0,10)===dt);if(hi>0){d.yh=d.hourly.temperature_2m.slice(0,hi);for(const k in d.hourly)d.hourly[k]=d.hourly[k].slice(hi)}
+  {let L=d.daily.temperature_2m_max.length;while(L>1&&d.daily.temperature_2m_max[L-1]==null)L--;if(L<d.daily.time.length)for(const k in d.daily)d.daily[k]=d.daily[k].slice(0,L);let H=d.hourly.temperature_2m.length;while(H>1&&d.hourly.temperature_2m[H-1]==null)H--;if(H<d.hourly.time.length)for(const k in d.hourly)d.hourly[k]=d.hourly[k].slice(0,H)}
   d._n=1;return d}
 function yComp(){if(!D.yh)return '';const hr=+D.current.time.slice(11,13),y=D.yh[hr];if(y==null)return '';const df=D.current.temperature_2m-y;if(Math.abs(df)<1)return 'دمای الان مشابه دیروز همین ساعت';return fa(Math.round(Math.abs(dT(df))))+' درجه '+(df>0?'گرم‌تر':'خنک‌تر')+' از دیروز همین ساعت'}
 
@@ -962,6 +1010,124 @@ async function setMorning(on){
   toast('مرورگر شما اعلان پس‌زمینه را پشتیبانی نمی‌کند؛ اپ را از Chrome نصب کنید');return true;
 }
 
+/* ---------- MODEL MAPS (WeatherBell-style) ---------- */
+const WB_BB={lat0:20,lat1:44,lon0:36,lon1:66,st:1.5};WB_BB.nr=Math.round((WB_BB.lat1-WB_BB.lat0)/WB_BB.st)+1;WB_BB.nc=Math.round((WB_BB.lon1-WB_BB.lon0)/WB_BB.st)+1;
+const WB_M=['ecmwf_ifs025','gfs_seamless','icon_seamless','gem_seamless','ukmo_seamless','meteofrance_seamless','jma_seamless','cma_grapes_global','ecmwf_aifs025_single','gfs_graphcast025'];
+const WB_P={
+ mslp:['فشار سطح دریا و بارش ۶ ساعته',['pressure_msl','precipitation']],
+ z500:['ارتفاع ۵۰۰ هکتوپاسکال و باد',['geopotential_height_500hPa','wind_speed_500hPa','wind_direction_500hPa']],
+ t2:['دمای ۲ متری',['temperature_2m']],
+ dt24:['تغییر دما در ۲۴ ساعت',['temperature_2m']],
+ prec:['بارش تجمعی',['precipitation']],
+ snow:['برف تجمعی',['snowfall']],
+ t850:['دمای ۸۵۰ هکتوپاسکال (۱۵۰۰ متر)',['temperature_850hPa','geopotential_height_850hPa']],
+ thick:['ضخامت ۱۰۰۰–۵۰۰ و فشار',['geopotential_height_500hPa','geopotential_height_1000hPa','pressure_msl']],
+ wind:['تندباد ۱۰ متری',['wind_gusts_10m','wind_speed_10m','wind_direction_10m']],
+ cape:['ناپایداری (CAPE) و رعد و برق',['cape','precipitation']]};
+const WB={m:S.wbM||'gfs_seamless',m2:S.wbM2||'ecmwf_ifs025',p:S.wbP||'mslp',ti:1,cmp:false,cache:{},timer:null,tiles:null};
+async function wbData(m,p){
+  const vars=WB_P[p][1].join(','),key=m+'|'+vars,c=WB.cache[key];if(c&&(c.p||Date.now()-c.t<60*60e3))return c.p||c;
+  const lats=[],lons=[];for(let r=0;r<WB_BB.nr;r++)for(let k=0;k<WB_BB.nc;k++){lats.push(WB_BB.lat1-r*WB_BB.st);lons.push(WB_BB.lon0+k*WB_BB.st)}
+  const base=`https://api.open-meteo.com/v1/forecast?latitude=${lats.join(',')}&longitude=${lons.join(',')}&hourly=${vars}&models=${m}&timezone=GMT&forecast_days=7`;
+  const pr=(async()=>{let j,six=true;try{j=await getJSON(base+'&temporal_resolution=hourly_6',60000)}catch(e){six=false;j=await getJSON(base,60000)}
+    const arr=Array.isArray(j)?j:[j];let times=arr[0].hourly.time;const V={};
+    WB_P[p][1].forEach(v=>{V[v]=arr.map(a=>a.hourly[v]||[])});
+    if(!six||(times.length>1&&new Date(times[1]+'Z')-new Date(times[0]+'Z')<6*36e5)){const idx=[];times.forEach((t,i)=>{if(+t.slice(11,13)%6===0)idx.push(i)});
+      WB_P[p][1].forEach(v=>{const acc=v==='precipitation'||v==='snowfall';V[v]=V[v].map(a=>idx.map(i=>acc?a.slice(Math.max(0,i-5),i+1).reduce((s,x)=>s+(x||0),0):a[i]))});times=idx.map(i=>times[i])}
+    if(!WB_P[p][1].some(v=>V[v].some(a=>a.some(x=>x!=null))))throw new Error('na');
+    return WB.cache[key]={t:Date.now(),times,V}})();
+  WB.cache[key]={p:pr};try{return await pr}catch(e){delete WB.cache[key];throw e}
+}
+function wbField(d,p,ti){
+  const V=d.V,N=WB_BB.nr*WB_BB.nc,g=i=>V[WB_P[p][1][0]][i];let col=[],cont=null,cint=0,arrows=null,lab=null;
+  const cum=(v)=>[...Array(N).keys()].map(i=>{let s=0;for(let k=1;k<=ti;k++)s+=V[v][i][k]||0;return s});
+  switch(p){
+   case 'mslp':col=V.precipitation.map(a=>a[ti]);cont=V.pressure_msl.map(a=>a[ti]);cint=4;lab='hl';break;
+   case 'z500':col=V.geopotential_height_500hPa.map(a=>a[ti]==null?null:a[ti]/10);cont=col;cint=6;arrows=[V.wind_speed_500hPa,V.wind_direction_500hPa];break;
+   case 't2':col=V.temperature_2m.map(a=>a[ti]);cont=col;cint=5;break;
+   case 'dt24':col=V.temperature_2m.map(a=>ti>=4&&a[ti]!=null&&a[ti-4]!=null?a[ti]-a[ti-4]:null);cont=col;cint=3;break;
+   case 'prec':col=cum('precipitation');break;
+   case 'snow':col=cum('snowfall');break;
+   case 't850':col=V.temperature_850hPa.map(a=>a[ti]);cont=V.geopotential_height_850hPa.map(a=>a[ti]==null?null:a[ti]/10);cint=3;break;
+   case 'thick':col=V.geopotential_height_500hPa.map((a,i)=>a[ti]!=null&&V.geopotential_height_1000hPa[i][ti]!=null?(a[ti]-V.geopotential_height_1000hPa[i][ti])/10:null);cont=V.pressure_msl.map(a=>a[ti]);cint=4;lab='hl';break;
+   case 'wind':col=V.wind_gusts_10m.map(a=>a[ti]);arrows=[V.wind_speed_10m,V.wind_direction_10m];break;
+   case 'cape':col=V.cape.map(a=>a[ti]);cont=null;break;}
+  return {col,cont,cint,arrows:arrows?arrows[0].map((a,i)=>[a[ti],arrows[1][i][ti]]):null,lab}
+}
+const WB_PAL={
+ mslp:[[.1,[170,230,170]],[1,[90,200,90]],[3,[30,150,60]],[6,[250,230,60]],[10,[245,150,40]],[20,[220,40,40]],[40,[180,40,180]]],
+ prec:[[.5,[180,230,250]],[2,[110,190,245]],[5,[60,140,230]],[10,[40,180,90]],[20,[240,220,60]],[40,[240,140,40]],[70,[220,40,40]],[120,[170,40,170]]],
+ snow:[[.5,[220,230,255]],[3,[170,190,250]],[10,[120,140,240]],[20,[150,90,230]],[40,[210,80,200]],[80,[255,255,255]]],
+ z500:[[528,[110,40,160]],[540,[60,90,200]],[552,[60,170,220]],[564,[90,200,120]],[576,[240,210,70]],[588,[240,120,40]],[594,[190,40,40]]],
+ thick:[[516,[110,40,160]],[528,[60,90,200]],[540,[60,170,220]],[552,[90,200,120]],[564,[240,210,70]],[576,[240,120,40]],[588,[190,40,40]]],
+ dt24:[[-15,[40,60,200]],[-8,[80,140,240]],[-3,[170,210,250]],[0,[245,245,245]],[3,[250,200,160]],[8,[240,120,60]],[15,[190,30,30]]],
+ cape:[[100,[200,240,200]],[500,[120,210,120]],[1000,[240,230,80]],[2000,[245,150,40]],[3000,[220,40,40]],[4500,[180,40,180]]]};
+function wbColor(p,v){if(v==null)return null;if(p==='t2'||p==='t850')return interp(TEMP_ST,v);if(p==='wind')return interp(WIND_ST,v);const P=WB_PAL[p];if(!P)return null;if((p==='mslp'||p==='prec'||p==='snow'||p==='cape')&&v<P[0][0])return null;return interp(P,v)}
+function wbLegend(p){const P=p==='t2'||p==='t850'?TEMP_ST.slice(1,13):p==='wind'?WIND_ST.slice(0,12):WB_PAL[p];const u={mslp:'mm/6h',prec:'mm',snow:'cm',z500:'dam',thick:'dam',dt24:'°C',cape:'J/kg',t2:'°C',t850:'°C',wind:'km/h'}[p];
+  return `<div class="cbar" style="background:linear-gradient(to right,${grad(P)})"></div><div class="cbar-l"><span>${fa(P[0][0])}</span><span>${fa(P[Math.floor(P.length/2)][0])}</span><span>${fa(P[P.length-1][0])} ${u}</span></div>`}
+/* marching squares */
+function contours(vals,lev){const nr=WB_BB.nr,nc=WB_BB.nc,seg=[];const v=(r,c)=>vals[r*nc+c];
+  for(let r=0;r<nr-1;r++)for(let c=0;c<nc-1;c++){const a=v(r,c),b=v(r,c+1),d=v(r+1,c+1),e=v(r+1,c);if(a==null||b==null||d==null||e==null)continue;
+    const idx=(a>lev?8:0)|(b>lev?4:0)|(d>lev?2:0)|(e>lev?1:0);if(idx===0||idx===15)continue;
+    const T=[r,c+(lev-a)/(b-a)],R=[r+(lev-b)/(d-b),c+1],B=[r+1,c+(lev-e)/(d-e)],L=[r+(lev-a)/(e-a),c];
+    const m={1:[[L,B]],2:[[B,R]],3:[[L,R]],4:[[T,R]],5:[[L,T],[B,R]],6:[[T,B]],7:[[L,T]],8:[[L,T]],9:[[T,B]],10:[[T,R],[L,B]],11:[[T,R]],12:[[L,R]],13:[[B,R]],14:[[L,B]]}[idx];m.forEach(s=>seg.push(s))}
+  return seg}
+function wbTiles(){
+  if(WB.tiles)return WB.tiles;const z=5,x0=Math.floor(lon2x(WB_BB.lon0,z)/256),x1=Math.floor(lon2x(WB_BB.lon1,z)/256),y0=Math.floor(lat2y(WB_BB.lat1,z)/256),y1=Math.floor(lat2y(WB_BB.lat0,z)/256),L=[];
+  for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++)['World_Dark_Gray_Base','World_Dark_Gray_Reference'].forEach((ly,li)=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>{if(curTab==='md'&&(S.mdView||'map')==='map')wbDrawAll()};im.src=`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${ly}/MapServer/tile/${z}/${y}/${x}`;L.push({x,y,im,li})});
+  return WB.tiles={z,L}}
+function wbDraw(cv,d,m,p,ti){
+  const W=cv.clientWidth,z=5,X0=lon2x(WB_BB.lon0,z),Y0=lat2y(WB_BB.lat1,z),k=W/(lon2x(WB_BB.lon1,z)-X0),H=Math.round((lat2y(WB_BB.lat0,z)-Y0)*k);cv.style.height=H+'px';
+  const dpr=Math.min(2,devicePixelRatio||1);cv.width=W*dpr;cv.height=H*dpr;const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.fillStyle='#1d2433';x.fillRect(0,0,W,H);
+  const PX=lo=>(lon2x(lo,z)-X0)*k,PY=la=>(lat2y(la,z)-Y0)*k,G=(r,c)=>[PX(WB_BB.lon0+c*WB_BB.st),PY(WB_BB.lat1-r*WB_BB.st)];
+  const T=wbTiles();T.L.filter(t=>t.li===0).forEach(t=>{if(t.im.complete&&t.im.naturalWidth)x.drawImage(t.im,(t.x*256-X0)*k,(t.y*256-Y0)*k,256*k+.5,256*k+.5)});
+  if(!d){return}
+  const F=wbField(d,p,ti),nr=WB_BB.nr,nc=WB_BB.nc,f=6,iw=(nc-1)*f+1,ih=(nr-1)*f+1,oc=document.createElement('canvas');oc.width=iw;oc.height=ih;const ox=oc.getContext('2d'),im=ox.createImageData(iw,ih),gg={cols:nc,rows:nr};
+  for(let yy=0;yy<ih;yy++)for(let xx=0;xx<iw;xx++){const v=bil(F.col,gg,xx/f,yy/f),c=wbColor(p,v);if(c)im.data.set([...c,p==='mslp'||p==='prec'||p==='snow'||p==='cape'?210:185],(yy*iw+xx)*4)}
+  ox.putImageData(im,0,0);x.imageSmoothingEnabled=true;const NS=48;for(let s=0;s<NS;s++){const la1=WB_BB.lat1-(WB_BB.lat1-WB_BB.lat0)*s/NS,la2=WB_BB.lat1-(WB_BB.lat1-WB_BB.lat0)*(s+1)/NS,y1=PY(la1),y2=PY(la2);x.drawImage(oc,0,ih*s/NS,iw,ih/NS,0,y1,W,y2-y1+1)}
+  T.L.filter(t=>t.li===1).forEach(t=>{if(t.im.complete&&t.im.naturalWidth){x.globalAlpha=.85;x.drawImage(t.im,(t.x*256-X0)*k,(t.y*256-Y0)*k,256*k+.5,256*k+.5);x.globalAlpha=1}});
+  const pt=q=>{const la=WB_BB.lat1-q[0]*WB_BB.st,lo=WB_BB.lon0+q[1]*WB_BB.st;return [PX(lo),PY(la)]};
+  if(F.cont){const vals=F.cont.filter(v=>v!=null);if(vals.length){const lo=Math.ceil(Math.min(...vals)/F.cint)*F.cint,hi=Math.max(...vals);x.font='600 9.5px Vazirmatn,Tahoma,sans-serif';x.textAlign='center';x.textBaseline='middle';
+    for(let lev=lo;lev<=hi;lev+=F.cint){const sg=contours(F.cont,lev);if(!sg.length)continue;const dash=p==='dt24'&&lev<0;x.setLineDash(dash?[4,3]:[]);x.strokeStyle=p==='dt24'&&lev===0?'rgba(0,0,0,.6)':'rgba(255,255,255,.85)';x.lineWidth=p==='z500'&&lev===576?2:1.2;x.beginPath();sg.forEach(s=>{const a=pt(s[0]),b=pt(s[1]);x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1])});x.stroke();x.setLineDash([]);
+      for(let i=0;i<sg.length;i+=Math.max(14,Math.floor(sg.length/3))){const a=pt(sg[i][0]);const t=fa(lev);x.lineWidth=3;x.strokeStyle='rgba(0,0,0,.65)';x.strokeText(t,a[0],a[1]);x.fillStyle='#fff';x.fillText(t,a[0],a[1])}}}}
+  if(F.lab==='hl'&&F.cont){x.font='800 15px Tahoma,sans-serif';x.textAlign='center';for(let r=2;r<nr-2;r++)for(let c=2;c<nc-2;c++){const v=F.cont[r*nc+c];if(v==null)continue;let mx=true,mn=true;for(let dr=-2;dr<=2;dr++)for(let dc=-2;dc<=2;dc++){if(!dr&&!dc)continue;const w=F.cont[(r+dr)*nc+c+dc];if(w==null)continue;if(w>=v)mx=false;if(w<=v)mn=false}
+    if(mx||mn){const [px,py]=G(r,c);x.lineWidth=3;x.strokeStyle='rgba(0,0,0,.7)';x.strokeText(mx?'H':'L',px,py-6);x.fillStyle=mx?'#60a5fa':'#f87171';x.fillText(mx?'H':'L',px,py-6);x.font='600 9px Tahoma';x.fillStyle='#fff';x.strokeText(Math.round(v),px,py+8);x.fillText(Math.round(v),px,py+8);x.font='800 15px Tahoma,sans-serif'}}}
+  if(F.arrows){x.strokeStyle='rgba(255,255,255,.9)';x.lineWidth=1.3;for(let r=0;r<nr;r+=2)for(let c=0;c<nc;c+=2){const a=F.arrows[r*nc+c];if(!a||a[0]==null||a[1]==null)continue;const [px,py]=G(r,c),L=Math.min(22,4+a[0]/(p==='z500'?7:3.5)),ang=(a[1]+180)*Math.PI/180,dx=Math.sin(ang)*L,dy=-Math.cos(ang)*L;
+    x.beginPath();x.moveTo(px-dx/2,py-dy/2);x.lineTo(px+dx/2,py+dy/2);const hx=px+dx/2,hy=py+dy/2,a1=Math.atan2(dy,dx);x.lineTo(hx-5*Math.cos(a1-.5),hy-5*Math.sin(a1-.5));x.moveTo(hx,hy);x.lineTo(hx-5*Math.cos(a1+.5),hy-5*Math.sin(a1+.5));x.stroke()}}
+  POPULAR.slice(0,10).forEach(q=>{const px=PX(q[2]),py=PY(q[1]);x.fillStyle='#fff';x.beginPath();x.arc(px,py,2,0,7);x.fill()});
+  const vt=new Date(d.times[ti]+':00Z');x.fillStyle='rgba(10,16,32,.78)';x.fillRect(0,0,W,22);x.fillRect(0,H-18,W,18);x.fillStyle='#fff';x.font='700 11px Vazirmatn,Tahoma,sans-serif';x.textAlign='right';x.direction='rtl';
+  x.fillText(`${MM[m]?MM[m][2]:m} · ${WB_P[p][0]}`,W-6,12);x.textAlign='left';x.direction='ltr';x.font='600 10px Tahoma';x.fillText(`+${ti*6}h · ${d.times[ti].replace('T',' ')} UTC`,6,12);
+  x.font='600 9.5px Vazirmatn,Tahoma';x.globalAlpha=.8;x.fillText('Arvan Weather · Open-Meteo',6,H-7);x.globalAlpha=1;
+}
+let WBD={a:null,b:null};
+function wbDrawAll(){const a=$('#wbA'),b=$('#wbB');if(a)wbDraw(a,WBD.a,WB.m,WB.p,Math.min(WB.ti,WBD.a?WBD.a.times.length-1:0));if(b&&WB.cmp)wbDraw(b,WBD.b,WB.m2,WB.p,Math.min(WB.ti,WBD.b?WBD.b.times.length-1:0))}
+async function wbLoad(){
+  const msg=$('#wbMsg');if(msg)msg.textContent='در حال دریافت نقشه مدل…';WBD={a:null,b:null};wbDrawAll();
+  const [ra,rb]=await Promise.allSettled([wbData(WB.m,WB.p),WB.cmp?wbData(WB.m2,WB.p):Promise.resolve(null)]);
+  if(curTab!=='md'||(S.mdView||'map')!=='map')return;WBD.a=ra.status==='fulfilled'?ra.value:null;WBD.b=rb.status==='fulfilled'?rb.value:null;
+  const n=Math.max(WBD.a?WBD.a.times.length:0,WBD.b?WBD.b.times.length:0);const s=$('#wbSl');if(s){s.max=Math.max(0,n-1);WB.ti=Math.min(WB.ti,Math.max(0,n-1));s.value=WB.ti}
+  if(msg)msg.textContent=!WBD.a?(MM[WB.m][2]+': این پارامتر برای این مدل در دسترس نیست یا دریافت نشد'):(WB.cmp&&!WBD.b?MM[WB.m2][2]+': داده ندارد':'');wbTimeLbl();wbDrawAll();
+}
+function wbTimeLbl(){const d=WBD.a||WBD.b,el=$('#wbT');if(!el||!d||!d.times[WB.ti])return;el.textContent=fmtRT(new Date(d.times[WB.ti]+':00Z'),{weekday:'short',hour:'2-digit',minute:'2-digit'})+' · +'+fa(WB.ti*6)+'h'}
+function renderWB(el){
+  const mc=(id,sel)=>`<button class="chip mchip ${sel?'on':''}" data-wm="${id}"><i style="background:${MM[id][4]}"></i>${MM[id][2]}</button>`;
+  el.innerHTML=`<div class="card"><h3>🗺️ نقشه‌های مدل<span class="r">ایران و خاورمیانه · هر ۶ ساعت تا ۷ روز</span></h3>
+   <div class="mgrp">مدل</div><div class="chips">${WB_M.map(id=>mc(id,id===WB.m)).join('')}</div>
+   <div class="mgrp">پارامتر</div><div class="chips">${Object.entries(WB_P).map(([k,v])=>`<button class="chip ${k===WB.p?'on':''}" data-wp="${k}">${v[0]}</button>`).join('')}</div>
+   <div class="setl" style="margin-top:10px"><span>مقایسه با مدل دوم</span><button class="sw ${WB.cmp?'on':''}" id="wbCmp"></button></div>
+   ${WB.cmp?`<div class="chips nowrap scroll-x">${WB_M.filter(i=>i!==WB.m).map(id=>`<button class="chip mchip ${id===WB.m2?'on':''}" data-wm2="${id}"><i style="background:${MM[id][4]}"></i>${MM[id][2]}</button>`).join('')}</div>`:''}</div>
+   <div class="card wbc"><canvas id="wbA" class="wbcv"></canvas>${WB.cmp?'<canvas id="wbB" class="wbcv" style="margin-top:8px"></canvas>':''}<div class="note" id="wbMsg" style="text-align:center"></div>
+    <div class="tl" style="margin-top:8px"><button class="ibtn" id="wbPlay">${WB.timer?'⏸':'▶'}</button><input type="range" id="wbSl" min="0" max="27" value="${WB.ti}"><b id="wbT" style="min-width:110px;text-align:center;font-size:12.5px"></b></div>
+    ${wbLegend(WB.p)}<div class="note" style="margin-top:6px">${{mslp:'خطوط سفید: فشار سطح دریا هر ۴ هکتوپاسکال · H پرفشار، L کم‌فشار · رنگ: بارش ۶ ساعته',z500:'خطوط: ارتفاع ۵۰۰ هکتوپاسکال (دکامتر) — ناوه‌ها و پشته‌ها · پیکان: باد ترازهای میانی',t2:'دمای ۲ متری با خطوط هم‌دما هر ۵ درجه',dt24:'تغییر دما نسبت به ۲۴ ساعت قبل؛ آبی سردتر، قرمز گرم‌تر — ورود سامانه سرد را نشان می‌دهد',prec:'بارش تجمعی از ابتدای اجرا تا زمان انتخابی',snow:'برف تجمعی (سانتی‌متر) از ابتدای اجرا',t850:'دمای حدود ۱۵۰۰ متری؛ زیر ۰ و −۵ درجه معمولاً یعنی برف در ارتفاعات · خطوط: ارتفاع ۸۵۰',thick:'ضخامت ۱۰۰۰–۵۰۰ (دکامتر)؛ مرز ۵۴۰ تقریباً خط باران/برف · خطوط: فشار',wind:'رنگ: تندباد · پیکان: جهت باد ۱۰ متری',cape:'انرژی ناپایداری؛ بالای ۱۰۰۰ احتمال رعد و برق و تگرگ، بالای ۲۵۰۰ توفان‌های شدید'}[WB.p]}</div></div>`;
+  $$('#t-md [data-wm]').forEach(b=>b.onclick=()=>{WB.m=S.wbM=b.dataset.wm;if(WB.m2===WB.m)WB.m2=WB_M.find(i=>i!==WB.m);saveS();renderModels()});
+  $$('#t-md [data-wm2]').forEach(b=>b.onclick=()=>{WB.m2=S.wbM2=b.dataset.wm2;saveS();renderModels()});
+  $$('#t-md [data-wp]').forEach(b=>b.onclick=()=>{WB.p=S.wbP=b.dataset.wp;saveS();renderModels()});
+  $('#wbCmp').onclick=()=>{WB.cmp=!WB.cmp;renderModels()};
+  $('#wbSl').oninput=e=>{WB.ti=+e.target.value;wbTimeLbl();wbDrawAll()};
+  $('#wbPlay').onclick=()=>{if(WB.timer){clearInterval(WB.timer);WB.timer=null}else WB.timer=setInterval(()=>{if(curTab!=='md'||(S.mdView||'map')!=='map'){clearInterval(WB.timer);WB.timer=null;return}const s=$('#wbSl');const n=+s.max+1;WB.ti=(WB.ti+1)%n;s.value=WB.ti;wbTimeLbl();wbDrawAll()},800);$('#wbPlay').textContent=WB.timer?'⏸':'▶'};
+  wbLoad();
+}
+
 /* ---------- MAP (Windy-style: animated wind particles, altitude levels, 48h timeline) ---------- */
 let mapInit=false;
 const MP={mode:'map',views:{},z:6,lat:35.7,lon:51.4,frames:[],fi:0,timer:null,gtimer:null,host:'',grid:null,req:0,w:0,h:0,sx:0,sy:0,ti:0,imgs:{base:new Map(),ovl:new Map(),lbl:new Map()}};
@@ -1177,6 +1343,7 @@ const isRad=()=>MP.mode==='radar';
 const R={src:S.rdSrc||'iran',iran:null,nasa:null,fis:{iran:0,nasa:0,rv:0},timer:null};
 const RD_SRC={iran:'🇮🇷 بارش سراسری ایران',rv:'📡 رادارهای کشور',nasa:'🛰️ ماهواره ناسا'};
 const IR_RADARS=[['IRKR','کرمانشاه',34.31,47.07],['IRTH','تهران',35.69,51.39],['IRTB','تبریز',38.08,46.29],['IR3150','اردبیل',38.25,48.29],['IRGI','گیلان',37.28,49.58],['IRKZ','مازندران',36.56,53.06],['IRAH','اهواز',31.32,48.67],['IRBS','بوشهر',28.92,50.84],['IRSH','شیراز',29.6,52.54]];
+const IRW={lat1:39.2,lat0:30,lon0:44,lon1:50.6,step:.3};IRW.nLat=Math.floor((IRW.lat1-IRW.lat0)/IRW.step+1e-6)+1;IRW.nLon=Math.floor((IRW.lon1-IRW.lon0)/IRW.step+1e-6)+1;
 const IR={lat1:40.5,lat0:24.5,lon0:43.5,lon1:64,step:.75};IR.nLat=Math.floor((IR.lat1-IR.lat0)/IR.step)+1;IR.nLon=Math.floor((IR.lon1-IR.lon0)/IR.step)+1;
 const RAIN_ST=[[.1,[150,225,255]],[.5,[0,190,255]],[1,[0,120,255]],[2,[0,200,90]],[4,[0,150,0]],[7,[255,225,0]],[12,[255,140,0]],[20,[240,0,0]],[35,[190,0,110]],[60,[255,120,255]]];
 const SNOW_ST=[[.1,[225,225,255]],[1,[175,160,255]],[3,[125,95,240]],[8,[90,40,200]]];
@@ -1187,25 +1354,31 @@ function setMode(m){
   if(v){MP.lat=v.lat;MP.lon=v.lon;MP.z=v.z}else if(m==='radar'){MP.lat=32.4;MP.lon=53.7;MP.z=5}else{const c=city();MP.lat=c.lat;MP.lon=c.lon;MP.z=6}
   hidePop();clearWind();clearInterval(R.timer);R.timer=null;clearInterval(MP.gtimer);MP.gtimer=null;
 }
-async function loadIran(){
-  if(R.iran&&Date.now()-R.iran.t<15*60e3)return R.iran;
-  const lats=[],lons=[];for(let r=0;r<IR.nLat;r++)for(let c=0;c<IR.nLon;c++){lats.push((IR.lat1-r*IR.step).toFixed(2));lons.push((IR.lon0+c*IR.step).toFixed(2))}
+async function fetchNow(G){
+  const lats=[],lons=[];for(let r=0;r<G.nLat;r++)for(let c=0;c<G.nLon;c++){lats.push((G.lat1-r*G.step).toFixed(2));lons.push((G.lon0+c*G.step).toFixed(2))}
   const base=`https://api.open-meteo.com/v1/forecast?latitude=${lats.join(',')}&longitude=${lons.join(',')}&timezone=GMT`;
   let j,key='minutely_15',mult=4;
   try{j=await getJSON(base+'&minutely_15=precipitation,snowfall&past_minutely_15=8&forecast_minutely_15=25',40000)}
   catch(e){key='hourly';mult=1;j=await getJSON(base+'&hourly=precipitation,snowfall&past_hours=2&forecast_hours=7',40000)}
-  const arr=Array.isArray(j)?j:[j],times=arr[0][key].time,now=Date.now();
-  let ni=0;times.forEach((t,i)=>{if(new Date(t+':00Z').getTime()<=now)ni=i});
-  R.iran={t:Date.now(),times,now:ni,step:key==='hourly'?60:15,pre:arr.map(p=>p[key].precipitation||[]),snow:arr.map(p=>p[key].snowfall||[]),mult,cv:{}};
+  const arr=Array.isArray(j)?j:[j];return{times:arr[0][key].time,key,mult,pre:arr.map(p=>p[key].precipitation||[]),snow:arr.map(p=>p[key].snowfall||[])}
+}
+async function loadIran(){
+  if(R.iran&&Date.now()-R.iran.t<15*60e3)return R.iran;
+  const [a,w]=await Promise.all([fetchNow(IR),fetchNow(IRW).catch(()=>null)]),now=Date.now();
+  let ni=0;a.times.forEach((t,i)=>{if(new Date(t+':00Z').getTime()<=now)ni=i});
+  const W=w&&w.times.length===a.times.length&&w.key===a.key?w:null;
+  R.iran={t:Date.now(),times:a.times,now:ni,step:a.key==='hourly'?60:15,pre:a.pre,snow:a.snow,mult:a.mult,w:W,cv:{},cvw:{}};
   R.fis.iran=ni;return R.iran;
 }
-function iranFrame(fi){
-  const I=R.iran;if(I.cv[fi])return I.cv[fi];
-  const f=7,W=(IR.nLon-1)*f+1,H=(IR.nLat-1)*f+1,cv=document.createElement('canvas');cv.width=W;cv.height=H;const cx=cv.getContext('2d'),im=cx.createImageData(W,H);
-  const g={cols:IR.nLon,rows:IR.nLat},rate=I.pre.map(a=>a[fi]==null?null:a[fi]*I.mult),sn=I.snow.map(a=>a[fi]||0);
-  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const v=bil(rate,g,x/f,y/f);if(v==null||v<.1)continue;const k=Math.round(y/f)*IR.nLon+Math.round(x/f);im.data.set([...interp(sn[k]>0?SNOW_ST:RAIN_ST,v),Math.min(225,140+v*40)],(y*W+x)*4)}
-  cx.putImageData(im,0,0);return I.cv[fi]=cv;
+function gridImg(G,pre,snow,mult,fi,f,skip){
+  const W=(G.nLon-1)*f+1,H=(G.nLat-1)*f+1,cv=document.createElement('canvas');cv.width=W;cv.height=H;const cx=cv.getContext('2d'),im=cx.createImageData(W,H);
+  const g={cols:G.nLon,rows:G.nLat},rate=pre.map(a=>a[fi]==null?null:a[fi]*mult),sn=snow.map(a=>a[fi]||0);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){if(skip){const la=G.lat1-y/f*G.step,lo=G.lon0+x/f*G.step;if(la<=IRW.lat1&&la>=IRW.lat0&&lo>=IRW.lon0&&lo<=IRW.lon1)continue}
+    const v=bil(rate,g,x/f,y/f);if(v==null||v<.1)continue;const k=Math.round(y/f)*G.nLon+Math.round(x/f);im.data.set([...interp(sn[k]>0?SNOW_ST:RAIN_ST,v),Math.min(225,140+v*40)],(y*W+x)*4)}
+  cx.putImageData(im,0,0);return cv;
 }
+function iranFrame(fi){const I=R.iran;return I.cv[fi]||(I.cv[fi]=gridImg(IR,I.pre,I.snow,I.mult,fi,7,!!I.w))}
+function iranFrameW(fi){const I=R.iran;if(!I.w)return null;return I.cvw[fi]||(I.cvw[fi]=gridImg(IRW,I.w.pre,I.w.snow,I.w.mult,fi,6,false))}
 function nasaSetup(){
   if(R.nasa&&Date.now()-R.nasa.t<30*60e3)return;
   const end=Math.floor((Date.now()-7.5*3600e3)/18e5)*18e5,fr=[];
@@ -1227,7 +1400,7 @@ function drawStations(ctx){
 }
 function drawRadar(ctx){
   if(R.src==='rv'){drawStations(ctx);return}
-  if(R.src==='iran'&&R.iran){drawEq(ctx,iranFrame(R.fis.iran),{lat1:IR.lat1,lat0:IR.lat1-(IR.nLat-1)*IR.step,lon0:IR.lon0,lon1:IR.lon0+(IR.nLon-1)*IR.step})}
+  if(R.src==='iran'&&R.iran){drawEq(ctx,iranFrame(R.fis.iran),{lat1:IR.lat1,lat0:IR.lat1-(IR.nLat-1)*IR.step,lon0:IR.lon0,lon1:IR.lon0+(IR.nLon-1)*IR.step});const wf=iranFrameW(R.fis.iran);if(wf)drawEq(ctx,wf,{lat1:IRW.lat1,lat0:IRW.lat1-(IRW.nLat-1)*IRW.step,lon0:IRW.lon0,lon1:IRW.lon0+(IRW.nLon-1)*IRW.step})}
   else if(R.src==='nasa'&&R.nasa){const f=R.nasa.fr[R.fis.nasa];if(f&&f.im.complete&&!f.im.bad&&f.im.naturalWidth){ctx.globalAlpha=.9;drawEq(ctx,f.im,{lat1:42,lat0:22,lon0:40,lon1:66});ctx.globalAlpha=1}}
 }
 function rdFrames(){if(R.src==='rv')return MP.frames.map(f=>new Date(f.time*1000));if(R.src==='iran')return R.iran?R.iran.times.map(t=>new Date(t+':00Z')):[];return R.nasa?R.nasa.fr.map(f=>f.t):[]}
@@ -1243,11 +1416,12 @@ async function radarChanged(){
   if(src!==R.src||!isRad())return;
   mapRender();updRdInfo();
 }
+const RAIN_CITIES=POPULAR.concat([['سنندج',35.31,46.99],['ایلام',33.64,46.42],['خرم‌آباد',33.49,48.36],['همدان',34.8,48.51],['اراک',34.09,49.69],['یاسوج',30.67,51.59],['دزفول',32.38,48.4],['مهاباد',36.76,45.72],['سقز',36.25,46.27],['بروجرد',33.9,48.75],['مریوان',35.52,46.18],['اسلام‌آباد غرب',34.11,46.53],['زنجان',36.68,48.48],['قزوین',36.27,50]]);
 function rainCities(){
   const I=R.iran;if(!I)return '';const nowL=[],soon=[];
-  POPULAR.forEach(p=>{const r=Math.round((IR.lat1-p[1])/IR.step),c=Math.round((p[2]-IR.lon0)/IR.step);if(r<0||c<0||r>=IR.nLat||c>=IR.nLon)return;const k=r*IR.nLon+c,a=I.pre[k];
-    const v=(a[I.now]||0)*I.mult,isS=(I.snow[k][I.now]||0)>0;if(v>=.1)nowL.push([p[0],v,isS]);
-    else{for(let i=I.now+1;i<a.length;i++)if((a[i]||0)*I.mult>=.3){soon.push([p[0],new Date(I.times[i]+':00Z'),(I.snow[k][i]||0)>0]);break}}});
+  RAIN_CITIES.forEach(p=>{const inW=I.w&&p[1]<=IRW.lat1&&p[1]>=IRW.lat0&&p[2]>=IRW.lon0&&p[2]<=IRW.lon1,G=inW?IRW:IR,src=inW?I.w:I;const r=Math.round((G.lat1-p[1])/G.step),c=Math.round((p[2]-G.lon0)/G.step);if(r<0||c<0||r>=G.nLat||c>=G.nLon)return;const k=r*G.nLon+c,a=src.pre[k];
+    const v=(a[I.now]||0)*I.mult,isS=(src.snow[k][I.now]||0)>0;if(v>=.1)nowL.push([p[0],v,isS]);
+    else{for(let i=I.now+1;i<a.length;i++)if((a[i]||0)*I.mult>=.3){soon.push([p[0],new Date(I.times[i]+':00Z'),(src.snow[k][i]||0)>0]);break}}});
   nowL.sort((a,b)=>b[1]-a[1]);soon.sort((a,b)=>a[1]-b[1]);
   const lv=v=>v<2.5?'سبک':v<7.6?'متوسط':'شدید';
   return `<div class="card"><h3>🏙️ وضعیت بارش شهرهای بزرگ</h3>
@@ -1257,14 +1431,16 @@ function rainCities(){
 function updRdInfo(){
   const el=$('#rdInfo');if(!el)return;const fr=rdFrames(),fi=Math.min(R.fis[R.src],Math.max(0,fr.length-1));
   const IRL=`<div class="note" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">رادارهای زمینی سازمان هواشناسی کشور داده عمومی ندارند؛ تصاویر آن‌ها را در <a href="http://radar.irimo.ir/" target="_blank" rel="noopener">سامانه رادار سازمان هواشناسی</a> ببینید.</div>`;
-  const info={iran:['بارش سراسری ایران (مدل‌های عددی)',`linear-gradient(to right,${grad(RAIN_ST)})`,['۰٫۱','۱','۴','۱۲','۳۵+'],`پوشش کامل کشور در شبکه‌ای حدود ۸۰ کیلومتری · از ${fa(2)} ساعت گذشته تا ${fa(6)} ساعت آینده، هر ${fa(R.iran?R.iran.step:15)} دقیقه · رنگ‌های بنفش‌کم‌رنگ = برف. این داده تخمین مدل است، نه تصویر مستقیم رادار.`],
+  const info={iran:['بارش سراسری ایران (مدل‌های عددی)',`linear-gradient(to right,${grad(RAIN_ST)})`,['۰٫۱','۱','۴','۱۲','۳۵+'],`پوشش کامل کشور (حدود ۸۰ کیلومتری) و <b>شبکه ریزتر ۳۰ کیلومتری برای غرب کشور</b> (کردستان، کرمانشاه، ایلام، لرستان، همدان، آذربایجان غربی، خوزستان) · از ${fa(2)} ساعت گذشته تا ${fa(6)} ساعت آینده، هر ${fa(R.iran?R.iran.step:15)} دقیقه · رنگ‌های بنفش‌کم‌رنگ = برف. این داده تخمین مدل است، نه تصویر مستقیم رادار.`],
     nasa:['تخمین بارش ماهواره‌ای ناسا (GPM IMERG)','linear-gradient(to right,#b4f0ff,#33b7ff,#2e5bff,#00c44f,#ffe200,#ff7a00,#ff0000)',['سبک','','','','شدید'],'بارش واقعی مشاهده‌شده از ماهواره، کل ایران و منطقه، هر ۳۰ دقیقه · حدود ۷ ساعت تأخیر دارد.'],
     rv:['رادارهای هواشناسی کشور (از طریق RainViewer)','linear-gradient(to right,#88ddee,#0099cc,#0077aa,#005588,#ffee00,#ffaa00,#ff4400,#c10000,#ffaaff)',['Light','Moderate','Heavy','Extreme'],'تصویر واقعی ۹ رادار سازمان هواشناسی (کرمانشاه، تهران، تبریز، اردبیل، گیلان، مازندران، اهواز، بوشهر، شیراز) · ۲ ساعت گذشته، هر ۱۰ دقیقه · دایره‌ها برد تقریبی ۲۵۰ کیلومتری هر رادار است. اگر رادار خاموش یا قطع باشد، آن منطقه خالی می‌ماند.']}[R.src];
   const bad=R.src==='nasa'&&R.nasa&&R.nasa.fr.every(f=>f.im.bad);
   el.innerHTML=`${fr.length?`<div class="tl"><button class="ibtn" id="rPlay">${R.timer?'⏸':'▶'}</button><input type="range" id="rSl" min="0" max="${fr.length-1}" value="${fi}"><b id="rT" style="min-width:110px;text-align:center;font-size:13px">${rdLabel(fi)}</b></div>`:''}
    <div style="margin-top:8px"><b>${info[0]}</b></div><div class="cbar" style="background:${info[1]}"></div><div class="cbar-l">${info[2].map(x=>`<span>${x}</span>`).join('')}</div>
+   ${R.src!=='nasa'?`<div class="sec">نمای منطقه</div><div class="chips"><button class="chip" data-rg="w">⛰️ غرب کشور</button><button class="chip" data-rg="n">🌲 شمال</button><button class="chip" data-rg="s">🌴 جنوب</button><button class="chip" data-rg="all">🇮🇷 کل ایران</button></div>`:''}
    ${R.src==='rv'?`<div class="sec">پرش به رادار</div><div class="chips">${IR_RADARS.map(r=>`<button class="chip ${R.st===r[0]?'on':''}" data-st="${r[0]}">📡 ${r[1]}</button>`).join('')}</div>`:''}
    <div class="note">${bad?'⚠️ تصاویر ماهواره بارگذاری نشد؛ اتصال به سرور ناسا را بررسی کنید. ':''}${info[3]}</div>${IRL}`;
+  $$('#rdInfo [data-rg]').forEach(b=>b.onclick=()=>{const v={w:[34.6,47.2,6],n:[36.8,51.5,6],s:[28.5,54,6],all:[32.4,53.7,5]}[b.dataset.rg];MP.lat=v[0];MP.lon=v[1];MP.z=R.src==='rv'?Math.min(7,v[2]+(b.dataset.rg==='w'?1:0)):v[2]+(b.dataset.rg==='w'?1:0);mapRender();$('#map').scrollIntoView({behavior:'smooth',block:'center'})});
   $$('#rdInfo [data-st]').forEach(b=>b.onclick=()=>{const r=IR_RADARS.find(x=>x[0]===b.dataset.st);R.st=r[0];MP.lat=r[2];MP.lon=r[3];MP.z=7;mapRender();updRdInfo();$('#map').scrollIntoView({behavior:'smooth',block:'center'})});
   const s=$('#rSl');if(s)s.oninput=e=>rdSet(+e.target.value);
   const p=$('#rPlay');if(p)p.onclick=()=>{if(R.timer){clearInterval(R.timer);R.timer=null}else R.timer=setInterval(()=>{if(!isRad()||curTab!=='rd'){clearInterval(R.timer);R.timer=null;return}const n=rdFrames().length;if(n)rdSet((R.fis[R.src]+1)%n)},R.src==='iran'?450:700);p.textContent=R.timer?'⏸':'▶'};
@@ -1307,10 +1483,10 @@ $('#gpsBtn').onclick=()=>{if(!navigator.geolocation){toast('مرورگر از م
     e=>toast(e.code===1?'دسترسی به موقعیت داده نشد':'موقعیت پیدا نشد'),{enableHighAccuracy:false,timeout:15000,maximumAge:600000})};
 
 /* ---------- settings ---------- */
-function renderSettings(){const ms=$('#mornSw');if(ms)ms.classList.toggle('on',!!S.morning);$$('#setS .seg').forEach(sg=>$$('button',sg).forEach(b=>b.classList.toggle('on',S[sg.dataset.k]===b.dataset.v)));$('#notifSw').classList.toggle('on',!!S.notif&&('Notification' in window)&&Notification.permission==='granted')}
+function renderSettings(){const ss=$('#srcSel');if(ss)ss.value=S.src||'best';const ms=$('#mornSw');if(ms)ms.classList.toggle('on',!!S.morning);$$('#setS .seg').forEach(sg=>$$('button',sg).forEach(b=>b.classList.toggle('on',S[sg.dataset.k]===b.dataset.v)));$('#notifSw').classList.toggle('on',!!S.notif&&('Notification' in window)&&Notification.permission==='granted')}
 $('#setBtn').onclick=()=>{renderSettings();openSheet('setS')};
 $$('#setS .seg').forEach(sg=>$$('button',sg).forEach(b=>b.onclick=()=>{S[sg.dataset.k]=b.dataset.v;saveS();renderSettings();applyTheme();renderAll()}));
-$('#mornSw').onclick=async()=>{const on=!S.morning;await setMorning(on);renderSettings()};$('#expBtn').onclick=exportData;$('#impBtn').onclick=()=>$('#impF').click();$('#impF').onchange=e=>{const f=e.target.files[0];if(f)importData(f);e.target.value=''};$('#fuBtn').onclick=forceUpdate;$('#shareAppBtn').onclick=shareApp;
+$('#mornSw').onclick=async()=>{const on=!S.morning;await setMorning(on);renderSettings()};$('#srcSel').onchange=e=>{S.src=e.target.value;saveS();cities.forEach(c=>LS.del('cache.'+c.id));toast('منبع پیش‌بینی عوض شد');load(true)};$('#expBtn').onclick=exportData;$('#impBtn').onclick=()=>$('#impF').click();$('#impF').onchange=e=>{const f=e.target.files[0];if(f)importData(f);e.target.value=''};$('#fuBtn').onclick=forceUpdate;$('#shareAppBtn').onclick=shareApp;
 $('#notifSw').onclick=async()=>{if(!('Notification' in window)){toast('این دستگاه از اعلان پشتیبانی نمی‌کند');return}
   if(S.notif){S.notif=false;saveS();renderSettings();return}
   const p=await Notification.requestPermission();if(p==='granted'){S.notif=true;saveS();toast('اعلان هشدارها فعال شد');checkNotify()}else toast('اجازه اعلان داده نشد');renderSettings()};
