@@ -146,6 +146,11 @@ def handle(route):
         import time as _t
         now = int(_t.time() * 1000)
         return J({'features': [{'id': 'q%d' % i, 'properties': {'mag': m, 'time': now - h * 3600000, 'place': 'x'}, 'geometry': {'coordinates': [lo, la, dp]}} for i, (m, h, la, lo, dp) in enumerate([(4.6, 3, 34.4, 47.2, 10), (3.1, 30, 27.3, 56.4, 12), (5.2, 100, 30.1, 57.0, 8), (2.8, 5, 35.9, 51.0, 9)])]})
+    if u.hostname == 'www.kermanshahmet.ir':
+        b = io.BytesIO(); im = Image.new('RGB', (600, 600), (20, 20, 20))
+        for x in range(200, 330):
+            for y in range(220, 300): im.putpixel((x, y), (0, 160, 230))
+        im.save(b, 'PNG'); return route.fulfill(status=200, content_type='image/png', body=b.getvalue())
     if u.hostname == 'view.eumetsat.int':
         b = io.BytesIO(); im = Image.new('RGBA', (1040, 800), (0, 0, 0, 0))
         if 'li_afa' in route.request.url:
@@ -185,6 +190,7 @@ with sync_playwright() as p:
     pg.click('#mapLayers .chip[data-v=temp]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5-map-temp.png')
     pg.click('nav button[data-t=rd]'); pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/r1-iran.png', full_page=True)
     pg.click('#rdSrc .chip[data-v=nasa]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/r2-nasa.png')
+    pg.click('#rdSrc .chip[data-v=ksh]'); pg.wait_for_timeout(1800); pg.screenshot(path=f'{OUT}/r6-ksh.png', full_page=True)
     pg.click('#rdSrc .chip[data-v=lt]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/r5-lt.png', full_page=True)
     pg.click('#rdSrc .chip[data-v=rv]'); pg.wait_for_timeout(1200); pg.click('#rdInfo [data-st=IRKR]'); pg.wait_for_timeout(800); pg.screenshot(path=f'{OUT}/r3-rv.png', full_page=True)
     pg.click('nav button[data-t=map]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/r4-backmap.png')
