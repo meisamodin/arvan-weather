@@ -32,7 +32,7 @@ header{position:sticky;top:0;z-index:20;padding:calc(10px + env(safe-area-inset-
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
 nav{position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:rgba(8,14,32,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line)}
 nav .in{display:flex;width:100%;max-width:560px}
-nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--dim);padding:4px 0;border-radius:12px}
+nav button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;white-space:nowrap;color:var(--dim);padding:4px 0;border-radius:12px}
 nav button svg{width:22px;height:22px}
 nav button.on{color:#fff}nav button.on svg{stroke:var(--acc)}
 /* hero */
@@ -178,14 +178,15 @@ a{color:var(--acc)}
   <section class="tab" id="t-aq"></section>
   <section class="tab" id="t-map">
     <div class="card" style="padding:10px 12px"><div class="chips nowrap scroll-x" id="mapLayers"></div><div class="chips nowrap scroll-x" id="mapLevels" style="margin-top:8px"></div></div>
-    <div class="map" id="map">
+    <div id="mapHold"><div class="map" id="map">
       <div class="ly" id="mBase"></div><div class="ly" id="mOvl" style="opacity:.75"></div><canvas id="mCan"></canvas><canvas id="mWind"></canvas><div class="mk" id="mMk"></div><div class="pop" id="mPop"></div>
       <div class="ctl"><button id="mZi">+</button><button id="mZo">−</button><button id="mLoc" style="font-size:15px">◎</button></div>
       <div class="msg" id="mMsg"></div>
-      <div class="attr">© OpenStreetMap · © CARTO · RainViewer · Open-Meteo</div>
-    </div>
+      <div class="attr">© OpenStreetMap · © CARTO · Open-Meteo · NASA GIBS · RainViewer</div>
+    </div></div>
     <div class="card" id="mapInfo"></div>
   </section>
+  <section class="tab" id="t-rd"><div class="card" style="padding:10px 12px"><div class="chips nowrap scroll-x" id="rdSrc"></div></div><div id="rdHold"></div><div class="card" id="rdInfo"></div><div id="rdCities"></div></section>
   <section class="tab" id="t-md"></section>
   <div class="foot">ساخته شده توسط تیم اروان پینگ · تمامی حقوق محفوظ است<br><span id="verTxt"></span></div>
 </main>
@@ -194,6 +195,7 @@ a{color:var(--acc)}
 <nav><div class="in">
   <button data-t="now" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>اکنون</button>
   <button data-t="fc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4M7 13h2M11 13h2M15 13h2M7 17h2M11 17h2"/></svg>پیش‌بینی</button>
+  <button data-t="rd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 12l6-6"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>رادار</button>
   <button data-t="aq"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8"/></svg>کیفیت هوا</button>
   <button data-t="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 4-6 2.5v14L9 18l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v14M15 6.5v14"/></svg>نقشه</button>
   <button data-t="md"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-6 4 3 5-7 4 5"/><path d="M3 21h18"/></svg>مدل‌ها</button>
@@ -236,7 +238,7 @@ a{color:var(--acc)}
 
 <script>
 'use strict';
-const VERSION='1.1.0';
+const VERSION='1.2.0';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -249,6 +251,7 @@ const POPULAR=[['تهران',35.6892,51.389,'استان تهران'],['مشهد'
 let cities=LS.get('cities',[DEF_CITY]); if(!cities.length)cities=[DEF_CITY];
 let curId=LS.get('cur',cities[0].id); if(!cities.find(c=>c.id===curId))curId=cities[0].id;
 const S=Object.assign({t:'c',w:'kmh',p:'hpa',notif:false,aqStd:'us',models:['ecmwf_ifs025','gfs_seamless','icon_seamless','gem_seamless','ukmo_seamless','ecmwf_aifs025_single'],mVar:'temp',fcVar:'temp',fcRange:48,mapLayer:'wind',mapLevel:'10m',profH:0},LS.get('settings',{}));
+if(S.mapLayer==='radar')S.mapLayer='wind';
 const saveS=()=>LS.set('settings',S);
 const city=()=>cities.find(c=>c.id===curId)||cities[0];
 let D=null, AQ=null, loading=false, curTab='now';
@@ -565,8 +568,8 @@ function bindModelChips(){
 
 /* ---------- MAP (Windy-style: animated wind particles, altitude levels, 48h timeline) ---------- */
 let mapInit=false;
-const MP={z:6,lat:35.7,lon:51.4,frames:[],fi:0,timer:null,gtimer:null,host:'',grid:null,req:0,w:0,h:0,sx:0,sy:0,ti:0,imgs:{base:new Map(),ovl:new Map()}};
-const LAYERS={wind:'💨 باد',radar:'🌧️ رادار',temp:'🌡️ دما',rain:'💧 بارش',cloud:'☁️ ابر',gust:'🌪️ تندباد'};
+const MP={mode:'map',views:{},z:6,lat:35.7,lon:51.4,frames:[],fi:0,timer:null,gtimer:null,host:'',grid:null,req:0,w:0,h:0,sx:0,sy:0,ti:0,imgs:{base:new Map(),ovl:new Map()}};
+const LAYERS={wind:'💨 باد',temp:'🌡️ دما',rain:'💧 بارش',cloud:'☁️ ابر',gust:'🌪️ تندباد'};
 const LEVELS=[['10m','سطح زمین','۱۰ متری سطح زمین'],['100m','۱۰۰ متر','۱۰۰ متری سطح زمین'],['950hPa','۵۰۰ متر','۹۵۰ هکتوپاسکال · حدود ۵۰۰ متر'],['850hPa','۱۵۰۰ متر','۸۵۰ هکتوپاسکال · حدود ۱۵۰۰ متر'],['700hPa','۳۰۰۰ متر','۷۰۰ هکتوپاسکال · حدود ۳۰۰۰ متر'],['500hPa','۵۵۰۰ متر','۵۰۰ هکتوپاسکال · حدود ۵۵۰۰ متر'],['300hPa','۹۰۰۰ متر','۳۰۰ هکتوپاسکال · حدود ۹۰۰۰ متر'],['250hPa','۱۰٫۴ کیلومتر · جت','۲۵۰ هکتوپاسکال · حدود ۱۰٬۴۰۰ متر (جت‌استریم)'],['200hPa','۱۱٫۸ کیلومتر','۲۰۰ هکتوپاسکال · حدود ۱۱٬۸۰۰ متر']];
 const LVM=Object.fromEntries(LEVELS.map(l=>[l[0],l]));
 function lvVars(l){if(l==='10m')return{ws:'wind_speed_10m',wd:'wind_direction_10m',t:'temperature_2m',c:'cloud_cover'};if(l==='100m')return{ws:'wind_speed_100m',wd:'wind_direction_100m',t:'temperature_120m',c:'cloud_cover_low'};return{ws:'wind_speed_'+l,wd:'wind_direction_'+l,t:'temperature_'+l,c:'cloud_cover_'+l}}
@@ -592,14 +595,14 @@ function mapSetup(){
   $('#mZi').onclick=e=>{e.stopPropagation();mapZoom(1)};$('#mZo').onclick=e=>{e.stopPropagation();mapZoom(-1)};$('#mLoc').onclick=e=>{e.stopPropagation();mapCenterCity(true)};
   ['mZi','mZo','mLoc'].forEach(id=>$('#'+id).addEventListener('pointerdown',e=>e.stopPropagation()));
   addEventListener('resize',()=>curTab==='map'&&mapRender());
-  mapCenterCity(true);mapLayerChanged();
+  mapCenterCity(true);renderLevels();
 }
 function renderLevels(){
   const el=$('#mapLevels');if(SURF_ONLY[S.mapLayer]){el.style.display='none';return}el.style.display='';
   el.innerHTML='<span style="font-size:12px;color:var(--sub);align-self:center;white-space:nowrap">ارتفاع:</span>'+LEVELS.map(l=>`<button class="chip ${curLvl()===l[0]?'on':''}" data-v="${l[0]}">${l[1]}</button>`).join('');
   $$('#mapLevels .chip').forEach(b=>b.onclick=()=>{S.mapLevel=b.dataset.v;saveS();renderLevels();MP.grid=null;clearWind();mapRender();updMapInfo();gridLater(0)});
 }
-function mapCenterCity(re){const c=city();MP.lat=c.lat;MP.lon=c.lon;if(re)MP.z=6;mapRender();gridLater()}
+function mapCenterCity(re){if(isRad()){if(re){MP.lat=32.4;MP.lon=53.7;MP.z=5}mapRender();return}const c=city();MP.lat=c.lat;MP.lon=c.lon;if(re)MP.z=6;mapRender();gridLater()}
 function mapZoom(d){const z=Math.max(3,Math.min(10,MP.z+d));if(z===MP.z)return;MP.z=z;hidePop();mapRender();gridLater()}
 function tileLayer(cont,cache,urlf,maxZ,sx,sy){
   const tz=Math.min(MP.z,maxZ),sc=2**(MP.z-tz),ts=256*sc,n=2**tz;const used=new Set();
@@ -612,7 +615,7 @@ function mapRender(){
   if(!mapInit)return;const el=$('#map');MP.w=el.clientWidth;MP.h=el.clientHeight;if(!MP.w)return;
   const cx=lon2x(MP.lon,MP.z),cy=lat2y(MP.lat,MP.z),sx=cx-MP.w/2,sy=cy-MP.h/2;MP.sx=sx;MP.sy=sy;
   tileLayer($('#mBase'),MP.imgs.base,(z,x,y)=>`https://${'abcd'[(x+y)%4]}.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png`,10,sx,sy);
-  const fr=S.mapLayer==='radar'&&MP.frames[MP.fi];
+  const fr=isRad()&&R.src==='rv'&&MP.frames[R.fis.rv];
   tileLayer($('#mOvl'),MP.imgs.ovl,fr?(z,x,y)=>`${MP.host}${fr.path}/256/${z}/${x}/${y}/2/1_1.png`:()=>null,7,sx,sy);
   const c=city(),mk=$('#mMk');mk.style.left=(lon2x(c.lon,MP.z)-sx)+'px';mk.style.top=(lat2y(c.lat,MP.z)-sy)+'px';
   drawGrid();clearWind();windStart();
@@ -637,9 +640,9 @@ function gridColor(v){const L=S.mapLayer;if(v==null)return [0,0,0,0];
   if(L==='temp')return [...interp(TEMP_ST,v),215];
   if(L==='cloud'){const a=Math.max(0,Math.min(100,v));return [Math.round(60+a*1.7),Math.round(70+a*1.65),Math.round(90+a*1.55),Math.round(60+a*1.6)]}
   if(v<.1)return [40,45,60,90];const st=[[.1,[90,180,240]],[1,[40,130,230]],[3,[30,80,200]],[6,[140,60,220]],[12,[230,60,160]],[25,[250,80,60]]];return [...interp(st,v),220]}
-let gridT=null;function gridLater(ms=450){clearTimeout(gridT);if(S.mapLayer==='radar'||!mapInit)return;gridT=setTimeout(fetchGrid,ms)}
+let gridT=null;function gridLater(ms=450){clearTimeout(gridT);if(isRad()||!mapInit)return;gridT=setTimeout(fetchGrid,ms)}
 async function fetchGrid(){
-  if(curTab!=='map'||S.mapLayer==='radar')return;
+  if(curTab!=='map'||isRad())return;
   const z=MP.z,cx=lon2x(MP.lon,z),cy=lat2y(MP.lat,z),lvl=curLvl(),g=MP.grid;
   if(g&&g.lvl===lvl&&g.gz===z){const sx=cx-MP.w/2,sy=cy-MP.h/2;if(sx>=g.gx0&&sy>=g.gy0&&sx+MP.w<=g.gx0+g.dx*(g.cols-1)&&sy+MP.h<=g.gy0+g.dy*(g.rows-1))return}
   const pad=.3,cols=10,rows=Math.max(10,Math.round(10*MP.h/MP.w)),gx0=cx-MP.w*(.5+pad),gy0=cy-MP.h*(.5+pad),dx=MP.w*(1+2*pad)/(cols-1),dy=MP.h*(1+2*pad)/(rows-1);
@@ -668,7 +671,7 @@ function gridPrep(){
 function bil(a,g,c,r){if(c<0||r<0||c>g.cols-1||r>g.rows-1)return null;const c0=Math.min(g.cols-2,c|0),r0=Math.min(g.rows-2,r|0),fx=c-c0,fy=r-r0,i=r0*g.cols+c0,j=i+g.cols;const A=a[i],B=a[i+1],C=a[j],D2=a[j+1];if(A==null||B==null||C==null||D2==null)return null;return A*(1-fx)*(1-fy)+B*fx*(1-fy)+C*(1-fx)*fy+D2*fx*fy}
 function gpos(x,y){const g=MP.grid,s=2**(g.gz-MP.z);return [((MP.sx+x)*s-g.gx0)/g.dx,((MP.sy+y)*s-g.gy0)/g.dy]}
 function drawGrid(){
-  const ctx=sizeCanvas($('#mCan'));ctx.clearRect(0,0,MP.w,MP.h);const g=MP.grid;if(S.mapLayer==='radar'||!g||!g.bg)return;
+  const ctx=sizeCanvas($('#mCan'));ctx.clearRect(0,0,MP.w,MP.h);if(isRad()){drawRadar(ctx);return}const g=MP.grid;if(!g||!g.bg)return;
   const s=2**(MP.z-g.gz),x0=g.gx0*s-MP.sx,y0=g.gy0*s-MP.sy,w=g.dx*(g.cols-1)*s,h=g.dy*(g.rows-1)*s;
   ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(g.bg,x0,y0,w,h);
   if(S.mapLayer==='wind'||S.mapLayer==='gust')return;
@@ -679,7 +682,7 @@ function drawGrid(){
 }
 /* wind particles */
 const WA={ps:[],raf:0};
-const windOn=()=>mapInit&&curTab==='map'&&S.mapLayer!=='radar'&&MP.grid&&MP.grid.U&&!document.hidden;
+const windOn=()=>mapInit&&curTab==='map'&&!isRad()&&MP.grid&&MP.grid.U&&!document.hidden;
 function field(x,y){const g=MP.grid,[c,r]=gpos(x,y);if(c<0||r<0||c>=g.cols-1||r>=g.rows-1)return null;const c0=c|0,r0=r|0,fx=c-c0,fy=r-r0,i=r0*g.cols+c0,j=i+g.cols;if(!(g.ok[i]&g.ok[i+1]&g.ok[j]&g.ok[j+1]))return null;const w1=(1-fx)*(1-fy),w2=fx*(1-fy),w3=(1-fx)*fy,w4=fx*fy;return [g.U[i]*w1+g.U[i+1]*w2+g.U[j]*w3+g.U[j+1]*w4,g.Vv[i]*w1+g.Vv[i+1]*w2+g.Vv[j]*w3+g.Vv[j+1]*w4]}
 const seedP=()=>({x:Math.random()*MP.w,y:Math.random()*MP.h,a:0,m:30+Math.random()*70|0});
 function windLoop(){
@@ -698,7 +701,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)windStart(
 /* tap popup */
 let popT=null;function hidePop(){const p=$('#mPop');if(p)p.style.display='none'}
 function showPop(x,y){
-  const g=MP.grid,p=$('#mPop');if(S.mapLayer==='radar'||!g||!g.U)return;
+  const g=MP.grid,p=$('#mPop');if(isRad()||!g||!g.U)return;
   const [c,r]=gpos(x,y),v=field(x,y),val=bil(g.vals,g,c,r);let t='';
   if(v){const sp=Math.hypot(v[0],v[1]),dir=(Math.atan2(-v[0],v[1])*180/Math.PI+360)%360;
     const main=S.mapLayer==='temp'&&val!=null?tS(val):S.mapLayer==='cloud'&&val!=null?'ابر '+fa(Math.round(val))+'٪':S.mapLayer==='rain'&&val!=null?'بارش '+fa(val,1)+' mm':S.mapLayer==='gust'&&val!=null?'تندباد '+wS(val):'';
@@ -710,6 +713,7 @@ function showPop(x,y){
 function gTimeLbl(){const g=MP.grid;if(!g)return '';if(MP.ti===0)return 'اکنون';const d=new Date(g.times[g.t0+MP.ti]+':00Z');let s;try{s=new Intl.DateTimeFormat('fa-IR',{timeZone:D&&D.timezone||undefined,weekday:'short',hour:'2-digit',minute:'2-digit'}).format(d)}catch(e){s=d.toLocaleString('fa-IR',{weekday:'short',hour:'2-digit',minute:'2-digit'})}return s+' (+'+fa(MP.ti)+'h)'}
 function setGT(i){MP.ti=i;gridPrep();mapRender();const s=$('#gSl'),b=$('#gT');if(s)s.value=i;if(b)b.textContent=gTimeLbl()}
 function updMapInfo(){
+  if(isRad()){updRdInfo();return}
   const el=$('#mapInfo');if(!el)return;
   if(S.mapLayer==='radar'){
     if(!MP.frames.length){el.innerHTML='<div class="note">رادار بارش ۲ ساعت گذشته (هر ۱۰ دقیقه). اگر بارگذاری نشد، لایه‌های باد، دما و بارش را امتحان کنید.</div><div class="note" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">🇮🇷 <b>رادارهای کشور:</b> شبکه رادار سازمان هواشناسی ایران داده عمومی (API) ندارد و در شبکه جهانی رادار هم پوشش ایران محدود است. برای دیدن تصاویر رادارهای داخلی (تبریز، اهواز، خزر و…) <a href="http://radar.irimo.ir/" target="_blank" rel="noopener">سامانه رادار سازمان هواشناسی</a> را باز کنید. لایه «بارش» همین نقشه کل ایران را پوشش می‌دهد.</div>';return}
@@ -762,9 +766,102 @@ async function fillProf(){
   $$('#profH .chip').forEach(b=>b.onclick=()=>{S.profH=+b.dataset.v;saveS();fillProf()});
 }
 
+/* ---------- RADAR tab (nationwide Iran precipitation) ---------- */
+const isRad=()=>MP.mode==='radar';
+const R={src:S.rdSrc||'iran',iran:null,nasa:null,fis:{iran:0,nasa:0,rv:0},timer:null};
+const RD_SRC={iran:'🇮🇷 بارش سراسری ایران',nasa:'🛰️ ماهواره ناسا',rv:'📡 رادار زمینی'};
+const IR={lat1:40.5,lat0:24.5,lon0:43.5,lon1:64,step:.75};IR.nLat=Math.floor((IR.lat1-IR.lat0)/IR.step)+1;IR.nLon=Math.floor((IR.lon1-IR.lon0)/IR.step)+1;
+const RAIN_ST=[[.1,[150,225,255]],[.5,[0,190,255]],[1,[0,120,255]],[2,[0,200,90]],[4,[0,150,0]],[7,[255,225,0]],[12,[255,140,0]],[20,[240,0,0]],[35,[190,0,110]],[60,[255,120,255]]];
+const SNOW_ST=[[.1,[225,225,255]],[1,[175,160,255]],[3,[125,95,240]],[8,[90,40,200]]];
+const tzR=()=>(D&&D.timezone)||'Asia/Tehran';
+const fmtRT=(d,o={hour:'2-digit',minute:'2-digit'})=>{try{return new Intl.DateTimeFormat('fa-IR',{timeZone:tzR(),...o}).format(d)}catch(e){return d.toLocaleTimeString('fa-IR',o)}};
+function setMode(m){
+  if(MP.mode===m)return;MP.views=MP.views||{};MP.views[MP.mode]={lat:MP.lat,lon:MP.lon,z:MP.z};MP.mode=m;const v=MP.views[m];
+  if(v){MP.lat=v.lat;MP.lon=v.lon;MP.z=v.z}else if(m==='radar'){MP.lat=32.4;MP.lon=53.7;MP.z=5}else{const c=city();MP.lat=c.lat;MP.lon=c.lon;MP.z=6}
+  hidePop();clearWind();clearInterval(R.timer);R.timer=null;clearInterval(MP.gtimer);MP.gtimer=null;
+}
+async function loadIran(){
+  if(R.iran&&Date.now()-R.iran.t<15*60e3)return R.iran;
+  const lats=[],lons=[];for(let r=0;r<IR.nLat;r++)for(let c=0;c<IR.nLon;c++){lats.push((IR.lat1-r*IR.step).toFixed(2));lons.push((IR.lon0+c*IR.step).toFixed(2))}
+  const base=`https://api.open-meteo.com/v1/forecast?latitude=${lats.join(',')}&longitude=${lons.join(',')}&timezone=GMT`;
+  let j,key='minutely_15',mult=4;
+  try{j=await getJSON(base+'&minutely_15=precipitation,snowfall&past_minutely_15=8&forecast_minutely_15=25',40000)}
+  catch(e){key='hourly';mult=1;j=await getJSON(base+'&hourly=precipitation,snowfall&past_hours=2&forecast_hours=7',40000)}
+  const arr=Array.isArray(j)?j:[j],times=arr[0][key].time,now=Date.now();
+  let ni=0;times.forEach((t,i)=>{if(new Date(t+':00Z').getTime()<=now)ni=i});
+  R.iran={t:Date.now(),times,now:ni,step:key==='hourly'?60:15,pre:arr.map(p=>p[key].precipitation||[]),snow:arr.map(p=>p[key].snowfall||[]),mult,cv:{}};
+  R.fis.iran=ni;return R.iran;
+}
+function iranFrame(fi){
+  const I=R.iran;if(I.cv[fi])return I.cv[fi];
+  const f=7,W=(IR.nLon-1)*f+1,H=(IR.nLat-1)*f+1,cv=document.createElement('canvas');cv.width=W;cv.height=H;const cx=cv.getContext('2d'),im=cx.createImageData(W,H);
+  const g={cols:IR.nLon,rows:IR.nLat},rate=I.pre.map(a=>a[fi]==null?null:a[fi]*I.mult),sn=I.snow.map(a=>a[fi]||0);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const v=bil(rate,g,x/f,y/f);if(v==null||v<.1)continue;const k=Math.round(y/f)*IR.nLon+Math.round(x/f);im.data.set([...interp(sn[k]>0?SNOW_ST:RAIN_ST,v),Math.min(225,140+v*40)],(y*W+x)*4)}
+  cx.putImageData(im,0,0);return I.cv[fi]=cv;
+}
+function nasaSetup(){
+  if(R.nasa&&Date.now()-R.nasa.t<30*60e3)return;
+  const end=Math.floor((Date.now()-7.5*3600e3)/18e5)*18e5,fr=[];
+  for(let k=7;k>=0;k--){const t=new Date(end-k*18e5),iso=t.toISOString().slice(0,19)+'Z';
+    const im=new Image();im.onload=()=>{if(isRad()&&R.src==='nasa')mapRender()};im.onerror=()=>{im.bad=1;if(isRad()&&R.src==='nasa')updRdInfo()};
+    im.src=`https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&LAYERS=IMERG_Precipitation_Rate_30min&SRS=EPSG:4326&BBOX=40,22,66,42&WIDTH=1040&HEIGHT=800&FORMAT=image/png&TRANSPARENT=TRUE&TIME=${iso}`;
+    fr.push({t,im})}
+  R.nasa={t:Date.now(),fr};R.fis.nasa=fr.length-1;
+}
+function drawEq(ctx,img,bb){
+  const z=MP.z,x0=lon2x(bb.lon0,z)-MP.sx,x1=lon2x(bb.lon1,z)-MP.sx,N=60,ih=img.height;ctx.imageSmoothingEnabled=true;
+  for(let k=0;k<N;k++){const a=bb.lat1-(bb.lat1-bb.lat0)*k/N,b=bb.lat1-(bb.lat1-bb.lat0)*(k+1)/N,y0=lat2y(a,z)-MP.sy,y1=lat2y(b,z)-MP.sy;if(y1<0||y0>MP.h)continue;ctx.drawImage(img,0,ih*k/N,img.width,ih/N,x0,y0,x1-x0,y1-y0+1.5)}
+}
+function drawRadar(ctx){
+  if(R.src==='iran'&&R.iran){drawEq(ctx,iranFrame(R.fis.iran),{lat1:IR.lat1,lat0:IR.lat1-(IR.nLat-1)*IR.step,lon0:IR.lon0,lon1:IR.lon0+(IR.nLon-1)*IR.step})}
+  else if(R.src==='nasa'&&R.nasa){const f=R.nasa.fr[R.fis.nasa];if(f&&f.im.complete&&!f.im.bad&&f.im.naturalWidth){ctx.globalAlpha=.9;drawEq(ctx,f.im,{lat1:42,lat0:22,lon0:40,lon1:66});ctx.globalAlpha=1}}
+}
+function rdFrames(){if(R.src==='rv')return MP.frames.map(f=>new Date(f.time*1000));if(R.src==='iran')return R.iran?R.iran.times.map(t=>new Date(t+':00Z')):[];return R.nasa?R.nasa.fr.map(f=>f.t):[]}
+function rdLabel(i){const fr=rdFrames(),d=fr[i];if(!d)return '';let s=fmtRT(d);if(R.src==='iran'){const m=Math.round((d-Date.now())/6e4);if(i===R.iran.now)s+=' · اکنون';else if(m>0)s+=' · پیش‌بینی';}else if(R.src==='nasa')s+=' · '+fmtRT(d,{weekday:'short'});return s}
+function rdSet(i){R.fis[R.src]=i;if(R.src==='rv')MP.fi=i;mapRender();const s=$('#rSl'),b=$('#rT');if(s)s.value=i;if(b)b.textContent=rdLabel(i)}
+async function radarChanged(){
+  clearInterval(R.timer);R.timer=null;clearWind();
+  $$('#rdSrc .chip').forEach(x=>x.classList.toggle('on',x.dataset.v===R.src));
+  const src=R.src;mapMsg('');
+  if(src==='rv'){if(!MP.frames.length){mapMsg('در حال دریافت رادار…');try{const j=await getJSON('https://api.rainviewer.com/public/weather-maps.json');MP.host=j.host;MP.frames=(j.radar&&j.radar.past)||[];R.fis.rv=MP.fi=MP.frames.length-1;mapMsg(MP.frames.length?'':'داده رادار در دسترس نیست')}catch(e){mapMsg('اتصال به سرور رادار برقرار نشد')}}if(MP.z>7)MP.z=7}
+  else if(src==='iran'){if(!R.iran||Date.now()-R.iran.t>15*60e3){mapMsg('در حال دریافت بارش سراسری ایران…');updRdInfo();try{await loadIran();mapMsg('')}catch(e){mapMsg('دریافت داده بارش ممکن نشد')}}}
+  else nasaSetup();
+  if(src!==R.src||!isRad())return;
+  mapRender();updRdInfo();
+}
+function rainCities(){
+  const I=R.iran;if(!I)return '';const nowL=[],soon=[];
+  POPULAR.forEach(p=>{const r=Math.round((IR.lat1-p[1])/IR.step),c=Math.round((p[2]-IR.lon0)/IR.step);if(r<0||c<0||r>=IR.nLat||c>=IR.nLon)return;const k=r*IR.nLon+c,a=I.pre[k];
+    const v=(a[I.now]||0)*I.mult,isS=(I.snow[k][I.now]||0)>0;if(v>=.1)nowL.push([p[0],v,isS]);
+    else{for(let i=I.now+1;i<a.length;i++)if((a[i]||0)*I.mult>=.3){soon.push([p[0],new Date(I.times[i]+':00Z'),(I.snow[k][i]||0)>0]);break}}});
+  nowL.sort((a,b)=>b[1]-a[1]);soon.sort((a,b)=>a[1]-b[1]);
+  const lv=v=>v<2.5?'سبک':v<7.6?'متوسط':'شدید';
+  return `<div class="card"><h3>🏙️ وضعیت بارش شهرهای بزرگ</h3>
+   ${nowL.length?nowL.map(x=>`<div class="setl" style="margin:4px 0"><span>${x[2]?'🌨️':'🌧️'} <b>${x[0]}</b></span><span class="note">${x[2]?'برف':'باران'} ${lv(x[1])} · ${fa(x[1],1)} mm/h</span></div>`).join(''):'<div class="note">هم‌اکنون در شهرهای بزرگ بارشی پیش‌بینی نشده است.</div>'}
+   ${soon.length?`<div class="sec" style="margin-top:10px">شروع بارش در ساعات آینده</div>${soon.map(x=>`<div class="setl" style="margin:4px 0"><span>${x[2]?'🌨️':'🌦️'} ${x[0]}</span><span class="note">حدود ساعت ${fmtRT(x[1])}</span></div>`).join('')}`:''}</div>`;
+}
+function updRdInfo(){
+  const el=$('#rdInfo');if(!el)return;const fr=rdFrames(),fi=Math.min(R.fis[R.src],Math.max(0,fr.length-1));
+  const IRL=`<div class="note" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">رادارهای زمینی سازمان هواشناسی کشور داده عمومی ندارند؛ تصاویر آن‌ها را در <a href="http://radar.irimo.ir/" target="_blank" rel="noopener">سامانه رادار سازمان هواشناسی</a> ببینید.</div>`;
+  const info={iran:['بارش سراسری ایران (مدل‌های عددی)',`linear-gradient(to right,${grad(RAIN_ST)})`,['۰٫۱','۱','۴','۱۲','۳۵+'],`پوشش کامل کشور در شبکه‌ای حدود ۸۰ کیلومتری · از ${fa(2)} ساعت گذشته تا ${fa(6)} ساعت آینده، هر ${fa(R.iran?R.iran.step:15)} دقیقه · رنگ‌های بنفش‌کم‌رنگ = برف. این داده تخمین مدل است، نه تصویر مستقیم رادار.`],
+    nasa:['تخمین بارش ماهواره‌ای ناسا (GPM IMERG)','linear-gradient(to right,#b4f0ff,#33b7ff,#2e5bff,#00c44f,#ffe200,#ff7a00,#ff0000)',['سبک','','','','شدید'],'بارش واقعی مشاهده‌شده از ماهواره، کل ایران و منطقه، هر ۳۰ دقیقه · حدود ۷ ساعت تأخیر دارد.'],
+    rv:['رادار زمینی (RainViewer)','linear-gradient(to right,#88ddee,#0099cc,#0077aa,#005588,#ffee00,#ffaa00,#ff4400,#c10000,#ffaaff)',['Light','Moderate','Heavy','Extreme'],'رادارهای زمینی شبکه جهانی، ۲ ساعت گذشته · پوشش ایران محدود است و فقط مناطق مرزی را نشان می‌دهد.']}[R.src];
+  const bad=R.src==='nasa'&&R.nasa&&R.nasa.fr.every(f=>f.im.bad);
+  el.innerHTML=`${fr.length?`<div class="tl"><button class="ibtn" id="rPlay">${R.timer?'⏸':'▶'}</button><input type="range" id="rSl" min="0" max="${fr.length-1}" value="${fi}"><b id="rT" style="min-width:110px;text-align:center;font-size:13px">${rdLabel(fi)}</b></div>`:''}
+   <div style="margin-top:8px"><b>${info[0]}</b></div><div class="cbar" style="background:${info[1]}"></div><div class="cbar-l">${info[2].map(x=>`<span>${x}</span>`).join('')}</div>
+   <div class="note">${bad?'⚠️ تصاویر ماهواره بارگذاری نشد؛ اتصال به سرور ناسا را بررسی کنید. ':''}${info[3]}</div>${IRL}`;
+  const s=$('#rSl');if(s)s.oninput=e=>rdSet(+e.target.value);
+  const p=$('#rPlay');if(p)p.onclick=()=>{if(R.timer){clearInterval(R.timer);R.timer=null}else R.timer=setInterval(()=>{if(!isRad()||curTab!=='rd'){clearInterval(R.timer);R.timer=null;return}const n=rdFrames().length;if(n)rdSet((R.fis[R.src]+1)%n)},R.src==='iran'?450:700);p.textContent=R.timer?'⏸':'▶'};
+  $('#rdCities').innerHTML=R.src==='iran'?rainCities():'';
+}
+
 /* ---------- tabs ---------- */
 function go(t){curTab=t;$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$$('.tab').forEach(s=>s.classList.toggle('on',s.id==='t-'+t));scrollTo(0,0);
-  if(t==='map'){mapSetup();requestAnimationFrame(()=>{mapRender();gridLater(0);updMapInfo()})}else{clearInterval(MP.timer);MP.timer=null;clearInterval(MP.gtimer);MP.gtimer=null;hidePop()}
+  if(t==='map'||t==='rd'){mapSetup();$(t==='rd'?'#rdHold':'#mapHold').appendChild($('#map'));setMode(t==='rd'?'radar':'map');
+    if(t==='rd'){if(!$('#rdSrc').children.length){$('#rdSrc').innerHTML=Object.entries(RD_SRC).map(([k,v])=>`<button class="chip" data-v="${k}">${v}</button>`).join('');$$('#rdSrc .chip').forEach(b=>b.onclick=()=>{R.src=b.dataset.v;S.rdSrc=R.src;saveS();radarChanged()})}
+      requestAnimationFrame(()=>{mapRender();radarChanged()})}
+    else requestAnimationFrame(()=>{if(MP.grid&&MP.grid.lvl!==curLvl())MP.grid=null;if(MP.grid)gridPrep();mapRender();gridLater(0);updMapInfo()})}
+  else{clearInterval(MP.timer);MP.timer=null;clearInterval(MP.gtimer);MP.gtimer=null;clearInterval(R.timer);R.timer=null;hidePop()}
   if(t==='md')renderModels();}
 $$('nav button').forEach(b=>b.onclick=()=>go(b.dataset.t));
 

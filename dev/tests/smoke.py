@@ -63,6 +63,13 @@ def handle(route):
     if u.hostname == 'api.open-meteo.com':
         lats = q.get('latitude', ['0'])[0].split(',')
         hv = q.get('hourly', [''])[0].split(',')
+        if 'minutely_15' in q:
+            st = datetime.now(timezone.utc).replace(tzinfo=None, second=0, microsecond=0); st -= timedelta(minutes=st.minute % 15 + 120)
+            T = [(st + timedelta(minutes=15 * k)).strftime('%Y-%m-%dT%H:%M') for k in range(33)]
+            def m15(i):
+                r, c = divmod(i, 28)
+                return {'minutely_15': {'time': T, 'precipitation': [round(max(0, math.sin((c - k * .15) / 3) * math.cos(r / 4)) * 1.6, 2) for k in range(33)], 'snowfall': [0.3 if r < 4 and c < 8 else 0] * 33}}
+            return J([m15(i) for i in range(len(lats))])
         if len(lats) > 1 or any('hPa' in v or '100m' in v for v in hv):
             N = 49 if 'start_hour' in q else 72
             st = datetime.now(timezone.utc).replace(tzinfo=None).replace(minute=0, second=0, microsecond=0) if 'start_hour' in q else NOW.replace(hour=0)
@@ -93,6 +100,8 @@ def handle(route):
     if u.hostname == 'air-quality-api.open-meteo.com': return J(aqi())
     if u.hostname == 'geocoding-api.open-meteo.com': return J({'results': [{'name': 'شیراز', 'admin1': 'استان فارس', 'country': 'ایران', 'latitude': 29.61, 'longitude': 52.53}]})
     if u.hostname == 'api.rainviewer.com': return J({'host': 'https://tilecache.rainviewer.com', 'radar': {'past': [{'time': 1793446800 + i * 600, 'path': f'/v2/radar/{i}'} for i in range(12)]}})
+    if u.hostname == 'gibs.earthdata.nasa.gov':
+        b = io.BytesIO(); im = Image.new('RGBA', (1040, 800), (0, 0, 0, 0)); [im.putpixel((x, y), (40, 120, 255, 200)) for x in range(400, 700) for y in range(300, 450)]; im.save(b, 'PNG'); return route.fulfill(status=200, content_type='image/png', body=b.getvalue())
     if 'tilecache.rainviewer.com' in u.hostname: return route.fulfill(status=200, content_type='image/png', body=RADAR)
     if 'cartocdn' in u.hostname: return route.fulfill(status=200, content_type='image/png', body=TILE)
     if u.hostname == 'cdn.jsdelivr.net': return route.fulfill(status=200, content_type='text/css', body='')
@@ -117,7 +126,10 @@ with sync_playwright() as p:
     pg.click('nav button[data-t=map]'); pg.wait_for_timeout(2500)
     pg.screenshot(path=f'{OUT}/4b-map-wind.png'); pg.click('#mapLevels .chip[data-v="250hPa"]'); pg.wait_for_timeout(2500); pg.mouse.click(150, 450); pg.wait_for_timeout(300); pg.screenshot(path=f'{OUT}/4c-map-jet.png')
     pg.click('#mapLayers .chip[data-v=temp]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5-map-temp.png')
-    pg.click('#mapLayers .chip[data-v=radar]'); pg.wait_for_timeout(800); pg.screenshot(path=f'{OUT}/4-map-radar.png')
+    pg.click('nav button[data-t=rd]'); pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/r1-iran.png', full_page=True)
+    pg.click('#rdSrc .chip[data-v=nasa]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/r2-nasa.png')
+    pg.click('#rdSrc .chip[data-v=rv]'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/r3-rv.png')
+    pg.click('nav button[data-t=map]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/r4-backmap.png')
     pg.click('#mapLayers .chip[data-v=wind]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5b-map-wind.png')
     pg.click('nav button[data-t=md]'); pg.wait_for_timeout(300)
     pg.click('#t-md .mchip[data-m=kma_seamless]'); pg.wait_for_timeout(200); pg.click('#t-md .mchip[data-m=knmi_seamless]'); pg.wait_for_timeout(1500)
