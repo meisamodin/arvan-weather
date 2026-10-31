@@ -268,6 +268,7 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 .crow .ct{font-size:12.5px;white-space:nowrap}.crow .mv{display:flex;flex-direction:column;gap:2px}.crow .mv button{font-size:10px;color:var(--sub);width:22px;height:16px;border-radius:5px;background:var(--card2)}
 .ob{text-align:center}.obi img{width:84px;height:84px;border-radius:22px;box-shadow:0 10px 30px rgba(0,0,0,.35);margin:6px auto 4px;display:block;animation:aw-bob 4s ease-in-out infinite}
 .offbar{margin:0 16px 6px;padding:7px 12px;border-radius:12px;background:rgba(250,204,21,.2);border:1px solid rgba(250,204,21,.5);font-size:12.5px;text-align:center}
+.orec{margin:10px 0;padding:10px;border-radius:14px;background:linear-gradient(135deg,rgba(34,197,94,.18),rgba(56,189,248,.12));border:1px solid rgba(74,222,128,.45)}.orh{font-weight:700;font-size:14px}.orh small{display:block;font-weight:400;font-size:11.5px;color:var(--sub)}
 .warnbox{margin:12px 0 4px;padding:9px 11px;border-radius:12px;background:rgba(250,204,21,.14);border:1px solid rgba(250,204,21,.45);font-size:12.5px;line-height:1.9;color:var(--txt)}
 .irh{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}.irh div{border-radius:14px;padding:8px;text-align:center;border:1px solid var(--line)}.irh small{display:block;font-size:11px;color:var(--sub)}.irh b{display:block;font-size:14px}.irh span{font-size:16px;font-weight:700}
 .irl{max-height:520px;overflow:auto;scrollbar-width:thin}.irr{display:grid;grid-template-columns:76px 28px 34px 32px 1fr 32px;gap:6px;align-items:center;width:100%;padding:6px 2px;border-top:1px solid var(--line);text-align:right}.irr:first-child{border-top:0}
@@ -304,16 +305,16 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
   <section class="tab" id="t-fc"></section>
   <section class="tab" id="t-aq"></section>
   <section class="tab" id="t-map">
-    <div class="card" style="padding:10px 12px"><div class="chips nowrap scroll-x" id="mapLayers"></div><div class="chips nowrap scroll-x" id="mapLevels" style="margin-top:8px"></div></div>
+    <div class="card" style="padding:10px 12px"><div class="chips" id="mapLayers"></div><div class="chips nowrap scroll-x" id="mapLevels" style="margin-top:8px"></div></div>
     <div id="mapHold"><div class="map" id="map">
       <div class="ly" id="mBase"></div><div class="ly" id="mOvl" style="opacity:.75"></div><canvas id="mCan"></canvas><canvas id="mWind"></canvas><div class="ly" id="mLbl" style="opacity:.8"></div><div class="mk" id="mMk"></div><div class="pop" id="mPop"></div>
       <div class="ctl"><button id="mZi">+</button><button id="mZo">−</button><button id="mLoc" style="font-size:15px">◎</button></div>
       <div class="msg" id="mMsg"></div>
-      <div class="attr">© Esri · OpenStreetMap · Open-Meteo · NASA GIBS · RainViewer</div>
+      <div class="attr">© Esri · OSM · Open-Meteo · NASA · EUMETSAT · RainViewer</div>
     </div></div>
     <div class="card" id="mapInfo"></div>
   </section>
-  <section class="tab" id="t-rd"><div class="card" style="padding:10px 12px"><div class="chips nowrap scroll-x" id="rdSrc"></div></div><div id="rdHold"></div><div class="card" id="rdInfo"></div><div id="rdCities"></div></section>
+  <section class="tab" id="t-rd"><div class="card" style="padding:10px 12px"><div class="chips" id="rdSrc"></div></div><div id="rdHold"></div><div class="card" id="rdInfo"></div><div id="rdCities"></div></section>
   <section class="tab" id="t-tr"></section>
   <section class="tab" id="t-md"></section>
   <div class="foot">ساخته شده توسط تیم اروان پینگ · تمامی حقوق محفوظ است<br><span id="verTxt"></span></div>
@@ -393,7 +394,7 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 
 <script>
 'use strict';
-const VERSION='1.9.1';
+const VERSION='1.10.1';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1157,7 +1158,7 @@ function renderWB(el){
 }
 
 /* ---------- country cities min/max ---------- */
-const IRC=[['تهران',35.69,51.39],['مشهد',36.3,59.6],['اصفهان',32.65,51.67],['شیراز',29.6,52.54],['تبریز',38.08,46.29],['کرج',35.84,50.99],['اهواز',31.32,48.67],['قم',34.64,50.88],['کرمانشاه',34.31,47.07],['ارومیه',37.55,45.08],['رشت',37.28,49.58],['زاهدان',29.5,60.86],['همدان',34.8,48.51],['کرمان',30.28,57.08],['یزد',31.9,54.36],['اردبیل',38.25,48.29],['بندرعباس',27.18,56.27],['اراک',34.09,49.69],['زنجان',36.68,48.48],['سنندج',35.31,46.99],['قزوین',36.27,50],['خرم‌آباد',33.49,48.36],['گرگان',36.84,54.43],['ساری',36.56,53.06],['بجنورد',37.47,57.33],['بیرجند',32.87,59.22],['بوشهر',28.97,50.84],['ایلام',33.64,46.42],['شهرکرد',32.33,50.86],['یاسوج',30.67,51.59],['سمنان',35.58,53.39],['کاشان',33.98,51.44],['دزفول',32.38,48.4],['آبادان',30.34,48.3],['ماهشهر',30.56,49.2],['چابهار',25.29,60.64],['کیش',26.53,53.98],['قشم',26.95,56.27],['بم',29.11,58.36],['زابل',31.03,61.5],['طبس',33.6,56.92],['سبزوار',36.21,57.68],['نیشابور',36.21,58.8],['شاهرود',36.42,54.98],['رامسر',36.92,50.64],['آمل',36.47,52.35],['بابل',36.54,52.68],['مراغه',37.39,46.24],['خوی',38.55,44.95],['سقز',36.25,46.27],['مریوان',35.52,46.18],['بروجرد',33.9,48.75],['ملایر',34.3,48.82],['جیرفت',28.68,57.74],['لار',27.68,54.34],['میناب',27.15,57.08],['فیروزکوه',35.76,52.77],['شوشتر',32.05,48.85],['دماوند',35.72,52.06],['آستارا',38.43,48.87]];
+const IRC=[['تهران',35.69,51.39],['مشهد',36.3,59.6],['اصفهان',32.65,51.67],['شیراز',29.6,52.54],['تبریز',38.08,46.29],['کرج',35.84,50.99],['اهواز',31.32,48.67],['قم',34.64,50.88],['کرمانشاه',34.31,47.07],['ارومیه',37.55,45.08],['رشت',37.28,49.58],['زاهدان',29.5,60.86],['همدان',34.8,48.51],['کرمان',30.28,57.08],['یزد',31.9,54.36],['اردبیل',38.25,48.29],['بندرعباس',27.18,56.27],['اراک',34.09,49.69],['زنجان',36.68,48.48],['سنندج',35.31,46.99],['قزوین',36.27,50],['خرم‌آباد',33.49,48.36],['گرگان',36.84,54.43],['ساری',36.56,53.06],['بجنورد',37.47,57.33],['بیرجند',32.87,59.22],['بوشهر',28.97,50.84],['ایلام',33.64,46.42],['شهرکرد',32.33,50.86],['یاسوج',30.67,51.59],['سمنان',35.58,53.39],['کاشان',33.98,51.44],['دزفول',32.38,48.4],['آبادان',30.34,48.3],['ماهشهر',30.56,49.2],['چابهار',25.29,60.64],['کیش',26.53,53.98],['قشم',26.95,56.27],['بم',29.11,58.36],['زابل',31.03,61.5],['طبس',33.6,56.92],['سبزوار',36.21,57.68],['نیشابور',36.21,58.8],['شاهرود',36.42,54.98],['رامسر',36.92,50.64],['آمل',36.47,52.35],['بابل',36.54,52.68],['مراغه',37.39,46.24],['خوی',38.55,44.95],['سقز',36.25,46.27],['مریوان',35.52,46.18],['بروجرد',33.9,48.75],['ملایر',34.3,48.82],['جیرفت',28.68,57.74],['لار',27.68,54.34],['میناب',27.15,57.08],['فیروزکوه',35.76,52.77],['شوشتر',32.05,48.85],['دماوند',35.72,52.06],['آستارا',38.43,48.87],['ایوان',33.83,46.31],['گیلان‌غرب',34.14,45.92],['اسلام‌آباد غرب',34.11,46.53],['سرپل ذهاب',34.46,45.86],['دهلران',32.69,47.27],['پاوه',35.04,46.36],['بیجار',35.87,47.6]];
 let IRCD=null,IRCV={d:0,sort:'max',q:'',v:'temp'};
 async function loadIRC(){
   if(IRCD&&Date.now()-IRCD.t<30*60e3)return IRCD;
@@ -1192,6 +1193,9 @@ function bindIRC(){
 function fillIRC(){const b=$('#ircBody');if(!b)return;const R=IRCV.v==='rain';b.innerHTML=R?ircRainHtml():ircHtml();$$('#ircBody .irr').forEach(x=>x.onclick=()=>{const c=IRC.find(k=>k[0]===x.dataset.c);if(c)openStats(c)});if(R&&!IRWY)loadIRWY().then(()=>{if(IRCV.v==='rain')fillIRC()}).catch(()=>{})}
 
 /* ---------- precipitation & climate statistics ---------- */
+/* official station records (IRIMO via Wikipedia climate tables): [record high, record low, mean annual precip mm, period] */
+const OREC={'تهران':[43,-15,239,'۱۳۳۰ تاکنون، مهرآباد'],'مشهد':[43.8,-28,246,'۱۳۳۰–۱۳۹۹'],'اصفهان':[44.6,-19.4,186,'۱۳۳۰ تاکنون'],'شیراز':[43.5,-14,324,'۱۳۳۰ تاکنون'],'تبریز':[42,-25,259,'۱۳۳۰ تاکنون'],'اهواز':[53.7,-7,219,'۱۳۳۰ تاکنون'],'کرمانشاه':[44.1,-27,416,'۱۳۳۰–۱۳۹۹'],'سنندج':[44,-31,384,'۱۳۳۸–۱۳۹۹'],'رشت':[40,-19,1383,'۱۳۳۵–۱۳۹۹'],'همدان':[40.6,-34,315,'۱۳۴۰–۱۳۹۹'],'ارومیه':[39.9,-22.8,313,'۱۳۴۰–۱۳۹۹'],'ایلام':[47,-15,551,'۱۳۴۶–۱۳۹۹'],'خرم‌آباد':[47,-14.6,493,'۱۳۳۰–۱۳۹۹'],'کرمان':[42.3,-30,130,'۱۳۳۰–۱۳۹۹'],'یزد':[46.1,-16,52,'۱۳۳۱ تاکنون'],'اردبیل':[40.4,-33.8,281,'۱۳۵۵ تاکنون'],'زنجان':[43,-30,296,'۱۳۳۴–۱۳۹۹'],'قزوین':[42.5,-24,319,'۱۳۳۸–۱۳۹۹'],'اراک':[44,-30.5,316,'۱۳۴۰ تاکنون'],'بندرعباس':[51,2,170,'۱۳۳۶–۱۳۹۹'],'بوشهر':[50,-1,260,'۱۳۳۰–۱۳۸۹'],'زاهدان':[43.4,-22,78,'۱۳۴۰ تاکنون'],'گرگان':[46.2,-11.8,516,'۱۳۳۱–۱۳۹۹'],'ساری':[44,-5,947,'۱۳۴۶–۱۳۸۲'],'شهرکرد':[42,-32.4,321,'۱۳۳۴–۱۳۹۹'],'قم':[47,-23,148,'۱۳۶۵–۱۳۹۹'],'بیرجند':[44.1,-21.5,150,'۱۳۳۴–۱۳۹۹']};
+
 const isoD=d=>d.toISOString().slice(0,10);
 const wyOf=t=>{const y=+t.slice(0,4);return t.slice(5)>='09-23'?y:y-1};
 const wyStart=y=>y+'-09-23';
@@ -1238,18 +1242,20 @@ function barSvg(vals,{h=150,avg,hl=[],lab}){const W=340,top=12,bot=20,ph=h-top-b
   vals.forEach((v,i)=>{const x=W-8-(i+1)*bw,bh=v[1]/mx*ph,c=hl[0]===v[0]?'#38bdf8':hl[1]===v[0]?'#f59e0b':v[1]>=avg?'rgba(96,165,250,.85)':'rgba(251,191,36,.75)';o+=`<rect x="${(x+1).toFixed(1)}" y="${(top+ph-bh).toFixed(1)}" width="${Math.max(1,bw-2).toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${c}" class="grbar" style="animation-delay:${i*15}ms"/>`;if(i%5===0)o+=`<text x="${(x+bw/2).toFixed(1)}" y="${h-6}" text-anchor="middle" font-size="8.5">${lab(v[0])}</text>`});
   if(avg){const y=top+ph*(1-avg/mx);o+=`<line x1="32" x2="${W-8}" y1="${y}" y2="${y}" stroke="#fff" stroke-dasharray="4 3" stroke-width="1.2"/><text x="30" y="${y+3}" text-anchor="end" font-size="9">${fa(avg)}</text>`}
   return `<svg viewBox="0 0 ${W} ${h}" class="stsvg">${o}</svg>`}
-function statsHtml(st,name){
+function statsHtml(st,name,cname){
+  const O=OREC[cname];
   const k=st.cur.length,curV=st.cur[k-1]||0,lastV=st.last[k-1]||0,meanV=st.mean[k-1]||0,pc=v=>v?Math.round((curV-v)/v*100):0;
   const cmp=(v,lbl)=>{const p=pc(v);return `<div class="kv">${lbl}<b>${fa(v,0)} mm</b><small style="color:${p>=0?'#4ade80':'#f87171'}">${p>=0?'+':'−'}${fa(Math.abs(p))}٪ امسال ${p>=0?'بیشتر':'کمتر'}</small></div>`};
   const mo=[0,31,61,92,122,153,183,213,243,273,303,333],mn=['مهر','آبان','آذر','دی','بهمن','اسفند','فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور'];
   const dt=s=>new Intl.DateTimeFormat('fa-IR-u-ca-persian',{day:'numeric',month:'long',year:'numeric'}).format(pd(s));
   return `<div class="anom" style="background:${curV>=meanV?'rgba(56,189,248,.22)':'rgba(251,191,36,.22)'}"><b>${name?esc(name)+': ':''}بارش سال آبی ${wyLbl(st.cw)} تاکنون: ${fa(curV,0)} میلی‌متر</b><small>${meanV?(curV>=meanV?fa(pc(meanV))+'٪ بیشتر از':fa(Math.abs(pc(meanV)))+'٪ کمتر از')+' میانگین ۳۰ ساله تا همین روز':''} · داده تا ${dt(st.end)}</small></div>
+   ${O?`<div class="orec"><div class="orh">🏛️ رکوردهای رسمی ایستگاه هواشناسی ${esc(cname)}<small>سازمان هواشناسی کشور · ${O[3]}</small></div><div class="sgrid" style="margin-top:6px"><div class="kv">🔥 رکورد گرما<b>${tS(O[0])}</b></div><div class="kv">🥶 رکورد سرما<b>${tS(O[1])}</b></div><div class="kv">💧 میانگین بارش سالانه<b>${fa(O[2])} mm</b><small>رسمی ۳۰ ساله</small></div><div class="kv">📏 بارش امسال (تصحیح‌شده)<b>${fa(curV*O[2]/(st.avg||O[2]),0)} mm</b><small>عدد مدل × ${fa(O[2]/(st.avg||O[2]),2)}</small></div></div></div>`:''}
    <div class="sgrid">${cmp(lastV,'پارسال تا همین روز')}${cmp(meanV,'میانگین تا همین روز')}<div class="kv">میانگین کل سال آبی<b>${fa(st.avg)} mm</b><small>${fa(st.tot.length)} سال (${wyLbl(st.y0)} تا امروز)</small></div><div class="kv">پیشرفت نسبت به کل سال<b>${fa(Math.round(curV/(st.avg||1)*100))}٪</b><small>از بارش یک سال معمولی</small></div></div>
    <div class="sec">📈 بارش تجمعی سال آبی</div>${lineSvg([{v:st.mean,c:'rgba(255,255,255,.7)',d:1,w:1.5},{v:st.last.slice(0,366),c:'#f59e0b',w:1.6},{v:st.cur,c:'#38bdf8',w:2.6,dot:1}],{n:366,yl:'mm',xl:mo.map((m,i)=>[m,mn[i].slice(0,3)]).filter((x,i)=>i%2===0)})}
    <div class="legend"><span><i style="background:#38bdf8"></i>امسال</span><span><i style="background:#f59e0b"></i>پارسال</span><span><i style="background:#fff"></i>میانگین ۳۰ ساله</span></div>
    <div class="sec">📊 بارش سالانه ${fa(st.tot.length)} سال گذشته</div>${barSvg(st.tot,{avg:st.avg,hl:[st.wet[0],st.dry[0]],lab:w=>fa(JY(w))})}
    <div class="legend"><span><i style="background:#38bdf8"></i>پربارش‌ترین</span><span><i style="background:#f59e0b"></i>کم‌بارش‌ترین</span><span><i style="background:rgba(96,165,250,.85)"></i>بالای میانگین</span><span><i style="background:rgba(251,191,36,.75)"></i>زیر میانگین</span></div>
-   <div class="warnbox">⚠️ این اعداد از <b>مدل بازتحلیل</b> (میانگین یک خانه ۹ کیلومتری) است، نه ایستگاه رسمی. مدل سرمای شدید شب‌ها و بارش کوهستان را <b>کمتر</b> از واقعیت نشان می‌دهد؛ برای مثال رکورد رسمی سرمای سنندج حدود −۳۱° است. برای رکوردهای رسمی به <a href="https://www.irimo.ir" target="_blank" rel="noopener">سازمان هواشناسی</a> مراجعه کنید. نمودارها برای مقایسه روند و سال‌ها با هم معتبرترند.</div><div class="sec">📐 بیشینه و کمینه در داده‌های مدل (از ${fa(1370)})</div><div class="sgrid">
+   <div class="warnbox">⚠️ این اعداد از <b>مدل بازتحلیل</b> (میانگین یک خانه ۹ کیلومتری) است، نه ایستگاه رسمی. مدل سرمای شدید شب‌ها و بارش کوهستان را <b>کمتر</b> از واقعیت نشان می‌دهد؛ برای مثال رکورد رسمی سرمای سنندج −۳۱° است. رکوردهای رسمی ۲۷ شهر بزرگ در کادر «رکوردهای رسمی ایستگاه» آمده؛ برای بقیه به <a href="https://www.irimo.ir" target="_blank" rel="noopener">سازمان هواشناسی</a> مراجعه کنید. نمودارها برای مقایسه روند و سال‌ها با هم معتبرترند.</div><div class="sec">📐 بیشینه و کمینه در داده‌های مدل (از ${fa(1370)})</div><div class="sgrid">
     <div class="kv">🌧️ پربارش‌ترین سال آبی<b>${fa(st.wet[1])} mm</b><small>${wyLbl(st.wet[0])}</small></div><div class="kv">🏜️ کم‌بارش‌ترین سال آبی<b>${fa(st.dry[1])} mm</b><small>${wyLbl(st.dry[0])}</small></div>
     <div class="kv">⛈️ بیشترین بارش یک روز<b>${fa(st.mxP[0],0)} mm</b><small>${st.mxP[1]?dt(st.mxP[1]):''}</small></div><div class="kv">📅 سال‌های بالای میانگین<b>${fa(st.tot.filter(x=>x[1]>=st.avg).length)} از ${fa(st.tot.length)}</b><small>سال آبی</small></div>
     <div class="kv">🔥 گرم‌ترین روز (مدل)<b>${tS(st.hi[0])}</b><small>${st.hi[1]?dt(st.hi[1]):''}</small></div><div class="kv">🥶 سردترین روز (مدل)<b>${tS(st.lo[0])}</b><small>${st.lo[1]?dt(st.lo[1]):''}</small></div></div>
@@ -1261,11 +1267,11 @@ async function openStats(c){
    <button class="btn" id="stAdd" style="margin-top:12px">🌤️ نمایش پیش‌بینی ${esc(c[0])}</button></div>`;
   document.body.appendChild(el);el.addEventListener('click',e=>{if(e.target===el||e.target.hasAttribute('data-close'))el.remove()});
   $('#stAdd',el).onclick=()=>{el.remove();selectCity({id:mkId(c[1],c[2]),name:c[0],admin:'',country:'ایران',lat:c[1],lon:c[2]})};
-  try{const st=await cityStats(c);const b=$('#stBody',el);if(b)b.innerHTML=statsHtml(st)}catch(e){const b=$('#stBody',el);if(b)b.innerHTML='<div class="note">دریافت آمار ممکن نشد. اتصال اینترنت را بررسی کنید.</div>'}
+  try{const st=await cityStats(c);const b=$('#stBody',el);if(b)b.innerHTML=statsHtml(st,'',c[0])}catch(e){const b=$('#stBody',el);if(b)b.innerHTML='<div class="note">دریافت آمار ممکن نشد. اتصال اینترنت را بررسی کنید.</div>'}
 }
 async function fillRainStats(){
   const el=$('#rainSt');if(!el||!D)return;const c=city();
-  try{const st=await cityStats(c);if(c.id!==curId||!$('#rainSt'))return;el.innerHTML=statsHtml(st)}catch(e){el.innerHTML='<div class="note">دریافت آمار بارش ممکن نشد.</div>'}
+  try{const st=await cityStats(c);if(c.id!==curId||!$('#rainSt'))return;el.innerHTML=statsHtml(st,'',c.name)}catch(e){el.innerHTML='<div class="note">دریافت آمار بارش ممکن نشد.</div>'}
 }
 function ircRainHtml(){
   if(!IRCD)return '<div class="sk"></div><div class="sk"></div>';const d=IRCV.d;
@@ -1550,8 +1556,8 @@ async function fillProf(){
 
 /* ---------- RADAR tab (nationwide Iran precipitation) ---------- */
 const isRad=()=>MP.mode==='radar';
-const R={src:S.rdSrc||'iran',iran:null,nasa:null,fis:{iran:0,nasa:0,rv:0},timer:null};
-const RD_SRC={iran:'🇮🇷 بارش سراسری ایران',rv:'📡 رادارهای کشور',nasa:'🛰️ ماهواره ناسا'};
+const R={src:S.rdSrc||'iran',iran:null,nasa:null,lt:null,fis:{iran:0,nasa:0,rv:0,lt:0},timer:null};
+const RD_SRC={iran:'🇮🇷 بارش سراسری ایران',lt:'⚡ رعد و برق',rv:'📡 رادارهای کشور',nasa:'🛰️ ماهواره ناسا'};
 const IR_RADARS=[['IRKR','کرمانشاه',34.31,47.07],['IRTH','تهران',35.69,51.39],['IRTB','تبریز',38.08,46.29],['IR3150','اردبیل',38.25,48.29],['IRGI','گیلان',37.28,49.58],['IRKZ','مازندران',36.56,53.06],['IRAH','اهواز',31.32,48.67],['IRBS','بوشهر',28.92,50.84],['IRSH','شیراز',29.6,52.54]];
 const IRW={lat1:39.2,lat0:30,lon0:44,lon1:50.6,step:.3};IRW.nLat=Math.floor((IRW.lat1-IRW.lat0)/IRW.step+1e-6)+1;IRW.nLon=Math.floor((IRW.lon1-IRW.lon0)/IRW.step+1e-6)+1;
 const IR={lat1:40.5,lat0:24.5,lon0:43.5,lon1:64,step:.75};IR.nLat=Math.floor((IR.lat1-IR.lat0)/IR.step)+1;IR.nLon=Math.floor((IR.lon1-IR.lon0)/IR.step)+1;
@@ -1598,11 +1604,19 @@ function nasaSetup(){
     fr.push({t,im})}
   R.nasa={t:Date.now(),fr};R.fis.nasa=fr.length-1;
 }
+const LT_BB={lon0:40,lon1:66,lat0:22,lat1:42};
+function ltSetup(){
+  if(R.lt&&Date.now()-R.lt.t<5*60e3)return;const end=Math.floor((Date.now()-15*6e4)/3e5)*3e5,fr=[];
+  const wms=(ly,t,w,h)=>`https://view.eumetsat.int/geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS=${ly}&STYLES=&SRS=EPSG:4326&BBOX=${LT_BB.lon0},${LT_BB.lat0},${LT_BB.lon1},${LT_BB.lat1}&WIDTH=${w}&HEIGHT=${h}&FORMAT=image/png&TRANSPARENT=TRUE&EXCEPTIONS=application/vnd.ogc.se_xml${t?'&TIME='+t:''}`;
+  for(let k=12;k>=0;k--){const t=new Date(end-k*6e5),iso=t.toISOString().slice(0,19)+'Z';const im=new Image();im.onload=()=>{if(isRad()&&R.src==='lt'){mapRender();updRdInfo()}};im.onerror=()=>{im.bad=1;if(isRad()&&R.src==='lt')updRdInfo()};im.src=wms('mtg_fd:li_afa',iso,1040,800);fr.push({t,im})}
+  const ir=new Image();ir.onload=()=>{if(isRad()&&R.src==='lt')mapRender()};ir.onerror=()=>ir.bad=1;ir.src=wms('mtg_fd:ir105_hrfi','',1040,800);
+  R.lt={t:Date.now(),fr,ir};R.fis.lt=fr.length-1;
+}
 function drawEq(ctx,img,bb){
   const z=MP.z,x0=lon2x(bb.lon0,z)-MP.sx,x1=lon2x(bb.lon1,z)-MP.sx,N=60,ih=img.height;ctx.imageSmoothingEnabled=true;
   for(let k=0;k<N;k++){const a=bb.lat1-(bb.lat1-bb.lat0)*k/N,b=bb.lat1-(bb.lat1-bb.lat0)*(k+1)/N,y0=lat2y(a,z)-MP.sy,y1=lat2y(b,z)-MP.sy;if(y1<0||y0>MP.h)continue;ctx.drawImage(img,0,ih*k/N,img.width,ih/N,x0,y0,x1-x0,y1-y0+1.5)}
 }
-function drawStations(ctx){
+function drawStations(ctx,dotOnly){if(dotOnly){ctx.font='600 10px Vazirmatn,Tahoma';ctx.textAlign='center';POPULAR.slice(0,12).forEach(p=>{const x=lon2x(p[2],MP.z)-MP.sx,y=lat2y(p[1],MP.z)-MP.sy;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,2.2,0,7);ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.6)';ctx.strokeText(p[0],x,y-6);ctx.fillText(p[0],x,y-6)});return}
   ctx.font='600 11px Vazirmatn,Tahoma,sans-serif';ctx.textAlign='center';
   IR_RADARS.forEach(r=>{const x=lon2x(r[3],MP.z)-MP.sx,y=lat2y(r[2],MP.z)-MP.sy,rp=250000/(156543.03*Math.cos(r[2]*Math.PI/180)/2**MP.z);if(x<-rp||y<-rp||x>MP.w+rp||y>MP.h+rp)return;
     const on=R.st===r[0];ctx.beginPath();ctx.arc(x,y,rp,0,7);ctx.strokeStyle=on?'rgba(125,211,252,.8)':'rgba(255,255,255,.25)';ctx.setLineDash([5,5]);ctx.lineWidth=on?2:1;ctx.stroke();ctx.setLineDash([]);
@@ -1611,10 +1625,11 @@ function drawStations(ctx){
 function drawRadar(ctx){
   if(R.src==='rv'){drawStations(ctx);return}
   if(R.src==='iran'&&R.iran){drawEq(ctx,iranFrame(R.fis.iran),{lat1:IR.lat1,lat0:IR.lat1-(IR.nLat-1)*IR.step,lon0:IR.lon0,lon1:IR.lon0+(IR.nLon-1)*IR.step});const wf=iranFrameW(R.fis.iran);if(wf)drawEq(ctx,wf,{lat1:IRW.lat1,lat0:IRW.lat1-(IRW.nLat-1)*IRW.step,lon0:IRW.lon0,lon1:IRW.lon0+(IRW.nLon-1)*IRW.step})}
+  else if(R.src==='lt'&&R.lt){const ir=R.lt.ir;if(S.ltIR!==false&&ir.complete&&!ir.bad&&ir.naturalWidth){ctx.globalAlpha=.55;drawEq(ctx,ir,LT_BB);ctx.globalAlpha=1}const f=R.lt.fr[R.fis.lt];if(f&&f.im.complete&&!f.im.bad&&f.im.naturalWidth)drawEq(ctx,f.im,LT_BB);drawStations(ctx,true)}
   else if(R.src==='nasa'&&R.nasa){const f=R.nasa.fr[R.fis.nasa];if(f&&f.im.complete&&!f.im.bad&&f.im.naturalWidth){ctx.globalAlpha=.9;drawEq(ctx,f.im,{lat1:42,lat0:22,lon0:40,lon1:66});ctx.globalAlpha=1}}
 }
-function rdFrames(){if(R.src==='rv')return MP.frames.map(f=>new Date(f.time*1000));if(R.src==='iran')return R.iran?R.iran.times.map(t=>new Date(t+':00Z')):[];return R.nasa?R.nasa.fr.map(f=>f.t):[]}
-function rdLabel(i){const fr=rdFrames(),d=fr[i];if(!d)return '';let s=fmtRT(d);if(R.src==='iran'){const m=Math.round((d-Date.now())/6e4);if(i===R.iran.now)s+=' · اکنون';else if(m>0)s+=' · پیش‌بینی';}else if(R.src==='nasa')s+=' · '+fmtRT(d,{weekday:'short'});return s}
+function rdFrames(){if(R.src==='lt')return R.lt?R.lt.fr.map(f=>f.t):[];if(R.src==='rv')return MP.frames.map(f=>new Date(f.time*1000));if(R.src==='iran')return R.iran?R.iran.times.map(t=>new Date(t+':00Z')):[];return R.nasa?R.nasa.fr.map(f=>f.t):[]}
+function rdLabel(i){const fr=rdFrames(),d=fr[i];if(!d)return '';let s=fmtRT(d);if(R.src==='iran'){const m=Math.round((d-Date.now())/6e4);if(i===R.iran.now)s+=' · اکنون';else if(m>0)s+=' · پیش‌بینی';}else if(R.src==='nasa')s+=' · '+fmtRT(d,{weekday:'short'});else if(R.src==='lt'){const m=Math.round((Date.now()-d)/6e4);s+=' · '+fa(m)+' دقیقه پیش';const f=R.lt.fr[i];if(f&&f.im.bad)s+=' (بدون داده)'}return s}
 function rdSet(i){R.fis[R.src]=i;if(R.src==='rv')MP.fi=i;mapRender();const s=$('#rSl'),b=$('#rT');if(s)s.value=i;if(b)b.textContent=rdLabel(i)}
 async function radarChanged(){
   clearInterval(R.timer);R.timer=null;clearWind();
@@ -1622,6 +1637,7 @@ async function radarChanged(){
   const src=R.src;mapMsg('');
   if(src==='rv'){if(!MP.frames.length){mapMsg('در حال دریافت رادار…');try{const j=await getJSON('https://api.rainviewer.com/public/weather-maps.json');MP.host=j.host;MP.frames=(j.radar&&j.radar.past)||[];R.fis.rv=MP.fi=MP.frames.length-1;mapMsg(MP.frames.length?'':'داده رادار در دسترس نیست')}catch(e){mapMsg('اتصال به سرور رادار برقرار نشد')}}if(MP.z>7)MP.z=7}
   else if(src==='iran'){if(!R.iran||Date.now()-R.iran.t>15*60e3){mapMsg('در حال دریافت بارش سراسری ایران…');updRdInfo();try{await loadIran();mapMsg('')}catch(e){const o=offGet('iran');if(o){R.iran={...o,cv:{},cvw:{}};let ni=0;o.times.forEach((t,i)=>{if(new Date(t+':00Z').getTime()<=Date.now())ni=i});R.iran.now=ni;R.fis.iran=ni;mapMsg('📴 آخرین داده ذخیره‌شده ('+ago(o.t)+')')}else mapMsg('دریافت داده بارش ممکن نشد')}}}
+  else if(src==='lt'){ltSetup();if(MP.z>7)MP.z=7}
   else nasaSetup();
   if(src!==R.src||!isRad())return;
   mapRender();updRdInfo();
@@ -1642,16 +1658,18 @@ function updRdInfo(){
   const el=$('#rdInfo');if(!el)return;const fr=rdFrames(),fi=Math.min(R.fis[R.src],Math.max(0,fr.length-1));
   const IRL=`<div class="note" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">رادارهای زمینی سازمان هواشناسی کشور داده عمومی ندارند؛ تصاویر آن‌ها را در <a href="http://radar.irimo.ir/" target="_blank" rel="noopener">سامانه رادار سازمان هواشناسی</a> ببینید.</div>`;
   const info={iran:['بارش سراسری ایران (مدل‌های عددی)',`linear-gradient(to right,${grad(RAIN_ST)})`,['۰٫۱','۱','۴','۱۲','۳۵+'],`پوشش کامل کشور (حدود ۸۰ کیلومتری) و <b>شبکه ریزتر ۳۰ کیلومتری برای غرب کشور</b> (کردستان، کرمانشاه، ایلام، لرستان، همدان، آذربایجان غربی، خوزستان) · از ${fa(2)} ساعت گذشته تا ${fa(6)} ساعت آینده، هر ${fa(R.iran?R.iran.step:15)} دقیقه · رنگ‌های بنفش‌کم‌رنگ = برف. این داده تخمین مدل است، نه تصویر مستقیم رادار.`],
+    lt:['آذرخش‌ها از ماهواره (MTG Lightning Imager)','linear-gradient(to right,#fef08a,#facc15,#f97316,#ef4444,#a21caf)',['کم','','زیاد'],'محل برخورد صاعقه‌ها در ۵ دقیقه هر فریم، از ماهواره Meteosat نسل سوم (EUMETSAT) — کل ایران و منطقه، حدود ۱۵ دقیقه تأخیر · لایه خاکستری: تصویر مادون‌قرمز ابرها (ابرهای سفید و سرد = ابرهای طوفانی بلند). اگر هیچ نقطه رنگی نیست یعنی الان رعد و برقی ثبت نشده است.'],
     nasa:['تخمین بارش ماهواره‌ای ناسا (GPM IMERG)','linear-gradient(to right,#b4f0ff,#33b7ff,#2e5bff,#00c44f,#ffe200,#ff7a00,#ff0000)',['سبک','','','','شدید'],'بارش واقعی مشاهده‌شده از ماهواره، کل ایران و منطقه، هر ۳۰ دقیقه · حدود ۷ ساعت تأخیر دارد.'],
     rv:['رادارهای هواشناسی کشور (از طریق RainViewer)','linear-gradient(to right,#88ddee,#0099cc,#0077aa,#005588,#ffee00,#ffaa00,#ff4400,#c10000,#ffaaff)',['Light','Moderate','Heavy','Extreme'],'تصویر واقعی ۹ رادار سازمان هواشناسی (کرمانشاه، تهران، تبریز، اردبیل، گیلان، مازندران، اهواز، بوشهر، شیراز) · ۲ ساعت گذشته، هر ۱۰ دقیقه · دایره‌ها برد تقریبی ۲۵۰ کیلومتری هر رادار است. اگر رادار خاموش یا قطع باشد، آن منطقه خالی می‌ماند.']}[R.src];
-  const bad=R.src==='nasa'&&R.nasa&&R.nasa.fr.every(f=>f.im.bad);
+  const bad=(R.src==='nasa'&&R.nasa&&R.nasa.fr.every(f=>f.im.bad))||(R.src==='lt'&&R.lt&&R.lt.fr.every(f=>f.im.bad));
   el.innerHTML=`${fr.length?`<div class="tl"><button class="ibtn" id="rPlay">${R.timer?'⏸':'▶'}</button><input type="range" id="rSl" min="0" max="${fr.length-1}" value="${fi}"><b id="rT" style="min-width:110px;text-align:center;font-size:13px">${rdLabel(fi)}</b></div>`:''}
    <div style="margin-top:8px"><b>${info[0]}</b></div><div class="cbar" style="background:${info[1]}"></div><div class="cbar-l">${info[2].map(x=>`<span>${x}</span>`).join('')}</div>
    ${R.src!=='nasa'?`<div class="sec">نمای منطقه</div><div class="chips"><button class="chip" data-rg="w">⛰️ غرب کشور</button><button class="chip" data-rg="n">🌲 شمال</button><button class="chip" data-rg="s">🌴 جنوب</button><button class="chip" data-rg="all">🇮🇷 کل ایران</button></div>`:''}
    ${R.src==='rv'?`<div class="sec">پرش به رادار</div><div class="chips">${IR_RADARS.map(r=>`<button class="chip ${R.st===r[0]?'on':''}" data-st="${r[0]}">📡 ${r[1]}</button>`).join('')}</div>`:''}
-   <div class="note">${bad?'⚠️ تصاویر ماهواره بارگذاری نشد؛ اتصال به سرور ناسا را بررسی کنید. ':''}${info[3]}</div>${IRL}`;
+   ${R.src==='lt'?`<div class="setl" style="margin:6px 0"><span>تصویر ابرها (مادون‌قرمز)</span><button class="sw ${S.ltIR!==false?'on':''}" id="ltIR"></button></div>`:''}<div class="note">${bad?'⚠️ تصاویر ماهواره بارگذاری نشد؛ اتصال به سرور را بررسی کنید. ':''}${info[3]}</div>${IRL}`;
   $$('#rdInfo [data-rg]').forEach(b=>b.onclick=()=>{const v={w:[34.6,47.2,6],n:[36.8,51.5,6],s:[28.5,54,6],all:[32.4,53.7,5]}[b.dataset.rg];MP.lat=v[0];MP.lon=v[1];MP.z=R.src==='rv'?Math.min(7,v[2]+(b.dataset.rg==='w'?1:0)):v[2]+(b.dataset.rg==='w'?1:0);mapRender();$('#map').scrollIntoView({behavior:'smooth',block:'center'})});
   $$('#rdInfo [data-st]').forEach(b=>b.onclick=()=>{const r=IR_RADARS.find(x=>x[0]===b.dataset.st);R.st=r[0];MP.lat=r[2];MP.lon=r[3];MP.z=7;mapRender();updRdInfo();$('#map').scrollIntoView({behavior:'smooth',block:'center'})});
+  const li=$('#ltIR');if(li)li.onclick=()=>{S.ltIR=S.ltIR===false;saveS();mapRender();updRdInfo()};
   const s=$('#rSl');if(s)s.oninput=e=>rdSet(+e.target.value);
   const p=$('#rPlay');if(p)p.onclick=()=>{if(R.timer){clearInterval(R.timer);R.timer=null}else R.timer=setInterval(()=>{if(!isRad()||curTab!=='rd'){clearInterval(R.timer);R.timer=null;return}const n=rdFrames().length;if(n)rdSet((R.fis[R.src]+1)%n)},R.src==='iran'?450:700);p.textContent=R.timer?'⏸':'▶'};
   $('#rdCities').innerHTML=R.src==='iran'?rainCities():'';
@@ -1675,9 +1693,10 @@ $$('.sheet').forEach(s=>s.addEventListener('click',e=>{if(e.target===s||e.target
 function selectCity(c){if(!cities.find(x=>x.id===c.id)){cities.push(c);LS.set('cities',cities)}curId=c.id;LS.set('cur',curId);closeSheets();MP.gridKey='';go(curTab==='map'?'map':curTab);load(false);if(mapInit)mapCenterCity(true)}
 function renderCities(){
   $('#myCities').innerHTML=cities.map((c,ix)=>{const ca=LS.get('cache.'+c.id,null);const t=ca&&ca.d&&ca.d.current?tS(ca.d.current.temperature_2m)+' · '+(WC[ca.d.current.weather_code]||''):'';const hm=S.home===c.id;
-    return `<div class="row crow ${c.id===curId?'on':''}" data-id="${c.id}"><button class="hs ${hm?'on':''}" data-home="${c.id}" aria-label="شهر خانه" title="شهر خانه (هنگام باز کردن برنامه)">${hm?'🏠':'⌂'}</button><span class="t"><b>${c.gps?'📍 ':''}${esc(c.name)}</b><small>${esc([c.admin,c.country].filter(Boolean).join('، '))}</small></span><b class="ct">${t}</b><span class="mv">${ix>0?`<button data-up="${ix}" aria-label="بالا">▲</button>`:''}${ix<cities.length-1?`<button data-dn="${ix}" aria-label="پایین">▼</button>`:''}</span>${cities.length>1?`<button class="x" data-del="${c.id}" aria-label="حذف">×</button>`:''}</div>`}).join('')+`<div class="note" style="margin:4px 2px">⌂ را بزنید تا آن شهر «خانه» شود و برنامه همیشه با آن باز شود · ▲▼ ترتیب</div>`;
+    return `<div class="row crow ${c.id===curId?'on':''}" data-id="${c.id}"><button class="hs ${hm?'on':''}" data-home="${c.id}" aria-label="شهر خانه" title="شهر خانه (هنگام باز کردن برنامه)">${hm?'🏠':'⌂'}</button><span class="t"><b>${c.gps?'📍 ':''}${esc(c.name)}</b><small>${esc([c.admin,c.country].filter(Boolean).join('، '))}</small></span><b class="ct">${t}</b><button class="hs" data-ren="${c.id}" aria-label="تغییر نام" title="تغییر نام">✏️</button><span class="mv">${ix>0?`<button data-up="${ix}" aria-label="بالا">▲</button>`:''}${ix<cities.length-1?`<button data-dn="${ix}" aria-label="پایین">▼</button>`:''}</span>${cities.length>1?`<button class="x" data-del="${c.id}" aria-label="حذف">×</button>`:''}</div>`}).join('')+`<div class="note" style="margin:4px 2px">⌂ شهر خانه · ✏️ تغییر نام (مثلاً اگر GPS اسم محله یا روستا را نشان داد) · ▲▼ ترتیب</div>`;
   $$('#myCities .row').forEach(r=>r.onclick=e=>{const T=e.target.closest('button')||e.target,d=T.dataset;
     if(d.del){cities=cities.filter(c=>c.id!==d.del);LS.set('cities',cities);LS.del('cache.'+d.del);if(S.home===d.del){S.home='';saveS()}if(curId===d.del){curId=cities[0].id;LS.set('cur',curId);load(false)}renderCities();return}
+    if(d.ren){const c=cities.find(x=>x.id===d.ren),n=prompt('نام جدید برای این مکان:',c.name);if(n&&n.trim()){c.name=n.trim().slice(0,40);c.renamed=1;LS.set('cities',cities);if(c.id===curId)renderHeader();toast('نام عوض شد')}renderCities();return}
     if(d.home){S.home=S.home===d.home?'':d.home;saveS();toast(S.home?'شهر خانه تنظیم شد':'شهر خانه برداشته شد');renderCities();return}
     if(d.up||d.dn){const a=+(d.up||d.dn),b=d.up?a-1:a+1;[cities[a],cities[b]]=[cities[b],cities[a]];LS.set('cities',cities);renderCities();return}
     selectCity(cities.find(c=>c.id===r.dataset.id))});
@@ -1693,6 +1712,8 @@ $('#q').oninput=e=>{clearTimeout(qT);const v=e.target.value.trim();if(v.length<2
 $('#gpsBtn').onclick=()=>{if(!navigator.geolocation){toast('مرورگر از موقعیت‌یابی پشتیبانی نمی‌کند');return}toast('در حال یافتن موقعیت…');
   navigator.geolocation.getCurrentPosition(async p=>{const la=+p.coords.latitude.toFixed(4),lo=+p.coords.longitude.toFixed(4);let name='موقعیت من',admin='';
     try{const j=await getJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${la}&longitude=${lo}&localityLanguage=fa`,8000);name=j.city||j.locality||name;admin=j.principalSubdivision||''}catch(e){}
+    const near=IRC.concat(RAIN_CITIES).reduce((b,c)=>{const k=hav(la,lo,c[1],c[2]);return k<b[1]?[c[0],k]:b},['',1e9]);if(near[1]<12)name=near[0];
+    const old=cities.find(c=>c.gps);if(old&&old.renamed&&hav(la,lo,old.lat,old.lon)<5)name=old.name;
     cities=cities.filter(c=>!c.gps);selectCity({id:'gps',gps:1,name,admin,country:'',lat:la,lon:lo})},
     e=>toast(e.code===1?'دسترسی به موقعیت داده نشد':'موقعیت پیدا نشد'),{enableHighAccuracy:false,timeout:15000,maximumAge:600000})};
 

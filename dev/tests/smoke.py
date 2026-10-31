@@ -146,6 +146,16 @@ def handle(route):
         import time as _t
         now = int(_t.time() * 1000)
         return J({'features': [{'id': 'q%d' % i, 'properties': {'mag': m, 'time': now - h * 3600000, 'place': 'x'}, 'geometry': {'coordinates': [lo, la, dp]}} for i, (m, h, la, lo, dp) in enumerate([(4.6, 3, 34.4, 47.2, 10), (3.1, 30, 27.3, 56.4, 12), (5.2, 100, 30.1, 57.0, 8), (2.8, 5, 35.9, 51.0, 9)])]})
+    if u.hostname == 'view.eumetsat.int':
+        b = io.BytesIO(); im = Image.new('RGBA', (1040, 800), (0, 0, 0, 0))
+        if 'li_afa' in route.request.url:
+            for (cx, cy) in [(300, 420), (330, 440), (520, 610), (180, 380)]:
+                for x in range(cx - 8, cx + 8):
+                    for y in range(cy - 8, cy + 8): im.putpixel((x, y), (250, 200, 20, 230))
+        else:
+            for x in range(0, 1040, 2):
+                for y in range(250, 520, 2): im.putpixel((x, y), (220, 220, 220, 150))
+        im.save(b, 'PNG'); return route.fulfill(status=200, content_type='image/png', body=b.getvalue())
     if u.hostname == 'gibs.earthdata.nasa.gov':
         b = io.BytesIO(); im = Image.new('RGBA', (1040, 800), (0, 0, 0, 0)); [im.putpixel((x, y), (40, 120, 255, 200)) for x in range(400, 700) for y in range(300, 450)]; im.save(b, 'PNG'); return route.fulfill(status=200, content_type='image/png', body=b.getvalue())
     if 'tilecache.rainviewer.com' in u.hostname: return route.fulfill(status=200, content_type='image/png', body=RADAR)
@@ -175,13 +185,14 @@ with sync_playwright() as p:
     pg.click('#mapLayers .chip[data-v=temp]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5-map-temp.png')
     pg.click('nav button[data-t=rd]'); pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/r1-iran.png', full_page=True)
     pg.click('#rdSrc .chip[data-v=nasa]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/r2-nasa.png')
+    pg.click('#rdSrc .chip[data-v=lt]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/r5-lt.png', full_page=True)
     pg.click('#rdSrc .chip[data-v=rv]'); pg.wait_for_timeout(1200); pg.click('#rdInfo [data-st=IRKR]'); pg.wait_for_timeout(800); pg.screenshot(path=f'{OUT}/r3-rv.png', full_page=True)
     pg.click('nav button[data-t=map]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/r4-backmap.png')
     pg.click('#mapLayers .chip[data-v=wind]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5b-map-wind.png')
     pg.click('#mapLayers .chip[data-v=eq]'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/5c-map-eq.png', full_page=True)
     pg.click('#mapLayers .chip[data-v=pres]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5d-map-pres.png')
     pg.click('nav button[data-t=now]'); pg.wait_for_timeout(500); pg.click('#ircV button[data-v=rain]'); pg.wait_for_timeout(1500); pg.locator('#ircCard').screenshot(path=f'{OUT}/irc-rain.png')
-    pg.evaluate('openStats(IRC[0])'); pg.wait_for_timeout(2500); pg.locator('.sheet.on .panel').evaluate('e=>e.style.maxHeight="none"'); pg.locator('.sheet.on .panel').screenshot(path=f'{OUT}/stats.png'); pg.evaluate("document.querySelectorAll('.sheet.on').forEach(e=>e.remove())"); pg.wait_for_timeout(300)
+    pg.evaluate('openStats(IRC.find(c=>c[0]==="سنندج"))'); pg.wait_for_timeout(2500); pg.locator('.sheet.on .panel').evaluate('e=>e.style.maxHeight="none"'); pg.locator('.sheet.on .panel').screenshot(path=f'{OUT}/stats.png'); pg.evaluate("document.querySelectorAll('.sheet.on').forEach(e=>e.remove())"); pg.wait_for_timeout(300)
     pg.click('nav button[data-t=tr]'); pg.wait_for_timeout(2500); pg.click('#tpGo'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/tr1.png', full_page=True)
     pg.click('nav button[data-t=fc]'); pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/fc2.png', full_page=True)
     pg.click('nav button[data-t=now]'); pg.wait_for_timeout(500); pg.evaluate('openGlance()'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/glance.png'); pg.click('#glance'); pg.wait_for_timeout(300)
