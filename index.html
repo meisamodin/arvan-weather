@@ -446,7 +446,7 @@ body[data-fx=fog]{--bg1:#6b7480!important;--bg2:#a9b1ba!important}
 
 <script>
 'use strict';
-const VERSION='1.23.0';
+const VERSION='1.23.1';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2034,9 +2034,10 @@ function ltSetup(){
 }
 /* model storm masses: cloud cover + CAPE + thunderstorm codes over Iran (works even if satellites are blocked) */
 async function loadStorm(){
-  if(!(R.sm&&Date.now()-R.sm.t<30*60e3)){try{if(R.iran&&Date.now()-R.iran.t<15*60e3)R.iran.t=0;await loadIran();if(!R.sm)throw new Error('no storm')}
+  if(!(R.sm&&Date.now()-R.sm.t<30*60e3)){try{R.smErr=0;const a=await fetchNow(IR,1);if(!a.sm)throw new Error('داده ابر/CAPE در پاسخ نبود');R.sm={...a.sm,cv:{}};const {cv,...k}=R.sm;offSave('storm',k)}
   catch(e){const o=offGet('storm');if(!o||(o.cc&&o.cc.length!==IR.nLat*IR.nLon))throw e;R.sm={...o,cv:{},old:1}}}
   const now=Date.now();R.sm.ni=0;R.sm.times.forEach((t,i)=>{if(new Date(t+':00Z').getTime()<=now)R.sm.ni=i});if(R.smh==null)R.smh=0;return R.sm}
+function stormGo(){R.smErr=0;OM.onWait=s=>{R.smWait=s;if(isRad()&&R.src==='lt')updRdInfo()};loadStorm().then(()=>{R.smWait=0;OM.onWait=null;if(isRad()&&R.src==='lt'){mapRender();updRdInfo()}}).catch(e=>{R.smWait=0;OM.onWait=null;R.smErr=String(e&&e.message||e).slice(0,160);if(isRad()&&R.src==='lt')updRdInfo();if(e&&e.limit){clearTimeout(R.smT);R.smT=setTimeout(()=>{if(isRad()&&R.src==='lt'&&!R.sm)stormGo()},Math.max(3e4,OM.cool-Date.now()+2e3))}})}
 function stormIdx(){const s=R.sm;return Math.min(s.times.length-1,s.ni+(R.smh||0))}
 function stormImg(fi){const s=R.sm;if(s.cv[fi])return s.cv[fi];const G=IR,f=7,W=(G.nLon-1)*f+1,H=(G.nLat-1)*f+1,cv=document.createElement('canvas');cv.width=W;cv.height=H;const cx=cv.getContext('2d'),im=cx.createImageData(W,H),g={cols:G.nLon,rows:G.nLat};
   const cc=s.cc.map(a=>a[fi]),cp=s.cape.map(a=>a[fi]);
@@ -2077,7 +2078,7 @@ async function radarChanged(){
   if(src==='rv'||src==='ksh'){if(!MP.frames.length){mapMsg('در حال دریافت رادار…');try{const j=await getJSON('https://api.rainviewer.com/public/weather-maps.json');MP.host=j.host;MP.frames=(j.radar&&j.radar.past)||[];R.fis.rv=MP.fi=MP.frames.length-1;mapMsg(MP.frames.length?'':'داده رادار در دسترس نیست')}catch(e){mapMsg('اتصال به سرور رادار برقرار نشد')}}if(MP.z>7)MP.z=7}
   else if(src==='iran'){if(!R.iran||Date.now()-R.iran.t>15*60e3){const oc=offGet('iran');if(!R.iran&&oc&&oc.pre&&oc.pre.length===IR.nLat*IR.nLon){R.iran={...oc,cv:{},cvw:{},t:0};let ni=0;oc.times.forEach((t,i)=>{if(new Date(t+':00Z').getTime()<=Date.now())ni=i});R.iran.now=ni;R.fis.iran=ni;mapRender()}
     mapMsg('در حال دریافت بارش سراسری ایران…');updRdInfo();OM.onWait=s=>{if(isRad()&&R.src==='iran')mapMsg(`در صف دریافت (محدودیت دقیقه‌ای سرور رایگان)… حدود ${fa(s)} ثانیه`)};try{await loadIran();OM.onWait=null;mapMsg('')}catch(e){OM.onWait=null;const o=offGet('iran');if(o&&o.pre&&o.pre.length===IR.nLat*IR.nLon){R.iran={...o,cv:{},cvw:{}};let ni=0;o.times.forEach((t,i)=>{if(new Date(t+':00Z').getTime()<=Date.now())ni=i});R.iran.now=ni;R.fis.iran=ni;mapMsg('📴 آخرین داده ذخیره‌شده ('+ago(o.t)+')')}else mapMsg('دریافت داده بارش ممکن نشد')}}}
-  else if(src==='lt'){ltSetup();if(MP.z>7)MP.z=7;loadStorm().then(()=>{if(isRad()&&R.src==='lt'){mapRender();updRdInfo()}}).catch(()=>{R.smErr=1;if(isRad()&&R.src==='lt')updRdInfo()})}
+  else if(src==='lt'){ltSetup();if(MP.z>7)MP.z=7;stormGo()}
   if(S.ltOv&&src!=='lt')ltSetup();
   if(src==='nasa')nasaSetup();
   if(src!==R.src||!isRad())return;
@@ -2117,14 +2118,14 @@ function updRdInfo(){
   $$('#rdInfo [data-st]').forEach(b=>b.onclick=()=>{const r=IR_RADARS.find(x=>x[0]===b.dataset.st);R.st=r[0];MP.lat=r[2];MP.lon=r[3];MP.z=7;mapRender();updRdInfo();$('#map').scrollIntoView({behavior:'smooth',block:'center'})});
   const oi=$('#ofImg');if(oi&&!oi.dataset.b){oi.dataset.b=1;const st=$('#ofSt');oi.onload=()=>{st.textContent='آخرین تصویر · برای بزرگ‌نمایی روی آن بزنید'};oi.onerror=()=>{st.textContent='⚠️ تصویر بارگذاری نشد؛ ممکن است سایت هواشناسی در دسترس نباشد یا از خارج ایران مسدود باشد.'};oi.onclick=()=>{const g=$('#glance');g.style.background='#000';g.innerHTML=`<div style="height:100%;overflow:auto;display:flex;align-items:center;justify-content:center;touch-action:pinch-zoom"><img src="${oi.src}" style="max-width:none;width:160%"></div><div class="gx">برای بستن ضربه بزنید</div>`;g.classList.add('on');g.onclick=()=>g.classList.remove('on')};$('#ofRe').onclick=()=>{oi.src=oi.src.split('?')[0]+'?t='+Date.now();$('#ofSt').textContent='در حال بارگذاری…'};clearInterval(R.ofT);R.ofT=setInterval(()=>{const o=$('#ofImg');if(!o||curTab!=='rd'){clearInterval(R.ofT);return}o.src=o.src.split('?')[0]+'?t='+Date.now()},3e5)}
   const ro=$('#rOp');if(ro)ro.oninput=e=>{S.rdOp=+e.target.value;saveS();applyRdOp()};const lo=$('#ltOv');if(lo)lo.onclick=()=>{S.ltOv=!S.ltOv;saveS();if(S.ltOv)ltSetup();mapRender();updRdInfo()};applyRdOp();
-  const li=$('#ltIR');if(li)li.onclick=()=>{S.ltIR=S.ltIR===false;saveS();mapRender();updRdInfo()};const ls=$('#ltSm');if(ls)ls.onclick=()=>{S.ltSm=S.ltSm===false;saveS();mapRender();updRdInfo()};$$('#rdInfo [data-smh]').forEach(b=>b.onclick=()=>{R.smh=+b.dataset.smh;mapRender();updRdInfo()});
+  const li=$('#ltIR');if(li)li.onclick=()=>{S.ltIR=S.ltIR===false;saveS();mapRender();updRdInfo()};const sr=$('#smRe');if(sr)sr.onclick=()=>{R.smErr=0;updRdInfo();stormGo()};const ls=$('#ltSm');if(ls)ls.onclick=()=>{S.ltSm=S.ltSm===false;saveS();mapRender();updRdInfo()};$$('#rdInfo [data-smh]').forEach(b=>b.onclick=()=>{R.smh=+b.dataset.smh;mapRender();updRdInfo()});
   const s=$('#rSl');if(s)s.oninput=e=>rdSet(+e.target.value);
   const p=$('#rPlay');if(p)p.onclick=()=>{if(R.timer){clearInterval(R.timer);R.timer=null}else R.timer=setInterval(()=>{if(!isRad()||curTab!=='rd'){clearInterval(R.timer);R.timer=null;return}const n=rdFrames().length;if(n)rdSet(((R.fis[isRV()?'rv':R.src]||0)+1)%n)},R.src==='iran'?450:700);p.textContent=R.timer?'⏸':'▶'};
   $('#rdCities').innerHTML=R.src==='iran'?rainCities():R.src==='lt'?ltCities():'';
 }
 function ltStatus(){const L=R.lt;if(!L)return'';const ir=L.ir,n=L.fr.filter(f=>f.im.ok).length,bad=L.fr.filter(f=>f.im.bad).length,pend=L.fr.length-n-bad;
   const st=(ok,b,p)=>ok?'<b style="color:#4ade80">✓ دریافت شد</b>':b?'<b style="color:#f87171">✗ باز نشد</b>':'<span>⏳ در حال بارگذاری…</span>';
-  return `<div class="ltst"><div>🛰️ تصویر ابر ماهواره: ${st(ir.ok,ir.bad)}</div><div>⚡ صاعقه ماهواره: ${n?`<b style="color:#4ade80">✓ ${fa(n)} فریم</b>`:pend?'<span>⏳ در حال بارگذاری…</span>':'<b style="color:#f87171">✗ باز نشد</b>'}</div><div>🌩️ مدل توده‌ها: ${R.sm?`<b style="color:#4ade80">✓ ${R.sm.old?'ذخیره‌شده':'به‌روز'}</b>`:R.smErr?'<b style="color:#f87171">✗ دریافت نشد</b>':'<span>⏳ در حال دریافت…</span>'}</div>${(ir.bad&&!pend&&!n)?'<div class="note">سرور ماهواره EUMETSAT از این اینترنت باز نشد (احتمالاً فیلتر/تحریم). با VPN امتحان کنید؛ تا آن موقع لایه مدل نمایش داده می‌شود.</div>':''}</div>`}
+  return `<div class="ltst"><div>🛰️ تصویر ابر ماهواره: ${st(ir.ok,ir.bad)}</div><div>⚡ صاعقه ماهواره: ${n?`<b style="color:#4ade80">✓ ${fa(n)} فریم</b>`:pend?'<span>⏳ در حال بارگذاری…</span>':'<b style="color:#f87171">✗ باز نشد</b>'}</div><div>🌩️ مدل توده‌ها: ${R.sm?`<b style="color:#4ade80">✓ ${R.sm.old?'ذخیره‌شده':'به‌روز'}</b>`:R.smErr?'<b style="color:#f87171">✗ دریافت نشد</b> <button class="chip" id="smRe" style="padding:2px 10px">🔄 دوباره</button>':R.smWait?`<span>⏳ در صف سرور… ${fa(R.smWait)} ثانیه</span>`:'<span>⏳ در حال دریافت…</span>'}</div>${R.smErr?`<div class="note" style="font-size:11.5px">علت: ${esc(R.smErr)}${/سقف|limit/i.test(R.smErr)?' — اگر VPN روشن است خاموش کنید؛ IP مشترک VPN سهمیه رایگان را زود پر می‌کند.':''}</div>`:''}${(ir.bad&&!pend&&!n)?'<div class="note">سرور ماهواره EUMETSAT از این اینترنت باز نشد (احتمالاً فیلتر/تحریم). با VPN امتحان کنید؛ تا آن موقع لایه مدل نمایش داده می‌شود.</div>':''}</div>`}
 function ltCities(){if(!R.sm)return'';const L=stormCities();return `<div class="card"><h3>🌩️ رعد و برق پیش‌بینی‌شده تا ۱۲ ساعت آینده</h3>${L.length?L.map(c=>`<div class="ltc"><b>${c[0]}</b><span>${c[1]?'حدود '+fa(c[1])+' ساعت دیگر':'هم‌اکنون'}</span><small>CAPE ${fa(Math.round(c[2]))}</small></div>`).join(''):'<div class="note">طبق مدل در ۱۲ ساعت آینده در شهرهای اصلی کشور رعد و برقی پیش‌بینی نمی‌شود.</div>'}</div>`}
 
 /* ---------- tabs ---------- */
