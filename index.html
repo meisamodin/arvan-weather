@@ -268,6 +268,7 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 .crow .ct{font-size:12.5px;white-space:nowrap}.crow .mv{display:flex;flex-direction:column;gap:2px}.crow .mv button{font-size:10px;color:var(--sub);width:22px;height:16px;border-radius:5px;background:var(--card2)}
 .ob{text-align:center}.obi img{width:84px;height:84px;border-radius:22px;box-shadow:0 10px 30px rgba(0,0,0,.35);margin:6px auto 4px;display:block;animation:aw-bob 4s ease-in-out infinite}
 .offbar{margin:0 16px 6px;padding:7px 12px;border-radius:12px;background:rgba(250,204,21,.2);border:1px solid rgba(250,204,21,.5);font-size:12.5px;text-align:center}
+.warnbox{margin:12px 0 4px;padding:9px 11px;border-radius:12px;background:rgba(250,204,21,.14);border:1px solid rgba(250,204,21,.45);font-size:12.5px;line-height:1.9;color:var(--txt)}
 .irh{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}.irh div{border-radius:14px;padding:8px;text-align:center;border:1px solid var(--line)}.irh small{display:block;font-size:11px;color:var(--sub)}.irh b{display:block;font-size:14px}.irh span{font-size:16px;font-weight:700}
 .irl{max-height:520px;overflow:auto;scrollbar-width:thin}.irr{display:grid;grid-template-columns:76px 28px 34px 32px 1fr 32px;gap:6px;align-items:center;width:100%;padding:6px 2px;border-top:1px solid var(--line);text-align:right}.irr:first-child{border-top:0}
 .irr svg{width:26px;height:26px}.irn{font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.irc{font-size:12px;color:var(--acc);text-align:center}.irmn{color:var(--sub);text-align:center;font-size:13px}.irmx{font-weight:700;text-align:center;font-size:13px}
@@ -392,7 +393,7 @@ nav button svg{transition:transform .25s}nav button.on svg{transform:translateY(
 
 <script>
 'use strict';
-const VERSION='1.9.0';
+const VERSION='1.9.1';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -526,15 +527,13 @@ async function checkNotify(){
 /* ---------- NOW tab ---------- */
 const uvTxt=u=>u<3?'کم':u<6?'متوسط':u<8?'زیاد':u<11?'خیلی زیاد':'شدید';
 function summary(){
-  const h=D.hourly,s=i0();let at=-1;
-  for(let k=s;k<s+12&&k<h.time.length;k++)if(h.precipitation_probability[k]>=50||h.precipitation[k]>=.3){at=k;break}
-  const p=[];
-  if(at===s&&isWet(D.current.weather_code))p.push('هم‌اکنون '+(isSnow(D.current.weather_code)?'برف':'بارش')+' در جریان است');
-  else if(at>=0)p.push('احتمال '+(isSnow(h.weather_code[at])?'بارش برف':'بارش')+' از حدود ساعت '+fa(+h.time[at].slice(11,13)));
-  else p.push('تا ۱۲ ساعت آینده بارش قابل توجهی پیش‌بینی نمی‌شود');
-  const dt=D.daily.temperature_2m_max[1]-D.daily.temperature_2m_max[0];
-  p.push(Math.abs(dt)>=3?'فردا حدود '+fa(Math.round(Math.abs(dT(dt))))+' درجه '+(dt>0?'گرم‌تر':'خنک‌تر'):'دمای فردا مشابه امروز');
-  const yc=yComp();if(yc)p.push(yc);
+  const h=D.hourly,s=i0(),e=Math.min(s+24,h.time.length),p=[];let mx=0,at=-1;
+  for(let k=s;k<e;k++){const v=h.precipitation_probability[k]||0;if(v>mx)mx=v;if(at<0&&v>=40)at=k}
+  if(isWet(D.current.weather_code))p.push('🌧️ الان '+(isSnow(D.current.weather_code)?'برف':'بارش')+' داریم');
+  else if(mx>=20)p.push(`☔ احتمال ${isSnow(h.weather_code[at>=0?at:s])?'برف':'بارش'} ${fa(Math.round(mx/5)*5)}٪${at>=0?' از ساعت '+fa(+h.time[at].slice(11,13)):''}`);
+  else p.push('🌂 تا ۲۴ ساعت آینده بارش نداریم');
+  const dt=Math.round(dT(D.daily.temperature_2m_max[1]-D.daily.temperature_2m_max[0]));
+  p.push(Math.abs(dt)>=2?`فردا ${fa(Math.abs(dt))} درجه ${dt>0?'گرم‌تر':'خنک‌تر'}`:'فردا مثل امروز');
   return p.join(' · ');
 }
 function ago(t){const m=Math.round((Date.now()-t)/60e3);return m<1?'همین الان':m<60?fa(m)+' دقیقه پیش':fa(Math.round(m/60))+' ساعت پیش'}
@@ -594,7 +593,7 @@ function chart({n,step=44,h=170,series,xl,marks=[],valLabel}){
   const W=n*step,top=22,bot=26,ph=h-top-bot;const X=i=>W-(i*step+step/2);let out='';
   marks.forEach(m=>{const x=X(m.i)+step/2;out+=`<line x1="${x}" y1="4" x2="${x}" y2="${h-bot}" stroke="rgba(255,255,255,.25)" stroke-dasharray="3 4"/><text x="${x-4}" y="12" text-anchor="end">${esc(m.t)}</text>`});
   series.forEach(se=>{const vs=se.v.map(v=>v==null?null:+v);const valid=vs.filter(v=>v!=null);if(!valid.length)return;let lo=se.lo??Math.min(...valid),hi=se.hi??Math.max(...valid);if(hi-lo<1){hi+=.5;lo-=.5}const Y=v=>top+ph*(1-(v-lo)/(hi-lo));
-    if(se.type==='bar'){vs.forEach((v,i)=>{if(!v)return;const y=Y(v);out+=`<rect x="${(X(i)-step*.3).toFixed(1)}" y="${y.toFixed(1)}" width="${(step*.6).toFixed(1)}" height="${(top+ph-y).toFixed(1)}" rx="2" fill="${se.c}" opacity=".55"/>`})}
+    if(se.type==='bar'){vs.forEach((v,i)=>{if(!v)return;const y=Y(v),bh=Math.max(2,top+ph-y);out+=`<rect x="${(X(i)-step*.32).toFixed(1)}" y="${(top+ph-bh).toFixed(1)}" width="${(step*.64).toFixed(1)}" height="${bh.toFixed(1)}" rx="3" fill="${se.c}" opacity=".9"/>`;if(se.bl&&v>=se.bl[0]&&i%(se.bl[2]||1)===0)out+=`<text x="${X(i)}" y="${(top+ph-bh-3).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${se.c}" style="fill:${se.c}">${se.bl[1](v)}</text>`})}
     else{const segs=[];let cur=[];vs.forEach((v,i)=>{if(v==null){if(cur.length)segs.push(cur);cur=[]}else cur.push([X(i),Y(v)])});if(cur.length)segs.push(cur);
       segs.forEach(pts=>{const p=smooth(pts);if(se.fill){const id='g'+(++gid);out+=`<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${se.c}" stop-opacity=".45"/><stop offset="1" stop-color="${se.c}" stop-opacity="0"/></linearGradient></defs><path d="${p} L${pts[pts.length-1][0]},${top+ph} L${pts[0][0]},${top+ph}z" fill="url(#${id})"/>`}out+=`<path d="${p}" fill="none" stroke="${se.c}" stroke-width="${se.w||2.5}" stroke-linecap="round" ${se.dash?'stroke-dasharray="5 4"':''}/>`});
       if(se.labels){vs.forEach((v,i)=>{if(v!=null&&i%se.labels===0)out+=`<text x="${X(i)}" y="${(Y(v)-7).toFixed(1)}" text-anchor="middle" font-weight="600">${se.fmt(v)}</text>`})}}
@@ -612,10 +611,10 @@ function renderFc(){
   const step=S.fcRange>48?20:44,lab=S.fcRange>48?(i=>+times[i].slice(11,13)%6===0?fa(+times[i].slice(11,13)):''):(i=>i%2===0?fa(+times[i].slice(11,13)):'');const lstep=S.fcRange>48?6:2;
   let se,leg='';
   switch(S.fcVar){
-    case 'temp':se=[{v:sl(h.precipitation_probability),type:'bar',c:'#60a5fa',lo:0,hi:100},{v:sl(h.apparent_temperature).map(cT),c:'#c4b5fd',w:1.5,dash:1},{v:sl(h.temperature_2m).map(cT),c:'#fbbf24',fill:1,labels:lstep,fmt:v=>fa(Math.round(v))+'°'}];leg='<span><i style="background:#fbbf24"></i>دما</span><span><i style="background:#c4b5fd"></i>احساس واقعی</span><span><i style="background:#60a5fa"></i>احتمال بارش</span>';break;
-    case 'rain':se=[{v:sl(h.precipitation),type:'bar',c:'#38bdf8',lo:0,hi:Math.max(2,...sl(h.precipitation))},{v:sl(h.precipitation_probability),c:'#a5b4fc',lo:0,hi:100,labels:lstep,fmt:v=>fa(v)+'٪'}];leg='<span><i style="background:#38bdf8"></i>مقدار بارش (mm)</span><span><i style="background:#a5b4fc"></i>احتمال بارش</span>';break;
+    case 'temp':se=[{v:sl(h.precipitation_probability),type:'bar',c:'#38bdf8',lo:0,hi:100,bl:[10,v=>fa(v)+'٪',S.fcRange>48?3:1]},{v:sl(h.apparent_temperature).map(cT),c:'#c4b5fd',w:1.5,dash:1},{v:sl(h.temperature_2m).map(cT),c:'#fbbf24',fill:1,labels:lstep,fmt:v=>fa(Math.round(v))+'°'}];leg='<span><i style="background:#fbbf24"></i>دما</span><span><i style="background:#c4b5fd"></i>احساس واقعی</span><span><i style="background:#60a5fa"></i>احتمال بارش</span>';break;
+    case 'rain':se=[{v:sl(h.precipitation),type:'bar',c:'#38bdf8',lo:0,hi:Math.max(2,...sl(h.precipitation)),bl:[.1,v=>fa(v,1),S.fcRange>48?3:1]},{v:sl(h.precipitation_probability),c:'#a5b4fc',lo:0,hi:100,labels:lstep,fmt:v=>fa(v)+'٪'}];leg='<span><i style="background:#38bdf8"></i>مقدار بارش (mm)</span><span><i style="background:#a5b4fc"></i>احتمال بارش</span>';break;
     case 'wind':se=[{v:sl(h.wind_gusts_10m).map(wV),c:'#f87171',w:1.5,dash:1,lo:0},{v:sl(h.wind_speed_10m).map(wV),c:'#34d399',fill:1,lo:0,labels:lstep,fmt:v=>fa(Math.round(v))}];leg=`<span><i style="background:#34d399"></i>سرعت باد (${WU[S.w][1]})</span><span><i style="background:#f87171"></i>تندباد</span>`;break;
-    case 'hum':se=[{v:sl(h.cloud_cover),type:'bar',c:'#cbd5e1',lo:0,hi:100},{v:sl(h.relative_humidity_2m),c:'#22d3ee',fill:1,lo:0,hi:100,labels:lstep,fmt:v=>fa(v)+'٪'}];leg='<span><i style="background:#22d3ee"></i>رطوبت نسبی</span><span><i style="background:#cbd5e1"></i>ابرناکی</span>';break;
+    case 'hum':se=[{v:sl(h.cloud_cover),type:'bar',c:'#94a3b8',lo:0,hi:100},{v:sl(h.relative_humidity_2m),c:'#22d3ee',fill:1,lo:0,hi:100,labels:lstep,fmt:v=>fa(v)+'٪'}];leg='<span><i style="background:#22d3ee"></i>رطوبت نسبی</span><span><i style="background:#cbd5e1"></i>ابرناکی</span>';break;
     case 'uv':se=[{v:sl(h.uv_index),c:'#f472b6',fill:1,lo:0,hi:Math.max(11,...sl(h.uv_index)),labels:lstep,fmt:v=>v>0.4?fa(v,0):''}];leg='<span><i style="background:#f472b6"></i>شاخص UV</span>';break;
     case 'pres':se=[{v:sl(h.pressure_msl).map(p=>S.p==='mmhg'?p*.750062:p),c:'#a3e635',fill:1,labels:lstep*2,fmt:v=>fa(Math.round(v))}];leg=`<span><i style="background:#a3e635"></i>فشار سطح دریا (${S.p==='mmhg'?'mmHg':'hPa'})</span>`;break;
   }
@@ -629,7 +628,7 @@ function renderFc(){
     <div class="kv">طلوع<b>${hhmm(d.sunrise[i])}</b></div><div class="kv">غروب<b>${hhmm(d.sunset[i])}</b></div><div class="kv">ساعات بارش<b>${fa(d.precipitation_hours[i])}</b></div></div></div>`});
   html+=`<div class="card"><h3>🗓️ جزئیات روزانه<span class="r">برای جزئیات روی هر روز بزنید</span></h3>${dd}</div>`;
   html+=`<div class="card"><h3>📊 اقلیم و رکوردها<span class="r">۳۰ سال اخیر</span></h3><div id="clim"><div class="sk"></div><div class="sk"></div></div></div>`;
-  html+=`<div class="card"><h3>💧 بارش سال آبی و رکوردها<span class="r">از ۱۳۷۰</span></h3><div id="rainSt"><div class="sk" style="height:60px"></div><div class="sk" style="height:150px"></div></div></div>`;
+  html+=`<div class="card"><h3>💧 بارش سال آبی و آمار ۳۵ ساله<span class="r">داده مدل</span></h3><div id="rainSt"><div class="sk" style="height:60px"></div><div class="sk" style="height:150px"></div></div></div>`;
   html+=`<div class="card"><h3>🎈 باد در ارتفاعات<span class="r" style="cursor:pointer;color:var(--acc)" onclick="go('map')">نقشه متحرک ›</span></h3><div id="prof"><div class="sk"></div><div class="sk"></div><div class="sk"></div></div></div>`;
   html+=`<div class="card"><h3>🌾 کشاورزی و باغ<span class="r">۷ روز آینده</span></h3><div id="agri"><div class="sk"></div><div class="sk"></div></div></div>`;
   $('#t-fc').innerHTML=html;fillProf();fillClim();fillRainStats();fillAgri();
@@ -956,7 +955,7 @@ async function fillClim(){
   const MN=['ژانویه','فوریه','مارس','آوریل','مه','ژوئن','ژوئیه','اوت','سپتامبر','اکتبر','نوامبر','دسامبر'];
   el.innerHTML=`<div class="anom" style="background:${an>2?'rgba(249,115,22,.22)':an<-2?'rgba(59,130,246,.22)':'var(--card2)'}"><b>${Math.abs(an)<1.5?'امروز دمایی نزدیک به میانگین دارد':'امروز '+fa(Math.round(Math.abs(dT(an))))+' درجه '+(an>0?'گرم‌تر':'سردتر')+' از میانگین'}</b><small>میانگین ${fa(30)} ساله (${fa(C.y0)}–${fa(C.y1)}) برای این روز</small></div>
    <div class="sgrid"><div class="kv">میانگین بیشینه<b>${tS(s[0])}</b><small>امروز ${tS(tx)}</small></div><div class="kv">میانگین کمینه<b>${tS(s[1])}</b><small>امروز ${tS(tn)}</small></div>
-   <div class="kv">🔥 رکورد گرما<b>${tS(s[2])}</b><small>سال ${fa(s[3])}</small></div><div class="kv">🥶 رکورد سرما<b>${tS(s[4])}</b><small>سال ${fa(s[5])}</small></div></div>
+   <div class="kv">🔥 بیشینه این روز (مدل)<b>${tS(s[2])}</b><small>سال ${fa(s[3])}</small></div><div class="kv">🥶 کمینه این روز (مدل)<b>${tS(s[4])}</b><small>سال ${fa(s[5])}</small></div></div>
    <div class="sec">میانگین ماهانه</div><div class="clm">${C.mon.map((m,i)=>`<div class="${i===mo?'on':''}"><span class="cb" style="height:${((m[0]-mn)/(mx-mn||1)*70+12).toFixed(0)}px;background:${rgb(tempColor(m[0]))}"></span><span class="cp" style="height:${(m[2]/pmx*26).toFixed(0)}px"></span><small>${MN[i].slice(0,3)}</small><em>${fa(Math.round(cT(m[0])))}°</em></div>`).join('')}</div>
    <div class="legend"><span><i style="background:#facc15"></i>میانگین بیشینه</span><span><i style="background:#60a5fa"></i>بارش ماهانه</span></div>`;
 }
@@ -1212,9 +1211,9 @@ async function loadIRWY(){
 /* heavy: full 30+ year stats for one place */
 const STATS={};
 async function cityStats(c){
-  const key='st.'+mkId(c.lat||c[1],c.lon||c[2]);if(STATS[key])return STATS[key];const ck=offGet(key);if(ck&&Date.now()-ck.t<3*864e5)return STATS[key]=ck;
+  const key='st2.'+mkId(c.lat||c[1],c.lon||c[2]);if(STATS[key])return STATS[key];const ck=offGet(key);if(ck&&Date.now()-ck.t<3*864e5)return STATS[key]=ck;
   const lat=c.lat??c[1],lon=c.lon??c[2],end=isoD(new Date(Date.now()-6*864e5));
-  const j=await getJSON(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=1991-09-23&end_date=${end}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`,90000);
+  const j=await getJSON(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=1991-09-23&end_date=${end}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&models=era5_land&timezone=auto`,90000).catch(()=>getJSON(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=1991-09-23&end_date=${end}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`,90000));
   const d=j.daily,W={},cw=curWY();let mxP=[0,''],hi=[-99,''],lo=[99,''];const yT={};
   d.time.forEach((t,i)=>{const p=d.precipitation_sum[i],x=d.temperature_2m_max[i],n=d.temperature_2m_min[i],w=wyOf(t);
     if(p!=null){const o=W[w]||(W[w]={s:0,n:0,cum:[]});o.s+=p;o.n++;o.cum.push(+o.s.toFixed(1));if(p>mxP[0])mxP=[p,t]}
@@ -1250,12 +1249,12 @@ function statsHtml(st,name){
    <div class="legend"><span><i style="background:#38bdf8"></i>امسال</span><span><i style="background:#f59e0b"></i>پارسال</span><span><i style="background:#fff"></i>میانگین ۳۰ ساله</span></div>
    <div class="sec">📊 بارش سالانه ${fa(st.tot.length)} سال گذشته</div>${barSvg(st.tot,{avg:st.avg,hl:[st.wet[0],st.dry[0]],lab:w=>fa(JY(w))})}
    <div class="legend"><span><i style="background:#38bdf8"></i>پربارش‌ترین</span><span><i style="background:#f59e0b"></i>کم‌بارش‌ترین</span><span><i style="background:rgba(96,165,250,.85)"></i>بالای میانگین</span><span><i style="background:rgba(251,191,36,.75)"></i>زیر میانگین</span></div>
-   <div class="sec">🏆 رکوردها (از ${fa(1370)})</div><div class="sgrid">
+   <div class="warnbox">⚠️ این اعداد از <b>مدل بازتحلیل</b> (میانگین یک خانه ۹ کیلومتری) است، نه ایستگاه رسمی. مدل سرمای شدید شب‌ها و بارش کوهستان را <b>کمتر</b> از واقعیت نشان می‌دهد؛ برای مثال رکورد رسمی سرمای سنندج حدود −۳۱° است. برای رکوردهای رسمی به <a href="https://www.irimo.ir" target="_blank" rel="noopener">سازمان هواشناسی</a> مراجعه کنید. نمودارها برای مقایسه روند و سال‌ها با هم معتبرترند.</div><div class="sec">📐 بیشینه و کمینه در داده‌های مدل (از ${fa(1370)})</div><div class="sgrid">
     <div class="kv">🌧️ پربارش‌ترین سال آبی<b>${fa(st.wet[1])} mm</b><small>${wyLbl(st.wet[0])}</small></div><div class="kv">🏜️ کم‌بارش‌ترین سال آبی<b>${fa(st.dry[1])} mm</b><small>${wyLbl(st.dry[0])}</small></div>
     <div class="kv">⛈️ بیشترین بارش یک روز<b>${fa(st.mxP[0],0)} mm</b><small>${st.mxP[1]?dt(st.mxP[1]):''}</small></div><div class="kv">📅 سال‌های بالای میانگین<b>${fa(st.tot.filter(x=>x[1]>=st.avg).length)} از ${fa(st.tot.length)}</b><small>سال آبی</small></div>
-    <div class="kv">🔥 گرم‌ترین روز ثبت‌شده<b>${tS(st.hi[0])}</b><small>${st.hi[1]?dt(st.hi[1]):''}</small></div><div class="kv">🥶 سردترین روز ثبت‌شده<b>${tS(st.lo[0])}</b><small>${st.lo[1]?dt(st.lo[1]):''}</small></div></div>
+    <div class="kv">🔥 گرم‌ترین روز (مدل)<b>${tS(st.hi[0])}</b><small>${st.hi[1]?dt(st.hi[1]):''}</small></div><div class="kv">🥶 سردترین روز (مدل)<b>${tS(st.lo[0])}</b><small>${st.lo[1]?dt(st.lo[1]):''}</small></div></div>
    ${st.ty.length>5?`<div class="sec">🌡️ میانگین دمای سالانه (روند گرمایش)</div>${lineSvg([{v:st.ty.map(x=>x[1]-Math.min(...st.ty.map(y=>y[1]))+.2),c:'#fb7185',w:2.2,dot:1}],{h:120,n:st.ty.length,yl:'°C بالاتر از کمترین',xl:st.ty.map((x,i)=>[i,fa(x[0]-621)]).filter((x,i)=>i%6===0)})}<div class="note">${(()=>{const a=st.ty.slice(0,5),b=st.ty.slice(-5),m=v=>v.reduce((s,x)=>s+x[1],0)/v.length,df=m(b)-m(a);return `میانگین ۵ سال اخیر ${fa(Math.abs(dT(df)),1)} درجه ${df>=0?'گرم‌تر':'سردتر'} از ۵ سال اول دوره است.`})()}</div>`:''}
-   <div class="note" style="margin-top:8px">منبع: بازتحلیل ERA5 (Open-Meteo Archive)، تخمین شبکه‌ای ~۲۵ کیلومتری — ممکن است با ایستگاه رسمی شهر متفاوت باشد. سال آبی از ۱ مهر شروع می‌شود.</div>`;
+   <div class="note" style="margin-top:8px">منبع: بازتحلیل ERA5-Land (Open-Meteo Archive)، شبکه ~۹ کیلومتری. سال آبی از ۱ مهر شروع می‌شود.</div>`;
 }
 async function openStats(c){
   const el=document.createElement('div');el.className='sheet on';el.innerHTML=`<div class="panel"><div class="grab"></div><h2>📊 آمار ${esc(c[0])}<button data-close>بستن</button></h2><div id="stBody"><div class="sk" style="height:60px"></div><div class="sk"></div><div class="sk" style="height:150px"></div><div class="note" style="text-align:center">در حال دریافت آمار ۳۰ ساله…</div></div>
