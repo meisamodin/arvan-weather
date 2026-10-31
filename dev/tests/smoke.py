@@ -162,6 +162,7 @@ with sync_playwright() as p:
     pg.on('console', lambda m: m.type == 'error' and errors.append(m.text))
     pg.route('**/*', lambda r: handle(r) if '127.0.0.1' not in r.request.url else r.continue_())
     pg.goto('http://127.0.0.1:8765/index.html'); pg.wait_for_timeout(1200)
+    pg.screenshot(path=f'{OUT}/0-onboard.png'); pg.click('#obSkip'); pg.wait_for_timeout(300)
     pg.screenshot(path=f'{OUT}/1-now.png', full_page=True)
     for t, name in [('fc', '2-forecast'), ('aq', '3-aqi')]:
         pg.click(f'nav button[data-t={t}]'); pg.wait_for_timeout(500); pg.screenshot(path=f'{OUT}/{name}.png', full_page=True)
@@ -184,7 +185,7 @@ with sync_playwright() as p:
     pg.click('#mdV button[data-v=city]'); pg.wait_for_timeout(500)
     pg.click('#t-md .mchip[data-m=kma_seamless]'); pg.wait_for_timeout(200); pg.click('#t-md .mchip[data-m=knmi_seamless]'); pg.wait_for_timeout(1500)
     pg.screenshot(path=f'{OUT}/6-models.png', full_page=True)
-    pg.click('#cityBtn'); pg.wait_for_timeout(300); pg.fill('#q', 'شیراز'); pg.wait_for_timeout(900); pg.screenshot(path=f'{OUT}/7-cities.png')
+    pg.click('#cityBtn'); pg.wait_for_timeout(300); pg.fill('#q', 'شیراز'); pg.wait_for_timeout(900); pg.screenshot(path=f'{OUT}/7-cities.png', full_page=True)
     pg.click('#qRes .row'); pg.wait_for_timeout(800)
     pg.click('#setBtn'); pg.wait_for_timeout(300); pg.click('#setS .seg[data-k=t] button[data-v=f]'); pg.wait_for_timeout(200); pg.screenshot(path=f'{OUT}/8-settings.png')
     pg.click('#setS [data-close]'); pg.click('nav button[data-t=now]'); pg.wait_for_timeout(300); pg.screenshot(path=f'{OUT}/9-now-F.png', full_page=True)
