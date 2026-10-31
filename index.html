@@ -440,7 +440,7 @@ body[data-fx=fog]{--bg1:#6b7480!important;--bg2:#a9b1ba!important}
 
 <script>
 'use strict';
-const VERSION='1.20.1';
+const VERSION='1.20.2';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1500,6 +1500,7 @@ function renderWB(el){
 
 /* ---------- country cities min/max ---------- */
 const IRC=[['تهران',35.69,51.39],['مشهد',36.3,59.6],['اصفهان',32.65,51.67],['شیراز',29.6,52.54],['تبریز',38.08,46.29],['کرج',35.84,50.99],['اهواز',31.32,48.67],['قم',34.64,50.88],['کرمانشاه',34.31,47.07],['ارومیه',37.55,45.08],['رشت',37.28,49.58],['زاهدان',29.5,60.86],['همدان',34.8,48.51],['کرمان',30.28,57.08],['یزد',31.9,54.36],['اردبیل',38.25,48.29],['بندرعباس',27.18,56.27],['اراک',34.09,49.69],['زنجان',36.68,48.48],['سنندج',35.31,46.99],['قزوین',36.27,50],['خرم‌آباد',33.49,48.36],['گرگان',36.84,54.43],['ساری',36.56,53.06],['بجنورد',37.47,57.33],['بیرجند',32.87,59.22],['بوشهر',28.97,50.84],['ایلام',33.64,46.42],['شهرکرد',32.33,50.86],['یاسوج',30.67,51.59],['سمنان',35.58,53.39],['کاشان',33.98,51.44],['دزفول',32.38,48.4],['آبادان',30.34,48.3],['ماهشهر',30.56,49.2],['چابهار',25.29,60.64],['کیش',26.53,53.98],['قشم',26.95,56.27],['بم',29.11,58.36],['زابل',31.03,61.5],['طبس',33.6,56.92],['سبزوار',36.21,57.68],['نیشابور',36.21,58.8],['شاهرود',36.42,54.98],['رامسر',36.92,50.64],['آمل',36.47,52.35],['بابل',36.54,52.68],['مراغه',37.39,46.24],['خوی',38.55,44.95],['سقز',36.25,46.27],['مریوان',35.52,46.18],['بروجرد',33.9,48.75],['ملایر',34.3,48.82],['جیرفت',28.68,57.74],['لار',27.68,54.34],['میناب',27.15,57.08],['فیروزکوه',35.76,52.77],['شوشتر',32.05,48.85],['دماوند',35.72,52.06],['آستارا',38.43,48.87],['ایوان',33.83,46.31],['گیلان‌غرب',34.14,45.92],['اسلام‌آباد غرب',34.11,46.53],['سرپل ذهاب',34.46,45.86],['دهلران',32.69,47.27],['پاوه',35.04,46.36],['بیجار',35.87,47.6]];
+function ircDay(i){if(i===0)return 'امروز';const t=(IRCD&&IRCD.a[0]&&IRCD.a[0].daily&&IRCD.a[0].daily.time[i])||(D&&D.daily.time[i]);if(!t)return '';return fmtJ(t,{weekday:'long'})+' '+fmtJ(t,{day:'numeric',month:'long'})}
 let IRCD=null,IRCV={d:0,sort:'max',q:'',v:'temp'};
 async function loadIRC(){
   if(IRCD&&Date.now()-IRCD.t<30*60e3)return IRCD;
@@ -1519,7 +1520,7 @@ function ircHtml(){
 }
 function ircCard(){const R=IRCV.v==='rain';return `<div class="card" id="ircCard"><h3>🇮🇷 دما و بارش شهرهای کشور</h3>
   <div class="seg" id="ircV" style="margin-bottom:6px"><button data-v="temp" class="${!R?'on':''}">🌡️ کمینه و بیشینه</button><button data-v="rain" class="${R?'on':''}">💧 بارش</button></div>
-  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><div class="seg" id="ircD"><button data-v="0" class="${IRCV.d===0?'on':''}">امروز</button><button data-v="1" class="${IRCV.d===1?'on':''}">فردا</button><button data-v="2" class="${IRCV.d===2?'on':''}">پس‌فردا</button></div>
+  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><div class="seg" id="ircD">${[0,1,2].map(i=>`<button data-v="${i}" class="${IRCV.d===i?'on':''}">${ircDay(i)}</button>`).join('')}</div>
   <div class="seg" id="ircS"><button data-v="max" class="${IRCV.sort==='max'?'on':''}">${R?'پربارش‌ترین':'گرم‌ترین'}</button><button data-v="min" class="${IRCV.sort==='min'?'on':''}">${R?'کم‌بارش‌ترین':'سردترین'}</button><button data-v="name" class="${IRCV.sort==='name'?'on':''}">الفبا</button></div></div>
   <input class="inp" id="ircQ" placeholder="جستجوی شهر…" value="${esc(IRCV.q)}" style="margin-top:8px;padding:8px 12px">
   <div id="ircBody" style="margin-top:8px">${R?ircRainHtml():ircHtml()}</div></div>`}
@@ -1627,8 +1628,8 @@ function ircRainHtml(){
   const q=IRCV.q.trim();if(q)L=L.filter(x=>x.n.includes(q));
   L.sort((a,b)=>IRCV.sort==='name'?a.n.localeCompare(b.n,'fa'):IRCV.sort==='min'?a.p[d]-b.p[d]:b.p[d]-a.p[d]);
   const wet=L.filter(x=>x.p[d]>=.5).length,mx=Math.max(5,...L.map(x=>x.p[d]));
-  return `<div class="note" style="margin-bottom:6px">${wet?fa(wet)+' شهر '+['امروز','فردا','پس‌فردا'][d]+' بارش دارند':'بارش قابل توجهی در شهرهای کشور پیش‌بینی نمی‌شود'}</div><div class="irl">${L.map(x=>`<button class="irr irw2" data-c="${esc(x.n)}"><span class="irn">${x.n}</span>${icon(x.wc,1)}<span class="wyb"><i style="width:${(x.p[d]/mx*100).toFixed(0)}%;background:${x.sn?'linear-gradient(to left,#c7d2fe,#818cf8)':'linear-gradient(to left,#38bdf8,#2563eb)'}"></i></span><b class="irmx">${x.p[d]>=.1?fa(x.p[d],x.p[d]<10?1:0):'–'}</b><small>${x.sn?'❄️ برف':''}</small></button>`).join('')}</div>
-   <div class="note" style="margin-top:6px">مقدار بارش پیش‌بینی‌شده (میلی‌متر) برای ${['امروز','فردا','پس‌فردا'][d]} · روی هر شهر بزنید تا پیش‌بینی کاملش باز شود</div>`;
+  return `<div class="note" style="margin-bottom:6px">${wet?fa(wet)+' شهر '+ircDay(d)+' بارش دارند':'بارش قابل توجهی در شهرهای کشور پیش‌بینی نمی‌شود'}</div><div class="irl">${L.map(x=>`<button class="irr irw2" data-c="${esc(x.n)}"><span class="irn">${x.n}</span>${icon(x.wc,1)}<span class="wyb"><i style="width:${(x.p[d]/mx*100).toFixed(0)}%;background:${x.sn?'linear-gradient(to left,#c7d2fe,#818cf8)':'linear-gradient(to left,#38bdf8,#2563eb)'}"></i></span><b class="irmx">${x.p[d]>=.1?fa(x.p[d],x.p[d]<10?1:0):'–'}</b><small>${x.sn?'❄️ برف':''}</small></button>`).join('')}</div>
+   <div class="note" style="margin-top:6px">مقدار بارش پیش‌بینی‌شده (میلی‌متر) برای ${ircDay(d)} · روی هر شهر بزنید تا پیش‌بینی کاملش باز شود</div>`;
 }
 
 /* ---------- live sky band (device time) ---------- */
