@@ -128,7 +128,7 @@ with sync_playwright() as p:
     pg.click('#mapLayers .chip[data-v=temp]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5-map-temp.png')
     pg.click('nav button[data-t=rd]'); pg.wait_for_timeout(2500); pg.screenshot(path=f'{OUT}/r1-iran.png', full_page=True)
     pg.click('#rdSrc .chip[data-v=nasa]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/r2-nasa.png')
-    pg.click('#rdSrc .chip[data-v=rv]'); pg.wait_for_timeout(1200); pg.screenshot(path=f'{OUT}/r3-rv.png')
+    pg.click('#rdSrc .chip[data-v=rv]'); pg.wait_for_timeout(1200); pg.click('#rdInfo [data-st=IRKR]'); pg.wait_for_timeout(800); pg.screenshot(path=f'{OUT}/r3-rv.png', full_page=True)
     pg.click('nav button[data-t=map]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/r4-backmap.png')
     pg.click('#mapLayers .chip[data-v=wind]'); pg.wait_for_timeout(1500); pg.screenshot(path=f'{OUT}/5b-map-wind.png')
     pg.click('nav button[data-t=md]'); pg.wait_for_timeout(300)

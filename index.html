@@ -109,7 +109,7 @@ nav button.on{color:#fff}nav button.on svg{stroke:var(--acc)}
 .map{position:relative;height:62vh;min-height:360px;border-radius:22px;overflow:hidden;margin:12px 16px;background:#1b1f2a;direction:ltr;touch-action:none;border:1px solid var(--line)}
 .map .ly{position:absolute;inset:0;pointer-events:none}
 .map img{position:absolute;user-select:none;-webkit-user-drag:none;pointer-events:none}
-.map canvas{position:absolute;inset:0;pointer-events:none}
+.map canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .map .mk{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--acc);border:3px solid #fff;box-shadow:0 0 0 6px rgba(125,211,252,.3);pointer-events:none}
 .map .ctl{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:5}
 .map .ctl button{width:38px;height:38px;border-radius:12px;background:rgba(15,26,51,.85);border:1px solid var(--line);font-size:20px;color:#fff;display:grid;place-items:center}
@@ -238,7 +238,7 @@ a{color:var(--acc)}
 
 <script>
 'use strict';
-const VERSION='1.2.0';
+const VERSION='1.2.1';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -769,7 +769,8 @@ async function fillProf(){
 /* ---------- RADAR tab (nationwide Iran precipitation) ---------- */
 const isRad=()=>MP.mode==='radar';
 const R={src:S.rdSrc||'iran',iran:null,nasa:null,fis:{iran:0,nasa:0,rv:0},timer:null};
-const RD_SRC={iran:'🇮🇷 بارش سراسری ایران',nasa:'🛰️ ماهواره ناسا',rv:'📡 رادار زمینی'};
+const RD_SRC={iran:'🇮🇷 بارش سراسری ایران',rv:'📡 رادارهای کشور',nasa:'🛰️ ماهواره ناسا'};
+const IR_RADARS=[['IRKR','کرمانشاه',34.31,47.07],['IRTH','تهران',35.69,51.39],['IRTB','تبریز',38.08,46.29],['IR3150','اردبیل',38.25,48.29],['IRGI','گیلان',37.28,49.58],['IRKZ','مازندران',36.56,53.06],['IRAH','اهواز',31.32,48.67],['IRBS','بوشهر',28.92,50.84],['IRSH','شیراز',29.6,52.54]];
 const IR={lat1:40.5,lat0:24.5,lon0:43.5,lon1:64,step:.75};IR.nLat=Math.floor((IR.lat1-IR.lat0)/IR.step)+1;IR.nLon=Math.floor((IR.lon1-IR.lon0)/IR.step)+1;
 const RAIN_ST=[[.1,[150,225,255]],[.5,[0,190,255]],[1,[0,120,255]],[2,[0,200,90]],[4,[0,150,0]],[7,[255,225,0]],[12,[255,140,0]],[20,[240,0,0]],[35,[190,0,110]],[60,[255,120,255]]];
 const SNOW_ST=[[.1,[225,225,255]],[1,[175,160,255]],[3,[125,95,240]],[8,[90,40,200]]];
@@ -812,7 +813,14 @@ function drawEq(ctx,img,bb){
   const z=MP.z,x0=lon2x(bb.lon0,z)-MP.sx,x1=lon2x(bb.lon1,z)-MP.sx,N=60,ih=img.height;ctx.imageSmoothingEnabled=true;
   for(let k=0;k<N;k++){const a=bb.lat1-(bb.lat1-bb.lat0)*k/N,b=bb.lat1-(bb.lat1-bb.lat0)*(k+1)/N,y0=lat2y(a,z)-MP.sy,y1=lat2y(b,z)-MP.sy;if(y1<0||y0>MP.h)continue;ctx.drawImage(img,0,ih*k/N,img.width,ih/N,x0,y0,x1-x0,y1-y0+1.5)}
 }
+function drawStations(ctx){
+  ctx.font='600 11px Vazirmatn,Tahoma,sans-serif';ctx.textAlign='center';
+  IR_RADARS.forEach(r=>{const x=lon2x(r[3],MP.z)-MP.sx,y=lat2y(r[2],MP.z)-MP.sy,rp=250000/(156543.03*Math.cos(r[2]*Math.PI/180)/2**MP.z);if(x<-rp||y<-rp||x>MP.w+rp||y>MP.h+rp)return;
+    const on=R.st===r[0];ctx.beginPath();ctx.arc(x,y,rp,0,7);ctx.strokeStyle=on?'rgba(125,211,252,.8)':'rgba(255,255,255,.25)';ctx.setLineDash([5,5]);ctx.lineWidth=on?2:1;ctx.stroke();ctx.setLineDash([]);
+    ctx.beginPath();ctx.arc(x,y,5,0,7);ctx.fillStyle=on?'#7dd3fc':'#fff';ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.6)';ctx.strokeText('📡 '+r[1],x,y-12);ctx.fillStyle='#fff';ctx.fillText('📡 '+r[1],x,y-12)});
+}
 function drawRadar(ctx){
+  if(R.src==='rv'){drawStations(ctx);return}
   if(R.src==='iran'&&R.iran){drawEq(ctx,iranFrame(R.fis.iran),{lat1:IR.lat1,lat0:IR.lat1-(IR.nLat-1)*IR.step,lon0:IR.lon0,lon1:IR.lon0+(IR.nLon-1)*IR.step})}
   else if(R.src==='nasa'&&R.nasa){const f=R.nasa.fr[R.fis.nasa];if(f&&f.im.complete&&!f.im.bad&&f.im.naturalWidth){ctx.globalAlpha=.9;drawEq(ctx,f.im,{lat1:42,lat0:22,lon0:40,lon1:66});ctx.globalAlpha=1}}
 }
@@ -845,11 +853,13 @@ function updRdInfo(){
   const IRL=`<div class="note" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">رادارهای زمینی سازمان هواشناسی کشور داده عمومی ندارند؛ تصاویر آن‌ها را در <a href="http://radar.irimo.ir/" target="_blank" rel="noopener">سامانه رادار سازمان هواشناسی</a> ببینید.</div>`;
   const info={iran:['بارش سراسری ایران (مدل‌های عددی)',`linear-gradient(to right,${grad(RAIN_ST)})`,['۰٫۱','۱','۴','۱۲','۳۵+'],`پوشش کامل کشور در شبکه‌ای حدود ۸۰ کیلومتری · از ${fa(2)} ساعت گذشته تا ${fa(6)} ساعت آینده، هر ${fa(R.iran?R.iran.step:15)} دقیقه · رنگ‌های بنفش‌کم‌رنگ = برف. این داده تخمین مدل است، نه تصویر مستقیم رادار.`],
     nasa:['تخمین بارش ماهواره‌ای ناسا (GPM IMERG)','linear-gradient(to right,#b4f0ff,#33b7ff,#2e5bff,#00c44f,#ffe200,#ff7a00,#ff0000)',['سبک','','','','شدید'],'بارش واقعی مشاهده‌شده از ماهواره، کل ایران و منطقه، هر ۳۰ دقیقه · حدود ۷ ساعت تأخیر دارد.'],
-    rv:['رادار زمینی (RainViewer)','linear-gradient(to right,#88ddee,#0099cc,#0077aa,#005588,#ffee00,#ffaa00,#ff4400,#c10000,#ffaaff)',['Light','Moderate','Heavy','Extreme'],'رادارهای زمینی شبکه جهانی، ۲ ساعت گذشته · پوشش ایران محدود است و فقط مناطق مرزی را نشان می‌دهد.']}[R.src];
+    rv:['رادارهای هواشناسی کشور (از طریق RainViewer)','linear-gradient(to right,#88ddee,#0099cc,#0077aa,#005588,#ffee00,#ffaa00,#ff4400,#c10000,#ffaaff)',['Light','Moderate','Heavy','Extreme'],'تصویر واقعی ۹ رادار سازمان هواشناسی (کرمانشاه، تهران، تبریز، اردبیل، گیلان، مازندران، اهواز، بوشهر، شیراز) · ۲ ساعت گذشته، هر ۱۰ دقیقه · دایره‌ها برد تقریبی ۲۵۰ کیلومتری هر رادار است. اگر رادار خاموش یا قطع باشد، آن منطقه خالی می‌ماند.']}[R.src];
   const bad=R.src==='nasa'&&R.nasa&&R.nasa.fr.every(f=>f.im.bad);
   el.innerHTML=`${fr.length?`<div class="tl"><button class="ibtn" id="rPlay">${R.timer?'⏸':'▶'}</button><input type="range" id="rSl" min="0" max="${fr.length-1}" value="${fi}"><b id="rT" style="min-width:110px;text-align:center;font-size:13px">${rdLabel(fi)}</b></div>`:''}
    <div style="margin-top:8px"><b>${info[0]}</b></div><div class="cbar" style="background:${info[1]}"></div><div class="cbar-l">${info[2].map(x=>`<span>${x}</span>`).join('')}</div>
+   ${R.src==='rv'?`<div class="sec">پرش به رادار</div><div class="chips">${IR_RADARS.map(r=>`<button class="chip ${R.st===r[0]?'on':''}" data-st="${r[0]}">📡 ${r[1]}</button>`).join('')}</div>`:''}
    <div class="note">${bad?'⚠️ تصاویر ماهواره بارگذاری نشد؛ اتصال به سرور ناسا را بررسی کنید. ':''}${info[3]}</div>${IRL}`;
+  $$('#rdInfo [data-st]').forEach(b=>b.onclick=()=>{const r=IR_RADARS.find(x=>x[0]===b.dataset.st);R.st=r[0];MP.lat=r[2];MP.lon=r[3];MP.z=7;mapRender();updRdInfo();$('#map').scrollIntoView({behavior:'smooth',block:'center'})});
   const s=$('#rSl');if(s)s.oninput=e=>rdSet(+e.target.value);
   const p=$('#rPlay');if(p)p.onclick=()=>{if(R.timer){clearInterval(R.timer);R.timer=null}else R.timer=setInterval(()=>{if(!isRad()||curTab!=='rd'){clearInterval(R.timer);R.timer=null;return}const n=rdFrames().length;if(n)rdSet((R.fis[R.src]+1)%n)},R.src==='iran'?450:700);p.textContent=R.timer?'⏸':'▶'};
   $('#rdCities').innerHTML=R.src==='iran'?rainCities():'';
