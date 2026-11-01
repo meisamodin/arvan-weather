@@ -169,7 +169,7 @@ def handle(route):
         return J(aqi())
     if u.hostname == 'geocoding-api.open-meteo.com' and 'Abdanan' in route.request.url: return J({'results': [{'name': 'قلعهٔ آب دانان', 'admin1': 'ایلام', 'country': 'ایران', 'country_code': 'IR', 'latitude': 32.99, 'longitude': 47.42}]})
     if u.hostname == 'geocoding-api.open-meteo.com': return J({'results': [{'name': 'شیراز', 'admin1': 'استان فارس', 'country': 'ایران', 'latitude': 29.61, 'longitude': 52.53}]})
-    if u.hostname == 'api.rainviewer.com': return J({'host': 'https://tilecache.rainviewer.com', 'radar': {'past': [{'time': 1793446800 + i * 600, 'path': f'/v2/radar/{i}'} for i in range(12)]}})
+    if u.hostname == 'api.rainviewer.com': return J({'host': 'https://tilecache.rainviewer.com', 'radar': {'past': [{'time': int(__import__('time').time()) // 600 * 600 - 6600 + i * 600, 'path': f'/v2/radar/{i}'} for i in range(12)]}})
     if u.hostname == 'archive-api.open-meteo.com' and len(q['latitude'][0].split(',')) > 1:
         st = datetime.strptime(q['start_date'][0], '%Y-%m-%d'); en = datetime.strptime(q['end_date'][0], '%Y-%m-%d'); n = (en - st).days + 1
         T = [(st + timedelta(days=k)).strftime('%Y-%m-%d') for k in range(n)]
@@ -229,7 +229,7 @@ with sync_playwright() as p:
     pg.route('**/*', lambda r: handle(r) if '127.0.0.1' not in r.request.url else r.continue_())
     pg.goto('http://127.0.0.1:8765/index.html'); pg.wait_for_timeout(1200)
     pg.screenshot(path=f'{OUT}/0-onboard.png'); pg.click('#obSkip'); pg.wait_for_timeout(300)
-    pg.screenshot(path=f'{OUT}/1-now.png', full_page=True)
+    pg.screenshot(path=f'{OUT}/1-now.png', full_page=True); print('RADARAT', pg.evaluate('radarAt(35.69,51.39).then(r=>JSON.stringify(r)).catch(e=>String(e))'), pg.evaluate('JSON.stringify([D.current.precipitation,D.current.weather_code,OVK])'))
     for t, name in [('fc', '2-forecast'), ('aq', '3-aqi')]:
         pg.click(f'nav button[data-t={t}]'); pg.wait_for_timeout(500); pg.screenshot(path=f'{OUT}/{name}.png', full_page=True)
     pg.click('nav button[data-t=map]'); pg.wait_for_timeout(2500)

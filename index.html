@@ -198,6 +198,7 @@ a{color:var(--acc)}
 .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.sgrid small{display:block;color:var(--dim);font-size:10.5px}
 .moonrow{display:flex;align-items:center;gap:12px;margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
 .moonsp svg{animation:aw-glow 4s ease-in-out infinite alternate}
+.ovw{display:flex;gap:10px;align-items:center;border:1px solid rgba(96,165,250,.45);background:linear-gradient(135deg,rgba(37,99,235,.28),rgba(14,165,233,.12))}.ovw .ovi{font-size:30px}.ovw b{display:block;font-size:14.5px}.ovw small{display:block;font-size:12px;color:var(--sub);line-height:1.7;margin-top:2px}
 .nc0{display:flex;gap:8px;align-items:center;font-size:13.5px;color:var(--sub);padding:11px 14px}
 .ncw{display:flex;align-items:flex-end;gap:6px;height:84px;margin:10px 0 4px;direction:rtl}.ncb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
 .ncb i{display:block;width:100%;border-radius:6px 6px 2px 2px;transform-origin:bottom;animation:aw-grow .8s cubic-bezier(.2,.8,.2,1) both}@keyframes aw-grow{from{transform:scaleY(0)}}
@@ -446,7 +447,7 @@ body[data-fx=fog]{--bg1:#6b7480!important;--bg2:#a9b1ba!important}
 
 <script>
 'use strict';
-const VERSION='1.23.2';
+const VERSION='1.24.0';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const LS={get(k,d){try{const v=localStorage.getItem('aw.'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('aw.'+k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem('aw.'+k)}catch(e){}}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -661,6 +662,7 @@ function renderNow(){
   const c=D.current,d=D.daily,h=D.hourly,s=i0();
   let html='';
   {const AL=alerts(),one=a=>`<div class="alert ${a.lv}"><span class="ai">${a.ic}</span><div><b>${esc(a.t)}</b><span>${esc(a.m)}</span></div></div>`;html+=AL.slice(0,2).map(one).join('');if(AL.length>2)html+=`<details class="almore"><summary>⚠️ ${fa(AL.length-2)} هشدار دیگر</summary>${AL.slice(2).map(one).join('')}</details>`}
+  if(c._ov)html+=`<div class="card ovw"><span class="ovi">${c._ov.snow?'🌨️':'🌧️'}</span><div><b>هم‌اکنون ${c._ov.snow?'برف':'باران'} در محدوده شما ثبت شده</b><small>طبق ${c._ov.src} · ${c._ov.when}. مدل‌های پیش‌بینی این بارش را نشان نمی‌دادند؛ وضعیت «اکنون» بر اساس مشاهده اصلاح شد.</small></div></div>`;
   html+=`<section class="hero">${skyBand()}<canvas id="heroFx"></canvas><div class="ic">${icon(c.weather_code,c.is_day)}</div><div class="tmp">${tS(c.temperature_2m)}</div><div class="desc">${WC[c.weather_code]||''}</div>
    <div class="sub">احساس واقعی ${tS(c.apparent_temperature)} · بیشینه ${tS(d.temperature_2m_max[0])} · کمینه ${tS(d.temperature_2m_min[0])}</div><div class="obsh" id="obsHero"></div><div class="qk"><span>💧 ${fa(c.relative_humidity_2m)}٪</span><span>💨 ${fa(Math.round(wV(c.wind_speed_10m)))} ${WU[S.w][1]}</span><span>☔ ${fa(d.precipitation_probability_max[0]||0)}٪</span><span>☀️ UV ${fa(Math.round(d.uv_index_max[0]||0))}</span></div><div class="sum">${summary()}</div>
    <div class="stale">به‌روزرسانی: ${ago(D._t)} · ${D.src==='met'?'🇳🇴 منبع پشتیبان: هواشناسی نروژ (MET Norway)':D.src==='blend'?'🤝 میانگین '+fa(D.blend||5)+' مدل':D.src&&D.src!=='best'&&MM[D.src]?'مدل '+MM[D.src][2]:'بهترین ترکیب مدل‌ها'}</div><div class="tools"><button class="chip" onclick="shareWeather()">📤 اشتراک</button><button class="chip" onclick="storyCard()">🖼️ کارت استوری</button><button class="chip" onclick="openGlance()">⛶ تمام‌صفحه</button><a class="chip" href="#" onclick="go('rd');return false" style="text-decoration:none;color:inherit">📡 رادار</a></div></section>`;
@@ -699,7 +701,7 @@ function renderNow(){
   if(!hid('sn'))html+=sunCard();
   if(!hid('ic'))html+=ircCard();
   html+=`<div style="text-align:center;margin:6px 0 0"><button class="chip" onclick="$('#setBtn').click();setTimeout(()=>{const e=$('#cardSet');if(e)e.scrollIntoView({block:'center'})},300)">⚙️ شخصی‌سازی کارت‌ها</button></div>`;
-  $('#t-now').innerHTML=html;heroFX();if(!hid('ic'))bindIRC();if(!hid('ex'))animEx();if(!hid('ob'))fillObs();
+  $('#t-now').innerHTML=html;heroFX();if(!hid('ic'))bindIRC();if(!hid('ex'))animEx();if(!hid('ob'))fillObs();nowObsCheck();
 }
 function obsToday(){const h=D.hourly,day=D.current.time.slice(0,10),now=D.current.time.slice(0,13);let r=0,sn=0,hrs=0;h.time.forEach((t,k)=>{if(t.slice(0,10)===day&&t.slice(0,13)<=now){const p=h.precipitation[k]||0;r+=p;if(p>=.1)hrs++;if(h.snowfall)sn+=h.snowfall[k]||0}});
   const y=D.yday||{};return{r,sn,hrs,yr:y.precipitation_sum,ysn:y.snowfall_sum}}
@@ -960,7 +962,7 @@ function yComp(){if(!D.yh)return '';const hr=+D.current.time.slice(11,13),y=D.yh
 function nowcastCard(){
   const m=D.minutely_15;if(!m||!m.time)return '';let k0=0;m.time.forEach((t,i)=>{if(t<=D.current.time)k0=i});
   const v=m.precipitation.slice(k0,k0+9).map(x=>x||0),t=m.time.slice(k0,k0+9);if(v.length<3)return '';
-  const wet=v.map(x=>x>=.05);if(!wet.some(Boolean))return `<div class="card nc0"><span>🌂</span> تا ۲ ساعت آینده بارشی پیش‌بینی نمی‌شود</div>`;
+  const wet=v.map(x=>x>=.05);if(!wet.some(Boolean))return D.current._ov?`<div class="card nc0"><span>${D.current._ov.snow?'🌨️':'🌧️'}</span> طبق ${D.current._ov.src} الان بارش هست، ولی مدل‌ها برای ۲ ساعت آینده بارشی نشان نمی‌دهند؛ احتمالاً بارش محلی و کوتاه است</div>`:`<div class="card nc0"><span>🌂</span> تا ۲ ساعت آینده بارشی پیش‌بینی نمی‌شود</div>`;
   const mins=i=>i*15,first=wet.indexOf(true),endI=wet.lastIndexOf(true);
   let msg;if(wet[0]){const stop=wet.indexOf(false);msg=stop<0?'بارش تا ۲ ساعت آینده ادامه دارد':'بارش حدود '+fa(mins(stop))+' دقیقه دیگر قطع می‌شود'}else msg='بارش از حدود '+fa(mins(first))+' دقیقه دیگر شروع می‌شود';
   const mx=Math.max(1,...v.map(x=>x*4));const snow=isSnow(D.current.weather_code);
@@ -1721,6 +1723,27 @@ function obsCard(){const c=city(),o=nearObs(+c.lat,+c.lon);if(!o)return '';const
    <div class="obsw"><div class="big">${tS(o.t)}</div><div class="obsd">${rh!=null?`<span>💧 ${fa(rh)}٪</span>`:''}${o.ws!=null?`<span>💨 ${fa(Math.round(wV(o.ws)))} ${WU[S.w][1]}${o.wd!=null&&o.wd!=='VRB'?' از '+dirName(+o.wd):''}</span>`:''}${o.vis!=null?`<span>👁️ ${String(o.vis).includes('+')||+o.vis>=6?'+۱۰':fa((+o.vis*1.609).toFixed(1))} km</span>`:''}${o.wx?`<span>🌦️ ${wxFa(o.wx)}</span>`:''}</div></div>
    <div class="note">اندازه‌گیری واقعی ایستگاه هواشناسی فرودگاه · ${mins<1?'همین الان':fa(mins)+' دقیقه پیش'}${df!=null&&Math.abs(df)>=1.5?` · پیش‌بینی مدل ${fa(Math.abs(Math.round(dT(df))))}° ${df>0?'گرم‌تر':'سردتر'} بود`:''}</div></div>`}
 async function fillObs(){try{await loadObs()}catch(e){return}if(curTab!=='now'||!D)return;const ex=$('#obsSlot');if(ex&&!ex.innerHTML)ex.innerHTML=obsCard();const hl=$('#obsHero');if(hl){const c=city(),o=nearObs(+c.lat,+c.lon);hl.innerHTML=o?`🛰️ ایستگاه ${esc(o.n)}: <b>${tS(o.t)}</b> (${fa(Math.max(0,Math.round((Date.now()-o.tm)/6e4)))} دقیقه پیش)`:''}}
+/* observed precipitation now (radar pixel + nearest METAR) — corrects the model when it misses local rain */
+async function radarAt(la,lo){
+  let host=MP.host,fr=MP.frames&&MP.frames.length?MP.frames[MP.frames.length-1]:null;
+  if(!fr||Date.now()-fr.time*1e3>20*6e4){const j=await getJSON('https://api.rainviewer.com/public/weather-maps.json',10000);host=j.host;const p=(j.radar&&j.radar.past)||[];fr=p[p.length-1];if(!MP.frames||!MP.frames.length){MP.host=host;MP.frames=p;MP.fi=p.length-1}}
+  if(!fr||Date.now()-fr.time*1e3>45*6e4)return null;
+  const z=7,n=2**z,X=(lo+180)/360*n,r=la*Math.PI/180,Y=(1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*n,tx=Math.floor(X),ty=Math.floor(Y),px=Math.floor((X-tx)*256),py=Math.floor((Y-ty)*256);
+  const rs=await fetch(`${host}${fr.path}/256/${z}/${tx}/${ty}/2/1_1.png`);if(!rs.ok)return null;const bm=await createImageBitmap(await rs.blob());
+  const cv=document.createElement('canvas');cv.width=cv.height=256;const cx=cv.getContext('2d');cx.drawImage(bm,0,0);const R=6,x0=Math.max(0,px-R),y0=Math.max(0,py-R),w=Math.min(256,px+R+1)-x0,h=Math.min(256,py+R+1)-y0;
+  const d=cx.getImageData(x0,y0,w,h).data;let wet=0,tot=0;for(let i=0;i<d.length;i+=4){tot++;if(d[i+3]>40)wet++}return{f:wet/tot,t:fr.time*1e3}}
+let OVK='';
+async function nowObsCheck(){
+  if(!D||!D.current)return;const c=city(),key=c.id+'|'+D._t;if(OVK===key)return;OVK=key;const cur=D.current;
+  const modelWet=(cur.precipitation||0)>=.1||(cur.weather_code>=51&&cur.weather_code<=99&&cur.weather_code!==45&&cur.weather_code!==48);if(modelWet||cur._ov)return;
+  const [rd,ob]=await Promise.all([radarAt(+c.lat,+c.lon).catch(()=>null),loadObs().then(()=>nearObs(+c.lat,+c.lon,45)).catch(()=>null)]);
+  if(D.current!==cur||curTab!=='now')return;let ov=null;const ago2=t=>{const m=Math.max(0,Math.round((Date.now()-t)/6e4));return m<1?'همین الان':fa(m)+' دقیقه پیش'};
+  if(rd&&rd.f>=.15)ov={src:'رادار هواشناسی',when:ago2(rd.t),hv:rd.f>=.6};
+  else if(ob&&Date.now()-ob.tm<90*6e4&&/(RA|DZ|SN|SH|TS|GR|PL)/.test(ob.wx||''))ov={src:'ایستگاه '+ob.n,when:ago2(ob.tm),hv:/\+/.test(ob.wx),snow:/SN|PL/.test(ob.wx)&&!/RA/.test(ob.wx),ts:/TS/.test(ob.wx)};
+  if(!ov)return;if(ov.snow==null)ov.snow=(cur.temperature_2m??5)<=1;
+  cur._mc=cur.weather_code;cur._ov=ov;cur.weather_code=ov.ts?95:ov.snow?(ov.hv?73:71):(ov.hv?63:61);cur.precipitation=Math.max(cur.precipitation||0,ov.hv?2:.3);
+  renderNow();pageFX();
+}
 function drawObs(ctx){if(!OBS)return;ctx.textAlign='center';ctx.textBaseline='middle';OBS.L.forEach(o=>{const x=lon2x(o.lo,MP.z)-MP.sx,y=lat2y(o.la,MP.z)-MP.sy;if(x<-30||y<-30||x>MP.w+30||y>MP.h+30)return;const col=rgb(tempColor(o.t));
   ctx.beginPath();ctx.arc(x,y,15,0,7);ctx.fillStyle=col;ctx.fill();ctx.lineWidth=2;ctx.strokeStyle='#fff';ctx.stroke();ctx.font='800 12px Vazirmatn,Tahoma';ctx.fillStyle='#0f172a';ctx.fillText(fa(Math.round(cT(o.t)))+'°',x,y+1);
   if(MP.z>=6){ctx.font='600 10px Vazirmatn,Tahoma';ctx.lineWidth=3;ctx.strokeStyle='rgba(0,0,0,.6)';ctx.strokeText(o.n,x,y+24);ctx.fillStyle='#fff';ctx.fillText(o.n,x,y+24)}
